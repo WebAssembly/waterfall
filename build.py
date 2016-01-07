@@ -16,7 +16,6 @@
 
 import os
 import shutil
-import subprocess
 import sys
 import multiprocessing
 import urllib2
@@ -24,7 +23,6 @@ import urllib2
 import assemble_files
 import compile_torture_tests
 import link_assembly_files
-# Use proc instead of subprocess to get logged subprocess invocation.
 import proc
 
 
@@ -105,6 +103,7 @@ LLVM_SVN_REV = None  # Found after the sync step, corresponds to LLVM_REVISION.
 # Pin the GCC revision so that new torture tests don't break the bot. This
 # should be manually updated when convenient.
 GCC_REVISION = 'b6125c702850488ac3bfb1079ae5c9db89989406'
+
 
 # Magic annotations:
 # https://chromium.googlesource.com/chromium/tools/build/+/master/scripts/common/annotator.py

@@ -22,19 +22,19 @@
 # Imports subprocess in its own namespace so we can always refer directly to
 # its attributes.
 import subprocess
-# Imports all of subprocess into the current namespace, effectively re-exporting
-# everything.
+# Imports all of subprocess into the current namespace, effectively
+# re-exporting everything.
 from subprocess import *
 
 
 # Now we can override any parts of subprocess we want, while leaving the rest.
 def check_call(cmd, **kwargs):
   print 'check_call Running command:'
-  print ' '.join('"' + c + '"' if ' ' in c else c  for c in cmd)
+  print ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
   return subprocess.check_call(cmd, **kwargs)
 
 
 def check_output(cmd, **kwargs):
   print 'check_output Running command:'
-  print ' '.join('"' + c + '"' if ' ' in c else c  for c in cmd)
+  print ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
   return subprocess.check_output(cmd, **kwargs)

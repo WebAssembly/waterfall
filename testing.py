@@ -21,8 +21,8 @@ import os
 import os.path
 import sys
 
-# Use proc instead of subprocess to get logged subprocess invocation.
 import proc
+
 
 class Result:
   """Result from a single test that was run."""
