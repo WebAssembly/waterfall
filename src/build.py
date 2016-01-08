@@ -98,7 +98,6 @@ NPROC = multiprocessing.cpu_count()
 LLVM_REVISION = os.environ.get('BUILDBOT_REVISION', 'None')
 if LLVM_REVISION == 'None':
   LLVM_REVISION = 'origin/master'
-LLVM_SVN_REV = None  # Found after the sync step, corresponds to LLVM_REVISION.
 
 # Pin the GCC revision so that new torture tests don't break the bot. This
 # should be manually updated when convenient.
@@ -195,10 +194,8 @@ def Archive(name, tar):
   if not os.environ.get('BUILDBOT_BUILDERNAME'):
     return
   print 'Archiving %s: %s' % (name, tar)
-  svn_gs = 'svn/wasm-%s-r%s.tbz2' % (name, LLVM_SVN_REV)
   git_gs = 'git/wasm-%s-%s.tbz2' % (name, LLVM_REVISION)
-  UploadToCloud(tar, svn_gs, 'svn_download')
-  CopyCloudStorage(svn_gs, git_gs, 'git_download')
+  UploadToCloud(tar, git_gs, 'git_download')
 
 
 def GitRemoteUrl(cwd, remote):
@@ -290,13 +287,12 @@ def SyncLLVMClang():
   proc.check_call(['git', 'fetch'], cwd=LLVM_SRC_DIR)
   proc.check_call(['git', 'checkout', LLVM_REVISION], cwd=LLVM_SRC_DIR)
   print 'Getting SVN rev'
-  global LLVM_SVN_REV
-  LLVM_SVN_REV = int(proc.check_output(
+  llvm_svn_rev = int(proc.check_output(
       ['git', 'svn', 'find-rev', 'HEAD'], cwd=LLVM_SRC_DIR).strip())
-  print 'SVN REV: %d' % LLVM_SVN_REV
+  print 'SVN REV: %d' % llvm_svn_rev
   print 'Finding prior Clang rev'
   proc.check_call(['git', 'fetch'], cwd=CLANG_SRC_DIR)
-  prior_rev = FindPriorRev(CLANG_SRC_DIR, LLVM_SVN_REV)
+  prior_rev = FindPriorRev(CLANG_SRC_DIR, llvm_svn_rev)
   print 'Checking out Clang rev: %s' % prior_rev
   proc.check_call(['git', 'checkout', prior_rev], cwd=CLANG_SRC_DIR)
   PrintCurrentGitRev(LLVM_SRC_DIR)
@@ -503,13 +499,13 @@ def AssembleLLVMTorture(name, assembler, indir, fails):
 def Summary():
   BuildStep('Summary')
   sys.stdout.write('Failed steps: %s.' % failed_steps)
+  with open('latest', 'w+') as f:
+    f.write(str(LLVM_REVISION))
+  UploadToCloud('latest', 'git/latest', 'git_latest')
   if failed_steps:
     StepFail()
   else:
     try:
-      with open('lkgr', 'w+') as f:
-        f.write(str(LLVM_SVN_REV))
-      UploadToCloud('lkgr', 'svn/lkgr', 'svn_lkgr')
       with open('lkgr', 'w+') as f:
         f.write(str(LLVM_REVISION))
       UploadToCloud('lkgr', 'git/lkgr', 'git_lkgr')
