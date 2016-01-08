@@ -195,7 +195,7 @@ def Archive(name, tar):
     return
   print 'Archiving %s: %s' % (name, tar)
   git_gs = 'git/wasm-%s-%s.tbz2' % (name, LLVM_REVISION)
-  UploadToCloud(tar, git_gs, 'git_download')
+  UploadToCloud(tar, git_gs, 'download')
 
 
 def GitRemoteUrl(cwd, remote):
@@ -501,14 +501,14 @@ def Summary():
   sys.stdout.write('Failed steps: %s.' % failed_steps)
   with open('latest', 'w+') as f:
     f.write(str(LLVM_REVISION))
-  UploadToCloud('latest', 'git/latest', 'git_latest')
+  UploadToCloud('latest', 'git/latest', 'latest')
   if failed_steps:
     StepFail()
   else:
     try:
       with open('lkgr', 'w+') as f:
         f.write(str(LLVM_REVISION))
-      UploadToCloud('lkgr', 'git/lkgr', 'git_lkgr')
+      UploadToCloud('lkgr', 'git/lkgr', 'lkgr')
     finally:
       Remove('lkgr')
 
