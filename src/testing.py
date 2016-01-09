@@ -115,7 +115,7 @@ class SimilarityGroup:
     self.similarities = [100. * s for s in similarities]
     self.average = (sum(self.similarities) / len(self.similarities)
                     if self.similarities else 0.)
-    squared_diffs = [(s - self.average)**2 for s in self.similarities]
+    squared_diffs = [(s - self.average) ** 2 for s in self.similarities]
     self.stddev = (math.sqrt(sum(squared_diffs) / len(squared_diffs))
                    if self.similarities else 0.)
 
