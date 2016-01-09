@@ -24,7 +24,7 @@
 import subprocess
 # Imports all of subprocess into the current namespace, effectively
 # re-exporting everything.
-from subprocess import *
+from subprocess import * # flake8: noqa
 
 
 # Now we can override any parts of subprocess we want, while leaving the rest.
