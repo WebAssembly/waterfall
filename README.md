@@ -1,8 +1,8 @@
-[![Build Status](https://travis-ci.org/WebAssembly/waterfall.svg?branch=master)](https://travis-ci.org/WebAssembly/waterfall)
-
 # Waterfall
 
 ## ༼ ༎ຶ ෴ ༎ຶ༽ If it’s not tested, it’s already broken.
+
+Luckily, this repository has some tests: [![Build Status](https://travis-ci.org/WebAssembly/waterfall.svg?branch=master)](https://travis-ci.org/WebAssembly/waterfall)
 
 # What's this?
 
