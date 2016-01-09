@@ -7,7 +7,8 @@ Luckily, this repository has some tests: [![Build Status](https://travis-ci.org/
 # What's this?
 
 This repository holds the code which make the WebAssembly waterfall's heart
-beat. You may want to see [the waterfall][] in action.
+beat. You may want to see [the waterfall][] in action, and if you don't like
+what you see you may even want to [contribute](Contributing.md).
 
   [the waterfall]: https://build.chromium.org/p/client.wasm.llvm/console
 
