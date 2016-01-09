@@ -45,7 +45,8 @@ class Result:
 
   def similarity(self, other):
     """Compare output similarity, returning a float in the range [0,1]."""
-    return difflib.SequenceMatcher(None, self.output, other.output).quick_ratio()
+    return difflib.SequenceMatcher(
+      None, self.output, other.output).quick_ratio()
 
 
 class Tester(object):
