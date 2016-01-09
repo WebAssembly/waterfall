@@ -531,7 +531,7 @@ def main():
       name='s2wasm',
       linker=os.path.join(LLVM_INSTALL_BIN, 's2wasm'),
       fails=S2WASM_KNOWN_TORTURE_FAILURES)
-  s2wasm_sexpr_wasm_out = AssembleLLVMTorture(
+  AssembleLLVMTorture(
       name='s2wasm-sexpr-wasm',
       assembler=os.path.join(LLVM_INSTALL_BIN, 'sexpr-wasm'),
       indir=s2wasm_out,
