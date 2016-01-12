@@ -94,17 +94,10 @@ OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 
 NPROC = multiprocessing.cpu_count()
 
-# Schedulers which can kick off new builds, from:
-# https://chromium.googlesource.com/chromium/tools/build/+/master/masters/master.client.wasm.llvm/builders.pyl
-SCHEDULERS = {
-    'llvm_commits': 'llvm',
-    'clang_commits': 'clang'
-}
-
-# Buildbot-provided environment.
-BUILDBOT_SCHEDULER = os.environ.get('BUILDBOT_SCHEDULER', 'None')
-SCHEDULER = SCHEDULERS[BUILDBOT_SCHEDULER]
-BUILDBOT_REVISION = os.environ.get('BUILDBOT_REVISION', 'None')
+# Try to use the LLVM revision provided by buildbot.
+LLVM_REVISION = os.environ.get('BUILDBOT_REVISION', 'None')
+if LLVM_REVISION == 'None':
+  LLVM_REVISION = 'origin/master'
 
 # Pin the GCC revision so that new torture tests don't break the bot. This
 # should be manually updated when convenient.
@@ -201,7 +194,7 @@ def Archive(name, tar):
   if not os.environ.get('BUILDBOT_BUILDERNAME'):
     return
   print 'Archiving %s: %s' % (name, tar)
-  git_gs = 'git/wasm-%s-%s-%s.tbz2' % (name, SCHEDULER, BUILDBOT_REVISION)
+  git_gs = 'git/wasm-%s-%s.tbz2' % (name, LLVM_REVISION)
   UploadToCloud(tar, git_gs, 'download')
 
 
@@ -269,12 +262,7 @@ def PrintCurrentGitRev(cwd):
                    (cwd, remote, log))
 
 
-def CurrentSvnRev(path):
-  return int(proc.check_output(
-      ['git', 'svn', 'find-rev', 'HEAD'], cwd=path).strip())
-
-
-def FindPriorSvnRev(path, goal):
+def FindPriorRev(path, goal):
   revs = proc.check_output(
       ['git', 'rev-list', 'origin/master'], cwd=path).splitlines()
   for rev in revs:
@@ -282,17 +270,7 @@ def FindPriorSvnRev(path, goal):
         ['git', 'svn', 'find-rev', rev], cwd=path).strip()
     if int(num) <= goal:
       return rev
-  raise Exception('Cannot find svn rev at or before %d' % goal)
-
-
-def SyncToSameSvnRev(primary, secondary):
-    """Use primary's SVN rev to figure out which rev secondary goes to."""
-    primary_svn_rev = CurrentSvnRev(primary)
-    print 'SVN REV for %s: %d' % (primary, primary_svn_rev)
-    print 'Finding prior %s rev' % secondary
-    prior_rev = FindPriorSvnRev(secondary, primary_svn_rev)
-    print 'Checking out %s rev: %s' % (secondary, prior_rev)
-    proc.check_call(['git', 'checkout', prior_rev], cwd=secondary)
+  raise Exception('Cannot find clang rev at or before %d' % goal)
 
 
 def SyncLLVMClang():
@@ -305,20 +283,18 @@ def SyncLLVMClang():
     GitConfigRebaseMaster(LLVM_SRC_DIR)
     proc.check_call(['git', 'clone', CLANG_GIT, CLANG_SRC_DIR])
     GitConfigRebaseMaster(CLANG_SRC_DIR)
-  print 'Fetching LLVM and Clang'
+  print 'Syncing LLVM'
   proc.check_call(['git', 'fetch'], cwd=LLVM_SRC_DIR)
+  proc.check_call(['git', 'checkout', LLVM_REVISION], cwd=LLVM_SRC_DIR)
+  print 'Getting SVN rev'
+  llvm_svn_rev = int(proc.check_output(
+      ['git', 'svn', 'find-rev', 'HEAD'], cwd=LLVM_SRC_DIR).strip())
+  print 'SVN REV: %d' % llvm_svn_rev
+  print 'Finding prior Clang rev'
   proc.check_call(['git', 'fetch'], cwd=CLANG_SRC_DIR)
-  llvm_rev = BUILDBOT_REVISION if SCHEDULER == 'llvm' else 'origin/master'
-  clang_rev = BUILDBOT_REVISION if SCHEDULER == 'clang' else 'origin/master'
-  proc.check_call(['git', 'checkout', llvm_rev], cwd=LLVM_SRC_DIR)
-  proc.check_call(['git', 'checkout', clang_rev], cwd=CLANG_SRC_DIR)
-  # If LLVM didn't trigger the new build then sync LLVM to the corresponding
-  # clang revision, even if clang may not have triggered the build: usually
-  # LLVM provides APIs which clang uses, which means that most synchronized
-  # commits touch LLVM before clang. This should reduce the chance of breakage.
-  primary = LLVM_SRC_DIR if SCHEDULER == 'llvm' else CLANG_SRC_DIR
-  secondary = LLVM_SRC_DIR if primary == CLANG_SRC_DIR else CLANG_SRC_DIR
-  SyncToSameSvnRev(primary, secondary)
+  prior_rev = FindPriorRev(CLANG_SRC_DIR, llvm_svn_rev)
+  print 'Checking out Clang rev: %s' % prior_rev
+  proc.check_call(['git', 'checkout', prior_rev], cwd=CLANG_SRC_DIR)
   PrintCurrentGitRev(LLVM_SRC_DIR)
   PrintCurrentGitRev(CLANG_SRC_DIR)
 
@@ -464,6 +440,8 @@ def BuildBinaryen():
 
 
 def ArchiveBinaries():
+  if LLVM_REVISION == 'origin/master':
+    return
   BuildStep('Archive binaries')
   # All relevant binaries were copied to the LLVM directory.
   Archive('binaries', Tar(LLVM_INSTALL_DIR))
@@ -522,14 +500,14 @@ def Summary():
   BuildStep('Summary')
   sys.stdout.write('Failed steps: %s.' % failed_steps)
   with open('latest', 'w+') as f:
-    f.write("%s: %s" % (SCHEDULER, BUILDBOT_REVISION))
+    f.write(str(LLVM_REVISION))
   UploadToCloud('latest', 'git/latest', 'latest')
   if failed_steps:
     StepFail()
   else:
     try:
       with open('lkgr', 'w+') as f:
-        f.write("%s: %s" % (SCHEDULER, BUILDBOT_REVISION))
+        f.write(str(LLVM_REVISION))
       UploadToCloud('lkgr', 'git/lkgr', 'lkgr')
     finally:
       Remove('lkgr')
