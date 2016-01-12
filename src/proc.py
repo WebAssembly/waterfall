@@ -29,12 +29,12 @@ from subprocess import * # flake8: noqa
 
 # Now we can override any parts of subprocess we want, while leaving the rest.
 def check_call(cmd, **kwargs):
-  print 'check_call Running command:'
-  print ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
+  c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
+  print 'check_call Running command:', c
   return subprocess.check_call(cmd, **kwargs)
 
 
 def check_output(cmd, **kwargs):
-  print 'check_output Running command:'
-  print ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
+  c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
+  print 'check_output Running command:', c
   return subprocess.check_output(cmd, **kwargs)
