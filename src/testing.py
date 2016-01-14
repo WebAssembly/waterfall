@@ -174,6 +174,8 @@ def execute(tester, inputs, fails):
   pool = multiprocessing.Pool()
   sys.stdout.write('Executing tests.')
   results = sorted(pool.map(tester, inputs))
+  pool.close()
+  pool.join()
   sys.stdout.write('\nDone.')
   successes = [r for r in results if r]
   failures = [r for r in results if not r]
