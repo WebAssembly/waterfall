@@ -44,6 +44,7 @@ GCC_SRC_DIR = os.path.join(WORK_DIR, 'gcc')
 GCC_TEST_DIR = os.path.join(GCC_SRC_DIR, 'gcc', 'testsuite')
 
 V8_SRC_DIR = os.path.join(WORK_DIR, 'v8')
+os.environ['GYP_GENERATORS'] = 'ninja'  # Used to build V8.
 
 SEXPR_SRC_DIR = os.path.join(WORK_DIR, 'sexpr-wasm-prototype')
 SEXPR_S2WASM_KNOWN_TORTURE_FAILURES = os.path.join(SEXPR_SRC_DIR, 's2wasm_' +
@@ -66,6 +67,7 @@ CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
 LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
 LLVM_INSTALL_DIR = os.path.join(WORK_DIR, 'llvm-install')
 LLVM_INSTALL_BIN = os.path.join(LLVM_INSTALL_DIR, 'bin')
+V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out', 'Release')
 SEXPR_OUT_DIR = os.path.join(SEXPR_SRC_DIR, 'out')
 BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
 BINARYEN_BIN_DIR = os.path.join(BINARYEN_OUT_DIR, 'bin')
@@ -321,6 +323,10 @@ def SyncLLVMClang():
   SyncToSameSvnRev(primary, secondary)
 
 
+def GClientSync(cwd):
+  proc.check_call(['gclient', 'sync'], cwd=cwd)
+
+
 def SyncPrebuiltClang():
   if os.path.isdir(PREBUILT_CLANG_TOOLS_CLANG):
     print 'Prebuilt Chromium Clang directory already exists'
@@ -379,6 +385,7 @@ def SyncRepos():
                             git_repo=BINARYEN_GIT)
   ]
   SyncLLVMClang()
+  GClientSync(V8_SRC_DIR)
   SyncOCaml()
   # Keep track of all repo information here, preventing the summary from
   # getting out of sync with the actual list of repos.
@@ -414,6 +421,18 @@ def InstallLLVM():
   BuildStep('Install LLVM')
   Remove(LLVM_INSTALL_DIR)
   proc.check_call(['ninja', 'install'], cwd=LLVM_OUT_DIR)
+
+
+def BuildV8():
+  BuildStep('Build V8')
+  out_dir = os.path.split(V8_OUT_DIR)
+  out_dir = os.path.join(os.path.split(out_dir[0])[1], out_dir[1])
+  proc.check_call(['build/gyp_v8'], cwd=V8_SRC_DIR)
+  proc.check_call(['ninja', '-C', out_dir, 'd8', 'unittests'], cwd=V8_SRC_DIR)
+  proc.check_call(['tools/run-tests.py', 'unittests', '--shell-dir', out_dir],
+                  cwd=V8_SRC_DIR)
+  d8 = os.path.join(V8_OUT_DIR, 'd8')
+  CopyBinaryToArchive(d8)
 
 
 def BuildSexpr():
