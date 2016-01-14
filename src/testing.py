@@ -45,8 +45,10 @@ class Result:
 
   def similarity(self, other):
     """Compare output similarity, returning a float in the range [0,1]."""
-    return difflib.SequenceMatcher(None, self.output,
-                                   other.output).quick_ratio()
+    # Even quick_ratio is fairly slow on big inputs, capture just the start.
+    max_size = 1024
+    return difflib.SequenceMatcher(None, self.output[:max_size],
+                                   other.output[:max_size]).quick_ratio()
 
 
 class Tester(object):
