@@ -563,6 +563,7 @@ def main():
   BuildLLVM()
   TestLLVM()
   InstallLLVM()
+  BuildV8()
   BuildSexpr()
   BuildOCaml()
   BuildSpec()
