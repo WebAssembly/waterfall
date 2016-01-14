@@ -23,7 +23,7 @@ import testing
 
 
 CFLAGS = ['--std=gnu89', '--target=wasm32-unknown-unknown', '-S', '-O2',
-          '-Wno-implicit-function-declaration', '-Wno-implicit-int']
+          '-w', '-Wno-implicit-function-declaration']
 
 
 def create_outname(outdir, infile):
