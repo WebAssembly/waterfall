@@ -43,6 +43,8 @@ LLVM_KNOWN_TORTURE_FAILURES = os.path.join(LLVM_SRC_DIR, 'lib', 'Target',
 GCC_SRC_DIR = os.path.join(WORK_DIR, 'gcc')
 GCC_TEST_DIR = os.path.join(GCC_SRC_DIR, 'gcc', 'testsuite')
 
+V8_SRC_DIR = os.path.join(WORK_DIR, 'v8')
+
 SEXPR_SRC_DIR = os.path.join(WORK_DIR, 'sexpr-wasm-prototype')
 SEXPR_S2WASM_KNOWN_TORTURE_FAILURES = os.path.join(SEXPR_SRC_DIR, 's2wasm_' +
                                                    IT_IS_KNOWN)
@@ -78,6 +80,7 @@ LLVM_GIT = GIT_MIRROR_BASE + 'chromiumos/third_party/llvm'
 CLANG_GIT = GIT_MIRROR_BASE + 'chromiumos/third_party/clang'
 PREBUILT_CLANG_GIT = GIT_MIRROR_BASE + 'chromium/src/tools/clang'
 GCC_GIT = GIT_MIRROR_BASE + 'chromiumos/third_party/gcc'
+V8_GIT = GIT_MIRROR_BASE + 'v8/v8'
 SEXPR_GIT = WASM_GIT_BASE + 'sexpr-wasm-prototype.git'
 SPEC_GIT = WASM_GIT_BASE + 'spec.git'
 BINARYEN_GIT = WASM_GIT_BASE + 'binaryen.git'
@@ -366,6 +369,7 @@ def SyncRepos():
                             git_repo=CLANG_GIT),
       GitCloneFetchCheckout(name='gcc', work_dir=GCC_SRC_DIR, git_repo=GCC_GIT,
                             checkout=GCC_REVISION, depth=GCC_CLONE_DEPTH),
+      GitCloneFetchCheckout(name='v8', work_dir=V8_SRC_DIR, git_repo=V8_GIT),
       SyncPrebuiltClang(),
       GitCloneFetchCheckout(name='sexpr', work_dir=SEXPR_SRC_DIR,
                             git_repo=SEXPR_GIT),
