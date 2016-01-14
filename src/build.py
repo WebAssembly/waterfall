@@ -323,6 +323,10 @@ def SyncLLVMClang():
   SyncToSameSvnRev(primary, secondary)
 
 
+def GClientSync(cwd):
+  proc.check_call(['gclient', 'sync'], cwd=cwd)
+
+
 def SyncPrebuiltClang():
   if os.path.isdir(PREBUILT_CLANG_TOOLS_CLANG):
     print 'Prebuilt Chromium Clang directory already exists'
@@ -381,6 +385,7 @@ def SyncRepos():
                             git_repo=BINARYEN_GIT)
   ]
   SyncLLVMClang()
+  GClientSync(V8_SRC_DIR)
   SyncOCaml()
   # Keep track of all repo information here, preventing the summary from
   # getting out of sync with the actual list of repos.
