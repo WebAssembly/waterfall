@@ -200,7 +200,7 @@ def Archive(name, tar):
   """Archive the tar file with the given name, and with the LLVM git hash."""
   if not os.environ.get('BUILDBOT_BUILDERNAME'):
     return
-  git_gs = 'git/wasm-%s-%s-%s.tbz2' % (name, SCHEDULER, BUILDBOT_REVISION)
+  git_gs = 'git/wasm-%s-%s.tbz2' % (name, BUILDBOT_BUILDNUMBER)
   UploadToCloud(tar, git_gs, 'download')
 
 
