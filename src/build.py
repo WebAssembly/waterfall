@@ -82,7 +82,6 @@ LLVM_GIT = GIT_MIRROR_BASE + 'chromiumos/third_party/llvm'
 CLANG_GIT = GIT_MIRROR_BASE + 'chromiumos/third_party/clang'
 PREBUILT_CLANG_GIT = GIT_MIRROR_BASE + 'chromium/src/tools/clang'
 GCC_GIT = GIT_MIRROR_BASE + 'chromiumos/third_party/gcc'
-V8_GIT = GIT_MIRROR_BASE + 'v8/v8'
 SEXPR_GIT = WASM_GIT_BASE + 'sexpr-wasm-prototype.git'
 SPEC_GIT = WASM_GIT_BASE + 'spec.git'
 BINARYEN_GIT = WASM_GIT_BASE + 'binaryen.git'
@@ -273,6 +272,25 @@ def GitCloneFetchCheckout(name, work_dir, git_repo, rebase_master=False,
   return (name, work_dir)
 
 
+def ChromiumFetchSync(name, work_dir, checkout='origin/master'):
+  """Some Chromium projects want to use gclient for clone and dependencies."""
+  has_work_dir = os.path.isdir(work_dir)
+  # TODO remove this non-gclient handling once bots have moved to gclient
+  #      instead of direct git checkouts.
+  is_gclient = os.path.exists(os.path.join(work_dir, '.gclient'))
+  if has_work_dir and is_gclient:
+    print '%s gclient directory already exists' % name
+  else:
+    if has_work_dir:
+      print 'Removing non-glicent %sdirectory' % name
+      Remove(work_dir)
+    proc.check_call(['fetch', name], cwd=os.path.split(work_dir)[0])
+  proc.check_call(['git', 'fetch'], cwd=work_dir)
+  proc.check_call(['git', 'checkout', checkout], cwd=work_dir)
+  proc.check_call(['gclient', 'sync'], cwd=work_dir)
+  return (name, work_dir)
+
+
 def GitConfigRebaseMaster(cwd):
   """Avoid generating a non-linear history in the clone
 
@@ -323,10 +341,6 @@ def SyncLLVMClang():
   SyncToSameSvnRev(primary, secondary)
 
 
-def GClientSync(cwd):
-  proc.check_call(['gclient', 'sync'], cwd=cwd)
-
-
 def SyncPrebuiltClang():
   if os.path.isdir(PREBUILT_CLANG_TOOLS_CLANG):
     print 'Prebuilt Chromium Clang directory already exists'
@@ -375,7 +389,7 @@ def SyncRepos():
                             git_repo=CLANG_GIT),
       GitCloneFetchCheckout(name='gcc', work_dir=GCC_SRC_DIR, git_repo=GCC_GIT,
                             checkout=GCC_REVISION, depth=GCC_CLONE_DEPTH),
-      GitCloneFetchCheckout(name='v8', work_dir=V8_SRC_DIR, git_repo=V8_GIT),
+      ChromiumFetchSync(name='v8', work_dir=V8_SRC_DIR),
       SyncPrebuiltClang(),
       GitCloneFetchCheckout(name='sexpr', work_dir=SEXPR_SRC_DIR,
                             git_repo=SEXPR_GIT),
@@ -385,7 +399,6 @@ def SyncRepos():
                             git_repo=BINARYEN_GIT)
   ]
   SyncLLVMClang()
-  GClientSync(V8_SRC_DIR)
   SyncOCaml()
   # Keep track of all repo information here, preventing the summary from
   # getting out of sync with the actual list of repos.
@@ -427,7 +440,6 @@ def BuildV8():
   BuildStep('Build V8')
   out_dir = os.path.split(V8_OUT_DIR)
   out_dir = os.path.join(os.path.split(out_dir[0])[1], out_dir[1])
-  proc.check_call(['build/gyp_v8'], cwd=V8_SRC_DIR)
   proc.check_call(['ninja', '-C', out_dir, 'd8', 'unittests'], cwd=V8_SRC_DIR)
   proc.check_call(['tools/run-tests.py', 'unittests', '--shell-dir', out_dir],
                   cwd=V8_SRC_DIR)
@@ -568,6 +580,7 @@ def main():
   BuildLLVM()
   TestLLVM()
   InstallLLVM()
+  BuildV8()
   BuildSexpr()
   BuildOCaml()
   BuildSpec()
