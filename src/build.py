@@ -65,13 +65,14 @@ CC = os.path.join(PREBUILT_CLANG_BIN, 'clang')
 CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
 
 LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
-LLVM_INSTALL_DIR = os.path.join(WORK_DIR, 'wasm-install')
-LLVM_INSTALL_BIN = os.path.join(LLVM_INSTALL_DIR, 'bin')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out', 'Release')
 SEXPR_OUT_DIR = os.path.join(SEXPR_SRC_DIR, 'out')
 BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
 BINARYEN_BIN_DIR = os.path.join(BINARYEN_OUT_DIR, 'bin')
 TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
+
+INSTALL_DIR = os.path.join(WORK_DIR, 'wasm-install')
+INSTALL_BIN = os.path.join(INSTALL_DIR, 'bin')
 
 # Avoid flakes: use cached repositories to avoid relying on external network.
 GITHUB_REMOTE = 'github'
@@ -164,8 +165,8 @@ def Remove(path):
 
 def CopyBinaryToArchive(binary):
   """All binaries are archived in the same tar file."""
-  print 'Copying binary %s to archive %s' % (binary, LLVM_INSTALL_BIN)
-  shutil.copy2(binary, LLVM_INSTALL_BIN)
+  print 'Copying binary %s to archive %s' % (binary, INSTALL_BIN)
+  shutil.copy2(binary, INSTALL_BIN)
 
 
 def Tar(directory):
@@ -417,7 +418,7 @@ def BuildLLVM():
        '-DCMAKE_C_COMPILER=' + CC,
        '-DCMAKE_CXX_COMPILER=' + CXX,
        '-DCMAKE_BUILD_TYPE=Release',
-       '-DCMAKE_INSTALL_PREFIX=' + LLVM_INSTALL_DIR,
+       '-DCMAKE_INSTALL_PREFIX=' + INSTALL_DIR,
        '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
        '-DLLVM_ENABLE_ASSERTIONS=ON',
        '-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=WebAssembly',
@@ -432,7 +433,7 @@ def TestLLVM():
 
 def InstallLLVM():
   BuildStep('Install LLVM')
-  Remove(LLVM_INSTALL_DIR)
+  Remove(INSTALL_DIR)
   proc.check_call(['ninja', 'install'], cwd=LLVM_OUT_DIR)
 
 
@@ -502,7 +503,7 @@ def BuildBinaryen():
 def ArchiveBinaries():
   BuildStep('Archive binaries')
   # All relevant binaries were copied to the LLVM directory.
-  Archive('binaries', Tar(LLVM_INSTALL_DIR))
+  Archive('binaries', Tar(INSTALL_DIR))
 
 
 def CompileLLVMTorture():
@@ -589,11 +590,11 @@ def main():
   CompileLLVMTorture()
   s2wasm_out = LinkLLVMTorture(
       name='s2wasm',
-      linker=os.path.join(LLVM_INSTALL_BIN, 's2wasm'),
+      linker=os.path.join(INSTALL_BIN, 's2wasm'),
       fails=S2WASM_KNOWN_TORTURE_FAILURES)
   AssembleLLVMTorture(
       name='s2wasm-sexpr-wasm',
-      assembler=os.path.join(LLVM_INSTALL_BIN, 'sexpr-wasm'),
+      assembler=os.path.join(INSTALL_BIN, 'sexpr-wasm'),
       indir=s2wasm_out,
       fails=SEXPR_S2WASM_KNOWN_TORTURE_FAILURES)
   # Keep the summary step last: it'll be marked as red if the return code is
