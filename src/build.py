@@ -275,16 +275,15 @@ def GitCloneFetchCheckout(name, work_dir, git_repo, rebase_master=False,
 def ChromiumFetchSync(name, work_dir, checkout='origin/master'):
   """Some Chromium projects want to use gclient for clone and dependencies."""
   has_work_dir = os.path.isdir(work_dir)
-  # TODO remove this non-gclient handling once bots have moved to gclient
-  #      instead of direct git checkouts.
-  is_gclient = os.path.exists(os.path.join(work_dir, '.gclient'))
-  if has_work_dir and is_gclient:
-    print '%s gclient directory already exists' % name
-  else:
-    if has_work_dir:
-      print 'Removing non-glicent %sdirectory' % name
-      Remove(work_dir)
-    proc.check_call(['fetch', name], cwd=os.path.split(work_dir)[0])
+  # if has_work_dir:
+  #   print '%s gclient directory already exists' % name
+  # else:
+  if has_work_dir:
+    print 'Removing non-gclient directory %s' % name
+    Remove(work_dir)
+  proc.check_call(['fetch', name], cwd=os.path.split(work_dir)[0])
+  # TODO: do the above only on the first time. For now, delete work_dir
+  #       outright because the bots have dirty dirs.
   proc.check_call(['git', 'fetch'], cwd=work_dir)
   proc.check_call(['git', 'checkout', checkout], cwd=work_dir)
   proc.check_call(['gclient', 'sync'], cwd=work_dir)
