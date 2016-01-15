@@ -22,6 +22,7 @@
 # Imports subprocess in its own namespace so we can always refer directly to
 # its attributes.
 import subprocess
+import os
 # Imports all of subprocess into the current namespace, effectively
 # re-exporting everything.
 from subprocess import * # flake8: noqa
@@ -29,12 +30,14 @@ from subprocess import * # flake8: noqa
 
 # Now we can override any parts of subprocess we want, while leaving the rest.
 def check_call(cmd, **kwargs):
+  cwd = kwargs.get('cwd', os.getcwd())
   c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
-  print 'check_call Running command:', c
+  print 'subprocess.check_call(`%s`, cwd=`%s`)' % (c, cwd)
   return subprocess.check_call(cmd, **kwargs)
 
 
 def check_output(cmd, **kwargs):
+  cwd = kwargs.get('cwd', os.getcwd())
   c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
-  print 'check_output Running command:', c
+  print 'subprocess.check_output(`%s`, cwd=`%s`)' % (c, cwd)
   return subprocess.check_output(cmd, **kwargs)
