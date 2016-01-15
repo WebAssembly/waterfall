@@ -282,7 +282,14 @@ def ChromiumFetchSync(name, work_dir, checkout='origin/master'):
   if has_work_dir:
     print 'Removing non-gclient directory %s' % name
     Remove(work_dir)
-  proc.check_call(['fetch', name], cwd=os.path.split(work_dir)[0])
+  # TODO Remove these hacks.
+  parent = os.path.split(work_dir)[0]
+  print 'Parent:', parent
+  gclient = os.path.join(parent, '.gclient')
+  if os.path.exists(gclient):
+    print 'Removing gclient:', gclient
+    Remove(gclient)
+  proc.check_call(['fetch', name], cwd=parent)
   # TODO: do the above only on the first time. For now, delete work_dir
   #       outright because the bots have dirty dirs.
   proc.check_call(['git', 'fetch'], cwd=work_dir)
