@@ -65,7 +65,7 @@ CC = os.path.join(PREBUILT_CLANG_BIN, 'clang')
 CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
 
 LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
-LLVM_INSTALL_DIR = os.path.join(WORK_DIR, 'llvm-install')
+LLVM_INSTALL_DIR = os.path.join(WORK_DIR, 'wasm-install')
 LLVM_INSTALL_BIN = os.path.join(LLVM_INSTALL_DIR, 'bin')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out', 'Release')
 SEXPR_OUT_DIR = os.path.join(SEXPR_SRC_DIR, 'out')
