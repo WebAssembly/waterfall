@@ -428,6 +428,8 @@ def LLVM():
   proc.check_call(['ninja'], cwd=LLVM_OUT_DIR)
   proc.check_call(['ninja', 'check-all'], cwd=LLVM_OUT_DIR)
   proc.check_call(['ninja', 'install'], cwd=LLVM_OUT_DIR)
+  # The following isn't useful for now, and takes up space.
+  Remove(os.path.join(INSTALL_BIN, 'clang-check'))
 
 
 def V8():
