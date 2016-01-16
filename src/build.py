@@ -380,7 +380,7 @@ def SyncOCaml():
 
 
 def Clobber():
-  if os.environ.get('BUILDBOT_CLOBBER'):
+  if True:  # os.environ.get('BUILDBOT_CLOBBER'):
     BuildStep('Clobbering work dir')
     if os.path.isdir(WORK_DIR):
       shutil.rmtree(WORK_DIR)
