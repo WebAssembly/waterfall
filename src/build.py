@@ -177,6 +177,7 @@ def Tar(directory):
   tar = os.path.join(up_directory, basename + '.tbz2')
   Remove(tar)
   proc.check_call(['tar', 'cjf', tar, basename], cwd=up_directory)
+  proc.check_call(['ls', '-lh', tar], cwd=up_directory)
   return tar
 
 
