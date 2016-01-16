@@ -280,7 +280,7 @@ def ChromiumFetchSync(name, work_dir, git_repo, checkout='origin/master'):
     print '%s directory already exists' % name
   else:
     # Create Chromium repositories one deeper, separating .gclient files.
-    parent = os.path.split(work_dir)
+    parent = os.path.split(work_dir)[0]
     Mkdir(parent)
     proc.check_call(['gclient', 'config', git_repo], cwd=parent)
     proc.check_call(['git', 'clone', git_repo], cwd=parent)
