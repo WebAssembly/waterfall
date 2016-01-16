@@ -410,8 +410,8 @@ def SyncRepos():
   return info
 
 
-def BuildLLVM():
-  BuildStep('Build LLVM')
+def LLVM():
+  BuildStep('LLVM')
   Mkdir(LLVM_OUT_DIR)
   proc.check_call(
       ['cmake', '-G', 'Ninja', LLVM_SRC_DIR,
@@ -426,21 +426,12 @@ def BuildLLVM():
        '-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=WebAssembly',
        '-DLLVM_TARGETS_TO_BUILD=X86'], cwd=LLVM_OUT_DIR)
   proc.check_call(['ninja'], cwd=LLVM_OUT_DIR)
-
-
-def TestLLVM():
-  BuildStep('Test LLVM')
   proc.check_call(['ninja', 'check-all'], cwd=LLVM_OUT_DIR)
-
-
-def InstallLLVM():
-  BuildStep('Install LLVM')
-  Remove(INSTALL_DIR)
   proc.check_call(['ninja', 'install'], cwd=LLVM_OUT_DIR)
 
 
-def BuildV8():
-  BuildStep('Build V8')
+def V8():
+  BuildStep('V8')
   proc.check_call(['ninja', '-C', V8_OUT_DIR, 'd8', 'unittests'],
                   cwd=V8_SRC_DIR)
   proc.check_call(['tools/run-tests.py', 'unittests',
@@ -450,8 +441,8 @@ def BuildV8():
   CopyBinaryToArchive(d8)
 
 
-def BuildSexpr():
-  BuildStep('Build Sexpr')
+def Sexpr():
+  BuildStep('Sexpr')
   # sexpr-wasm builds in its own in-tree out/ folder. The build is fast, so
   # always clobber.
   proc.check_call(['make', 'clean'], cwd=SEXPR_SRC_DIR)
@@ -463,8 +454,8 @@ def BuildSexpr():
   CopyBinaryToArchive(sexpr)
 
 
-def BuildOCaml():
-  BuildStep('Build OCaml')
+def OCaml():
+  BuildStep('OCaml')
   makefile = os.path.join(OCAML_DIR, 'config', 'Makefile')
   if not os.path.isfile(makefile):
     configure = os.path.join(OCAML_DIR, 'configure')
@@ -477,8 +468,8 @@ def BuildOCaml():
   os.environ['PATH'] = OCAML_BIN_DIR + os.pathsep + os.environ['PATH']
 
 
-def BuildSpec():
-  BuildStep('Build spec')
+def Spec():
+  BuildStep('spec')
   # Spec builds in-tree. Always clobber and run the tests.
   proc.check_call(['make', 'clean'], cwd=ML_DIR)
   proc.check_call(['make', 'all'], cwd=ML_DIR)
@@ -486,8 +477,8 @@ def BuildSpec():
   CopyBinaryToArchive(wasm)
 
 
-def BuildBinaryen():
-  BuildStep('Build binaryen')
+def Binaryen():
+  BuildStep('binaryen')
   Mkdir(BINARYEN_OUT_DIR)
   proc.check_call(
       ['cmake', '-G', 'Ninja', BINARYEN_SRC_DIR,
@@ -579,15 +570,14 @@ def main():
   Clobber()
   Chdir(SCRIPT_DIR)
   Mkdir(WORK_DIR)
+  Remove(INSTALL_DIR)
   repos = SyncRepos()
-  BuildLLVM()
-  TestLLVM()
-  InstallLLVM()
-  BuildV8()
-  BuildSexpr()
-  BuildOCaml()
-  BuildSpec()
-  BuildBinaryen()
+  LLVM()
+  V8()
+  Sexpr()
+  OCaml()
+  Spec()
+  Binaryen()
   ArchiveBinaries()
   CompileLLVMTorture()
   s2wasm_out = LinkLLVMTorture(
