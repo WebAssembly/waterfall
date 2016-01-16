@@ -380,7 +380,7 @@ def SyncOCaml():
 
 
 def Clobber():
-  if True:  # os.environ.get('BUILDBOT_CLOBBER'):
+  if os.environ.get('BUILDBOT_CLOBBER'):
     BuildStep('Clobbering work dir')
     if os.path.isdir(WORK_DIR):
       shutil.rmtree(WORK_DIR)
@@ -396,7 +396,7 @@ def SyncRepos():
                             git_repo=CLANG_GIT),
       GitCloneFetchCheckout(name='gcc', work_dir=GCC_SRC_DIR, git_repo=GCC_GIT,
                             checkout=GCC_REVISION, depth=GCC_CLONE_DEPTH),
-      ChromiumFetchSync(name='v8', work_dir=V8_SRC_DIR),
+      # ChromiumFetchSync(name='v8', work_dir=V8_SRC_DIR),
       SyncPrebuiltClang(),
       GitCloneFetchCheckout(name='sexpr', work_dir=SEXPR_SRC_DIR,
                             git_repo=SEXPR_GIT),
@@ -588,7 +588,7 @@ def main():
   BuildLLVM()
   TestLLVM()
   InstallLLVM()
-  BuildV8()
+  # BuildV8()
   BuildSexpr()
   BuildOCaml()
   BuildSpec()
