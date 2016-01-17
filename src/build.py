@@ -413,6 +413,7 @@ def SyncRepos():
 
 def LLVM():
   BuildStep('LLVM')
+  Remove(LLVM_OUT_DIR)  # TODO Remove, needed to clean bots to move to dylibs.
   Mkdir(LLVM_OUT_DIR)
   proc.check_call(
       ['cmake', '-G', 'Ninja', LLVM_SRC_DIR,
