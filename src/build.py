@@ -104,6 +104,7 @@ NPROC = multiprocessing.cpu_count()
 # Schedulers which can kick off new builds, from:
 # https://chromium.googlesource.com/chromium/tools/build/+/master/masters/master.client.wasm.llvm/builders.pyl
 SCHEDULERS = {
+    None: 'forced',
     'llvm_commits': 'llvm',
     'clang_commits': 'clang'
 }
