@@ -14,6 +14,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import glob
 import json
 import multiprocessing
 import os
@@ -73,6 +74,7 @@ TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
 
 INSTALL_DIR = os.path.join(WORK_DIR, 'wasm-install')
 INSTALL_BIN = os.path.join(INSTALL_DIR, 'bin')
+INSTALL_LIB = os.path.join(INSTALL_DIR, 'lib')
 
 # Avoid flakes: use cached repositories to avoid relying on external network.
 GITHUB_REMOTE = 'github'
@@ -169,6 +171,12 @@ def CopyBinaryToArchive(binary):
   """All binaries are archived in the same tar file."""
   print 'Copying binary %s to archive %s' % (binary, INSTALL_BIN)
   shutil.copy2(binary, INSTALL_BIN)
+
+
+def CopyLibraryToArchive(library):
+  """All libraries are archived in the same tar file."""
+  print 'Copying library %s to archive %s' % (library, INSTALL_LIB)
+  shutil.copy2(library, INSTALL_LIB)
 
 
 def Tar(directory):
@@ -434,10 +442,15 @@ def LLVM():
   # The following isn't useful for now, and takes up space.
   Remove(os.path.join(INSTALL_BIN, 'clang-check'))
   # The following are useful, LLVM_INSTALL_TOOLCHAIN_ONLY did away with them.
-  extras = ['FileCheck', 'lli', 'llc', 'llvm-as', 'llvm-dis', 'llvm-link',
-            'llvm-nm', 'opt']
-  for e in extras:
-    shutil.copy(os.path.join(LLVM_OUT_DIR, 'bin', e), INSTALL_BIN)
+  extra_bins = ['FileCheck', 'lli', 'llc', 'llvm-as', 'llvm-dis', 'llvm-link',
+                'llvm-nm', 'opt']
+  extra_libs = ['libLLVM*.so']
+  for e in [glob.glob(os.path.join(LLVM_OUT_DIR, 'bin', b)) for b in
+            extra_bins]:
+    CopyBinaryToArchive(os.path.join(LLVM_OUT_DIR, 'bin', e))
+  for e in [glob.glob(os.path.join(LLVM_OUT_DIR, 'lib', l)) for l in
+            extra_libs]:
+    CopyLibraryToArchive(os.path.join(LLVM_OUT_DIR, 'lib', e))
 
 
 def V8():
