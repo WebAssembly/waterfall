@@ -445,12 +445,14 @@ def LLVM():
   extra_bins = ['FileCheck', 'lli', 'llc', 'llvm-as', 'llvm-dis', 'llvm-link',
                 'llvm-nm', 'opt']
   extra_libs = ['libLLVM*.so']
-  for e in [glob.glob(os.path.join(LLVM_OUT_DIR, 'bin', b)) for b in
+  for p in [glob.glob(os.path.join(LLVM_OUT_DIR, 'bin', b)) for b in
             extra_bins]:
-    CopyBinaryToArchive(os.path.join(LLVM_OUT_DIR, 'bin', e))
-  for e in [glob.glob(os.path.join(LLVM_OUT_DIR, 'lib', l)) for l in
+    for e in p:
+      CopyBinaryToArchive(os.path.join(LLVM_OUT_DIR, 'bin', e))
+  for p in [glob.glob(os.path.join(LLVM_OUT_DIR, 'lib', l)) for l in
             extra_libs]:
-    CopyLibraryToArchive(os.path.join(LLVM_OUT_DIR, 'lib', e))
+    for e in p:
+      CopyLibraryToArchive(os.path.join(LLVM_OUT_DIR, 'lib', e))
 
 
 def V8():
