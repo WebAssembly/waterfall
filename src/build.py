@@ -430,6 +430,10 @@ def LLVM():
   proc.check_call(['ninja', 'install'], cwd=LLVM_OUT_DIR)
   # The following isn't useful for now, and takes up space.
   Remove(os.path.join(INSTALL_BIN, 'clang-check'))
+  # The following are useful, LLVM_INSTALL_TOOLCHAIN_ONLY did away with them.
+  extras = ['FileCheck', 'lli', 'llc', 'llvm-dis', 'opt']
+  for e in extras:
+    shutil.copy(os.path.join(LLVM_OUT_DIR, 'bin', e), INSTALL_BIN)
 
 
 def V8():
