@@ -179,14 +179,15 @@ def CopyLibraryToArchive(library):
   shutil.copy2(library, INSTALL_LIB)
 
 
-def Tar(directory):
+def Tar(directory, print_content=False):
   """Create a tar file from directory."""
   assert os.path.isdir(directory), 'Must tar a directory to avoid tarbombs'
   (up_directory, basename) = os.path.split(directory)
   tar = os.path.join(up_directory, basename + '.tbz2')
   Remove(tar)
-  proc.check_call(['find', basename, '-type', 'f',
-                   '-exec', 'ls', '-lhS', '{}', '+'], cwd=up_directory)
+  if print_content:
+    proc.check_call(['find', basename, '-type', 'f',
+                     '-exec', 'ls', '-lhS', '{}', '+'], cwd=up_directory)
   proc.check_call(['tar', 'cjf', tar, basename], cwd=up_directory)
   proc.check_call(['ls', '-lh', tar], cwd=up_directory)
   return tar
@@ -521,7 +522,7 @@ def Binaryen():
 def ArchiveBinaries():
   BuildStep('Archive binaries')
   # All relevant binaries were copied to the LLVM directory.
-  Archive('binaries', Tar(INSTALL_DIR))
+  Archive('binaries', Tar(INSTALL_DIR, print_content=True))
 
 
 def CompileLLVMTorture():
