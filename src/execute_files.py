@@ -45,15 +45,15 @@ def run(runner, files, fails, out):
   assert os.path.isfile(runner), 'Cannot find runner at %s' % runner
   if out:
     assert os.path.isdir(out), 'Cannot find outdir %s' % out
-  files = glob.glob(files)
-  assert len(files), 'No files found by %s' % files
+  executable_files = glob.glob(files)
+  assert len(executable_files), 'No files found by %s' % files
   return testing.execute(
       tester=testing.Tester(
           command_ctor=execute,
           outname_ctor=create_outname,
           outdir=out,
           extras={'runner': runner}),
-      inputs=files,
+      inputs=executable_files,
       fails=fails)
 
 
