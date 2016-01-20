@@ -33,8 +33,9 @@ def execute(infile, outfile, extras):
   """Create the command-line for an execution."""
   runner = extras['runner']
   basename = os.path.basename(runner)
+  out_opt = ['-o', outfile] if outfile else []
   commands = {
-      'binaryen-shell': [runner, '--entry=main', '-o', outfile, infile],
+      'binaryen-shell': [runner, '--entry=main', infile] + out_opt,
   }
   return commands[basename]
 
@@ -42,7 +43,8 @@ def execute(infile, outfile, extras):
 def run(runner, files, fails, out):
   """Execute all files."""
   assert os.path.isfile(runner), 'Cannot find runner at %s' % runner
-  assert os.path.isdir(out), 'Cannot find outdir %s' % out
+  if out:
+    assert os.path.isdir(out), 'Cannot find outdir %s' % out
   files = glob.glob(files)
   assert len(files), 'No files found by %s' % files
   return testing.execute(
@@ -64,7 +66,7 @@ def getargs():
                       help='Glob pattern for .wast / .wasm files')
   parser.add_argument('--fails', type=str, required=True,
                       help='Expected failures')
-  parser.add_argument('--out', type=str, required=True,
+  parser.add_argument('--out', type=str, required=False,
                       help='Output directory')
   return parser.parse_args()
 

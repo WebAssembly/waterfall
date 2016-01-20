@@ -56,7 +56,8 @@ class Tester(object):
 
   def __init__(self, command_ctor, outname_ctor, outdir, extras):
     """Command-line constructor accepting input and output file names."""
-    assert os.path.isdir(outdir)
+    if outdir:
+      assert os.path.isdir(outdir), 'Expected output directory %s' % outdir
     self.command_ctor = command_ctor
     self.outname_ctor = outname_ctor
     self.outdir = outdir
@@ -65,14 +66,15 @@ class Tester(object):
   def __call__(self, test_file):
     """Execute a single test."""
     basename = os.path.basename(test_file)
-    outfile = self.outname_ctor(self.outdir, test_file)
+    outfile = self.outname_ctor(self.outdir, test_file) if self.outdir else ''
     try:
       output = proc.check_output(
           self.command_ctor(test_file, outfile, self.extras),
-          stderr=proc.STDOUT, cwd=self.outdir)
+          stderr=proc.STDOUT, cwd=self.outdir or os.getcwd())
       # Flush the logged command sobuildbots don't think the script is dead.
       sys.stdout.flush()
-      assert os.path.isfile(outfile), 'Missing output file %s' % outfile
+      if outfile:
+        assert os.path.isfile(outfile), 'Missing output file %s' % outfile
       return Result(test=basename, success=True, output=output)
     except proc.CalledProcessError as e:
       return Result(test=basename, success=False, output=e.output)
