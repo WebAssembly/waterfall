@@ -71,4 +71,4 @@ def getargs():
 
 if __name__ == '__main__':
   args = getargs()
-  sys.exit(run(args.linker, args.files, args.fails, args.out))
+  sys.exit(run(args.runner, args.files, args.fails, args.out))
