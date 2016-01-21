@@ -24,6 +24,7 @@ import urllib2
 
 import assemble_files
 import compile_torture_tests
+import execute_files
 import link_assembly_files
 import proc
 
@@ -56,6 +57,9 @@ ML_DIR = os.path.join(SPEC_SRC_DIR, 'ml-proto')
 BINARYEN_SRC_DIR = os.path.join(WORK_DIR, 'binaryen')
 S2WASM_KNOWN_TORTURE_FAILURES = os.path.join(BINARYEN_SRC_DIR, 'test',
                                              's2wasm_' + IT_IS_KNOWN)
+BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = (
+    os.path.join(BINARYEN_SRC_DIR, 'test',
+                 's2wasm_known_binaryen_shell_test_failures.txt'))
 
 PREBUILT_CLANG = os.path.join(WORK_DIR, 'chromium-clang')
 PREBUILT_CLANG_TOOLS = os.path.join(PREBUILT_CLANG, 'tools')
@@ -574,6 +578,26 @@ def AssembleLLVMTorture(name, assembler, indir, fails):
   return out
 
 
+def ExecuteLLVMTorture(name, runner, indir, fails, extension, has_output):
+  BuildStep('Execute LLVM Torture with %s' % name)
+  assert os.path.isfile(runner), 'Cannot find runner at %s' % runner
+  files = os.path.join(indir, '*.%s' % extension)
+  out = os.path.join(WORK_DIR, 'torture-%s' % name) if has_output else ''
+  if has_output:
+    Remove(out)
+    Mkdir(out)
+  unexpected_result_count = execute_files.run(
+      runner=runner,
+      files=files,
+      fails=fails,
+      out=out)
+  if has_output:
+    Archive('torture-%s' % name, Tar(out))
+  if 0 != unexpected_result_count:
+    StepFail()
+  return out
+
+
 def Summary(repos):
   BuildStep('Summary')
   sys.stdout.write('Failed steps: %s.' % failed_steps)
@@ -615,6 +639,13 @@ def main():
       assembler=os.path.join(INSTALL_BIN, 'sexpr-wasm'),
       indir=s2wasm_out,
       fails=SEXPR_S2WASM_KNOWN_TORTURE_FAILURES)
+  ExecuteLLVMTorture(
+      name='binaryen-shell',
+      runner=os.path.join(INSTALL_BIN, 'binaryen-shell'),
+      indir=s2wasm_out,
+      fails=BINARYEN_SHELL_KNOWN_TORTURE_FAILURES,
+      extension='wast',
+      has_output=False)
   # Keep the summary step last: it'll be marked as red if the return code is
   # non-zero. Individual steps are marked as red with StepFail().
   Summary(repos)
