@@ -600,11 +600,12 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, has_output):
 
 def Summary(repos):
   BuildStep('Summary')
-  sys.stdout.write('Failed steps: %s.' % failed_steps)
   info = {'repositories': repos}
   info['build'] = BUILDBOT_BUILDNUMBER
   info['scheduler'] = SCHEDULER
   info_json = json.dumps(info)
+  print info
+  sys.stdout.write('Failed steps: %s.' % failed_steps)
   with open('latest', 'w+') as f:
     f.write(info_json)
   UploadToCloud('latest', 'git/latest', 'latest')
