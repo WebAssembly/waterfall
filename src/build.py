@@ -605,7 +605,7 @@ def Summary(repos):
   info['scheduler'] = SCHEDULER
   info_json = json.dumps(info)
   print info
-  sys.stdout.write('Failed steps: %s.' % failed_steps)
+  print 'Failed steps: %s.' % failed_steps
   with open('latest', 'w+') as f:
     f.write(info_json)
   UploadToCloud('latest', 'git/latest', 'latest')
