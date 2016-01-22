@@ -664,7 +664,8 @@ def main():
       fails=V8_KNOWN_TORTURE_FAILURES,
       extension='wasm',
       has_output=False,
-      wasmjs=WASMJS)
+      wasmjs=WASMJS,
+      is_flaky=True)  # TODO d8 out-of-bounds tests seem flaky.
   # Keep the summary step last: it'll be marked as red if the return code is
   # non-zero. Individual steps are marked as red with StepFail().
   Summary(repos)
