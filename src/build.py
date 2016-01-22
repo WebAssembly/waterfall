@@ -37,6 +37,8 @@ CLOUD_STORAGE_PATH = 'wasm-llvm/builds/'
 
 IT_IS_KNOWN = 'known_gcc_test_failures.txt'
 
+WASMJS = os.path.join(SCRIPT_DIR, 'test', 'wasm.js')
+
 LLVM_SRC_DIR = os.path.join(WORK_DIR, 'llvm')
 CLANG_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'clang')
 LLVM_KNOWN_TORTURE_FAILURES = os.path.join(LLVM_SRC_DIR, 'lib', 'Target',
@@ -46,6 +48,8 @@ GCC_SRC_DIR = os.path.join(WORK_DIR, 'gcc')
 GCC_TEST_DIR = os.path.join(GCC_SRC_DIR, 'gcc', 'testsuite')
 
 V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
+V8_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
+                                         'd8_' + IT_IS_KNOWN)
 os.environ['GYP_GENERATORS'] = 'ninja'  # Used to build V8.
 
 SEXPR_SRC_DIR = os.path.join(WORK_DIR, 'sexpr-wasm-prototype')
@@ -467,8 +471,9 @@ def V8():
   proc.check_call(['tools/run-tests.py', 'unittests',
                    '--shell-dir', V8_OUT_DIR],
                   cwd=V8_SRC_DIR)
-  d8 = os.path.join(V8_OUT_DIR, 'd8')
-  CopyBinaryToArchive(d8)
+  to_archive = ['d8', 'natives_blob.bin', 'snapshot_blob.bin']
+  for a in to_archive:
+    CopyBinaryToArchive(os.path.join(V8_OUT_DIR, a))
 
 
 def Sexpr():
@@ -578,7 +583,8 @@ def AssembleLLVMTorture(name, assembler, indir, fails):
   return out
 
 
-def ExecuteLLVMTorture(name, runner, indir, fails, extension, has_output):
+def ExecuteLLVMTorture(name, runner, indir, fails, extension, has_output,
+                       wasmjs, is_flaky=False):
   BuildStep('Execute LLVM Torture with %s' % name)
   assert os.path.isfile(runner), 'Cannot find runner at %s' % runner
   files = os.path.join(indir, '*.%s' % extension)
@@ -590,13 +596,13 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, has_output):
       runner=runner,
       files=files,
       fails=fails,
-      out=out)
+      out=out,
+      wasmjs=wasmjs)
   if has_output:
     Archive('torture-%s' % name, Tar(out))
   if 0 != unexpected_result_count:
-    # TODO This should lead to failure, but seems flaky for now. Fix it.
-    pass
-    # StepFail()
+    if not is_flaky:
+      StepFail()
   return out
 
 
@@ -637,7 +643,7 @@ def main():
       name='s2wasm',
       linker=os.path.join(INSTALL_BIN, 's2wasm'),
       fails=S2WASM_KNOWN_TORTURE_FAILURES)
-  AssembleLLVMTorture(
+  sexpr_wasm_out = AssembleLLVMTorture(
       name='s2wasm-sexpr-wasm',
       assembler=os.path.join(INSTALL_BIN, 'sexpr-wasm'),
       indir=s2wasm_out,
@@ -648,7 +654,17 @@ def main():
       indir=s2wasm_out,
       fails=BINARYEN_SHELL_KNOWN_TORTURE_FAILURES,
       extension='wast',
-      has_output=False)
+      has_output=False,
+      wasmjs=None,
+      is_flaky=True)  # TODO binaryen-shell is flaky when running tests.
+  ExecuteLLVMTorture(
+      name='d8',
+      runner=os.path.join(INSTALL_BIN, 'd8'),
+      indir=sexpr_wasm_out,
+      fails=V8_KNOWN_TORTURE_FAILURES,
+      extension='wasm',
+      has_output=False,
+      wasmjs=WASMJS)
   # Keep the summary step last: it'll be marked as red if the return code is
   # non-zero. Individual steps are marked as red with StepFail().
   Summary(repos)
