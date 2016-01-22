@@ -32,14 +32,3 @@ closely, some implement the same thing. A build and test waterfall allows us to:
   component.
 
 We should keep process to a minimum, try things out, see what works.
-
-# Details
-
-The code is in the process of moving from its [old hosting location][]. We need
-to set up mirrors and provision robots to do our bidding. The documentation and
-design will be improved as this goes on.
-
-And yes, the URL of the waterfall will change. It's more complicated than it
-seems.
-
-  [old hosting location]: https://github.com/WebAssembly/experimental/tree/master/buildbot
