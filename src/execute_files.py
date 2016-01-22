@@ -34,17 +34,21 @@ def execute(infile, outfile, extras):
   runner = extras['runner']
   basename = os.path.basename(runner)
   out_opt = ['-o', outfile] if outfile else []
+  wasmjs = [extras['wasmjs']] if extras['wasmjs'] else []
   commands = {
       'binaryen-shell': [runner, '--entry=main', infile] + out_opt,
+      'd8': [runner, '--expose-wasm'] + wasmjs + ['--', infile],
   }
   return commands[basename]
 
 
-def run(runner, files, fails, out):
+def run(runner, files, fails, out, wasmjs):
   """Execute all files."""
   assert os.path.isfile(runner), 'Cannot find runner at %s' % runner
   if out:
     assert os.path.isdir(out), 'Cannot find outdir %s' % out
+  if wasmjs:
+    assert os.path.isfile(wasmjs), 'Cannot find wasm.js %s' % wasmjs
   executable_files = glob.glob(files)
   assert len(executable_files), 'No files found by %s' % files
   return testing.execute(
@@ -52,7 +56,7 @@ def run(runner, files, fails, out):
           command_ctor=execute,
           outname_ctor=create_outname,
           outdir=out,
-          extras={'runner': runner}),
+          extras={'runner': runner, 'wasmjs': wasmjs}),
       inputs=executable_files,
       fails=fails)
 
@@ -68,9 +72,11 @@ def getargs():
                       help='Expected failures')
   parser.add_argument('--out', type=str, required=False,
                       help='Output directory')
+  parser.add_argument('--wasmjs', type=str, required=False,
+                      help='JavaScript support runtime for WebAssembly')
   return parser.parse_args()
 
 
 if __name__ == '__main__':
   args = getargs()
-  sys.exit(run(args.runner, args.files, args.fails, args.out))
+  sys.exit(run(args.runner, args.files, args.fails, args.out, args.wasmjs))
