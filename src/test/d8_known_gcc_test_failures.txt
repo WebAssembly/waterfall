@@ -193,13 +193,16 @@ pr42691.c.s.wast.wasm
 pr43835.c.s.wast.wasm
 pr44202-1.c.s.wast.wasm
 pr45070.c.s.wast.wasm
+pr48571-1.c.s.wast.wasm
 pr49123.c.s.wast.wasm
 pr49279.c.s.wast.wasm
 pr51466.c.s.wast.wasm
 pr51581-1.c.s.wast.wasm
+pr51581-2.c.s.wast.wasm
 pr52760.c.s.wast.wasm
 pr54985.c.s.wast.wasm
 pr56799.c.s.wast.wasm
+pr56837.c.s.wast.wasm
 pr57124.c.s.wast.wasm
 pr57131.c.s.wast.wasm
 pr58365.c.s.wast.wasm
