@@ -6,8 +6,6 @@
 # The right place to put libc functionality would really be libc anyways.
 20020406-1.c.s.wast.wasm
 20020413-1.c.s.wast.wasm
-20031204-1.c.s.wast.wasm
-20050218-1.c.s.wast.wasm
 20051113-1.c.s.wast.wasm
 20071018-1.c.s.wast.wasm
 20071120-1.c.s.wast.wasm
@@ -32,10 +30,8 @@ pr43008.c.s.wast.wasm
 pr47237.c.s.wast.wasm
 pr49218.c.s.wast.wasm
 pr54471.c.s.wast.wasm
-pr58419.c.s.wast.wasm
 printf-1.c.s.wast.wasm
 regstack-1.c.s.wast.wasm
-strcpy-1.c.s.wast.wasm
 strncmp-1.c.s.wast.wasm
 
 # Program terminated with: Terminating wasm: abort()

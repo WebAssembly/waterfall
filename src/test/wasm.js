@@ -116,11 +116,64 @@ function strcmp(str1, str2) {
   return 0;
 }
 
+function strncmp(str1, str2, num) {
+  for (var i = 0; i != num; ++i)
+    if (heap_uint8[str1 + i] != heap_uint8[str2 + i])
+      return heap_uint8[str1 + i] < heap_uint8[str2 + i];
+    else if (heap_uint8[str1 + i] == 0)
+      break;
+  return 0;
+}
+
 function strlen(str) {
   for (var i = 0;; ++i)
     if (heap_uint8[str + i] == 0)
       return i;
 }
+
+function strcpy(destination, source) {
+  var i = 0;
+  for (; heap_uint8[source + i] != 0; ++i)
+    heap_uint8[destination + i] = heap_uint8[source + i];
+  heap_uint8[destination + i] = 0;
+  return destination;
+}
+
+function strncpy(destination, source, num) {
+  var i = 0;
+  for (; i != num && heap_uint8[source + i] != 0; ++i)
+    heap_uint8[destination + i] = heap_uint8[source + i];
+  for (; i != num; ++i)
+    heap_uint8[destination + i] = 0;
+  return destination;
+}
+
+function strrchr(str, character) {
+  character &= 0xff;
+  if (character == 0)
+    return str + strlen(str);
+  var found = str;
+  for (var i = 0; heap_uint8[str + i] != 0; ++i)
+    if (heap_uint8[str + i] == character)
+      found = str + i;
+  return heap_uint8[found] == character ? found : 0;
+}
+
+var SIG_ERR = 0xffffffff;
+function signal(signum, handler) {
+  // Returns the previous value of the signal handler, or SIG_ERR on error.
+  return SIG_ERR;
+}
+
+function getpid() { return 0; }
+function getppid() { return 0; }
+
+function finite(x) { return Number.isFinite(x); }
+function isinf(x) {
+  return Number.POSITIVE_INFINITY == x ? 1 :
+      Number.NEGATIVE_INFINITY ? -1 : 0;
+}
+function isnan(x) { return Number.isNaN(x); }
 
 function NYI(what) {
   return function() { throw new NotYetImplementedException(what); };
@@ -136,32 +189,51 @@ var ffi = {
   memcmp: memcmp,
   strchr: strchr,
   strcmp: strcmp,
+  strncmp: strncmp,
   strlen: strlen,
+  strcpy: strcpy,
+  strncpy: strncpy,
+  strrchr: strrchr,
   putchar: putchar,
   puts: puts,
-  strncpy: NYI('strncpy'),
-  strrchr: NYI('strrchr'),
-  strcpy: NYI('strcpy'),
-  strncmp: NYI('strncmp'),
   malloc: NYI('malloc'),
   __builtin_malloc: NYI('__builtin_malloc'),
   free: NYI('free'),
+  calloc: NYI('calloc'),
+  realloc: NYI('realloc'),
   mmap: NYI('mmap'),
   open: NYI('open'),
-  calloc: NYI('calloc'),
+  close: NYI('close'),
   printf: NYI('printf'),
   sprintf: NYI('sprintf'),
   isprint: NYI('isprint'),
-  signal: NYI('signal'),
+  signal: signal,
   qsort: NYI('qsort'),
-  getpid: NYI('getpid'),
+  getpid: getpid,
+  getppid: getppid,
   _setjmp: NYI('_setjmp'),
   longjmp: NYI('longjmp'),
-  __addtf3: NYI('__addtf3'),
   __builtin_apply: NYI('__builtin_apply'),
   __builtin_apply_args: NYI('__builtin_apply_args'),
-  __builtin_isinff: NYI('__builtin_isinff'),
-  __builtin_isinfl: NYI('__builtin_isinfl'),
+  finite: finite,
+  finitef: finite,
+  finitel: finite,
+  __builtin_finite: finite,
+  __builtin_finitef: finite,
+  __builtin_finitel: finite,
+  isinf: isinf,
+  isinff: isinf,
+  isinfl: isinf,
+  __builtin_isinf: isinf,
+  __builtin_isinff: isinf,
+  __builtin_isinfl: isinf,
+  isnan: isnan,
+  isnanf: isnan,
+  isnanl: isnan,
+  __builtin_isnan: isnan,
+  __builtin_isnanf: isnan,
+  __builtin_isnanl: isnan,
+  __addtf3: NYI('__addtf3'),
   __divtf3: NYI('__divtf3'),
   __eqtf2: NYI('__eqtf2'),
   __fixsfti: NYI('__fixsfti'),
