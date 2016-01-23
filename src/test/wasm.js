@@ -187,7 +187,7 @@ var PROT_EXEC = 4;
 function mmap(addr, length, prot, flags, fd, offset) {
   if (addr != 0)
     throw new NotYetImplementedException('mmap with address ' + addr);
-  if (prot != PROT_READ & PROT_WRITE)
+  if (prot != PROT_READ | PROT_WRITE)
     throw new NotYetImplementedException('mmap with non-RW prot ' + prot);
   if (fd != -1)
     throw new NotYetImplementedException('mmap with fd ' + fd);
