@@ -77,6 +77,7 @@ switch-1.c.s.wast.wasm
 20030221-1.c.s.wast.wasm
 20030222-1.c.s.wast.wasm
 20030313-1.c.s.wast.wasm
+20031012-1.c.s.wast.wasm
 20031201-1.c.s.wast.wasm
 20040218-1.c.s.wast.wasm
 20041124-1.c.s.wast.wasm
@@ -108,6 +109,7 @@ switch-1.c.s.wast.wasm
 991228-1.c.s.wast.wasm
 builtin-prefetch-2.c.s.wast.wasm
 memcpy-1.c.s.wast.wasm
+memcpy-2.c.s.wast.wasm
 pr15296.c.s.wast.wasm
 pr20527-1.c.s.wast.wasm
 pr27073.c.s.wast.wasm
@@ -133,20 +135,25 @@ pr43835.c.s.wast.wasm
 pr44202-1.c.s.wast.wasm
 pr44852.c.s.wast.wasm
 pr45070.c.s.wast.wasm
+pr47337.c.s.wast.wasm
+pr48571-1.c.s.wast.wasm
 pr49279.c.s.wast.wasm
 pr51466.c.s.wast.wasm
 pr51581-1.c.s.wast.wasm
+pr51581-2.c.s.wast.wasm
 pr51877.c.s.wast.wasm
 pr51933.c.s.wast.wasm
 pr52760.c.s.wast.wasm
 pr54985.c.s.wast.wasm
 pr56799.c.s.wast.wasm
+pr56837.c.s.wast.wasm
 pr56982.c.s.wast.wasm
 pr57124.c.s.wast.wasm
 pr57131.c.s.wast.wasm
 pr58365.c.s.wast.wasm
 pr59358.c.s.wast.wasm
 pr60960.c.s.wast.wasm
+strcpy-1.c.s.wast.wasm
 string-opt-17.c.s.wast.wasm
 struct-aliasing-1.c.s.wast.wasm
 
