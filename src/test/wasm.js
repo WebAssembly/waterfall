@@ -186,15 +186,34 @@ var PROT_WRITE = 2;
 var PROT_EXEC = 4;
 function mmap(addr, length, prot, flags, fd, offset) {
   if (addr != 0)
-    throw new NotYetImplementedException('mmap with address' + address);
+    throw new NotYetImplementedException('mmap with address ' + addr);
   if (prot != PROT_READ & PROT_WRITE)
-    throw new NotYetImplementedException('mmap with non-RW prot' + prot);
+    throw new NotYetImplementedException('mmap with non-RW prot ' + prot);
   if (fd != -1)
-    throw new NotYetImplementedException('mmap with fd' + fd);
+    throw new NotYetImplementedException('mmap with fd ' + fd);
   return malloc(length);
 }
 function munmap(addr, length) {
   throw new NotYetImplementedException('munmap');
+}
+
+var OPEN_MAX = 256;
+var STDIN_FILENO = 0;
+var STDOUT_FILENO = 1;
+var STDERR_FILENO = 2;
+var open_files = new Uint8Array(OPEN_MAX);
+function open(pathname, flags, mode) {
+  for (var i = 0; i != OPEN_MAX; ++i) {
+    if (!open_files[i]) {
+      open_files[i] = true;
+      return i;
+    }
+  }
+  return -1;
+}
+function close(fd) {
+  if (fd > OPEN_MAX || !open_files[fd]) return -1;
+  open_files[fd] = false;
 }
 
 var SIG_ERR = 0xffffffff;
@@ -242,8 +261,8 @@ var ffi = {
   realloc: realloc,
   mmap: mmap,
   munmap: munmap,
-  open: NYI('open'),
-  close: NYI('close'),
+  open: open,
+  close: close,
   printf: NYI('printf'),
   sprintf: NYI('sprintf'),
   signal: signal,
