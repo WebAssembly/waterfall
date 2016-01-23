@@ -10,7 +10,6 @@
 20101011-1.c.s.wast.wasm
 960215-1.c.s.wast.wasm
 960405-1.c.s.wast.wasm
-991112-1.c.s.wast.wasm
 align-2.c.s.wast.wasm
 ipa-sra-2.c.s.wast.wasm
 loop-2f.c.s.wast.wasm

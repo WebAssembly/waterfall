@@ -153,6 +153,11 @@ function strrchr(str, character) {
   return heap_uint8[found] == character ? found : 0;
 }
 
+function isprint(c) {
+  c &= 0xff;
+  return c > 0x1f && c != 0x7f;
+}
+
 var allocated_bytes = 1 << 14;  // Leave the heap bottom free.
 function malloc(size) {
   if (size == 0) return 0;
@@ -227,6 +232,7 @@ var ffi = {
   strcpy: strcpy,
   strncpy: strncpy,
   strrchr: strrchr,
+  isprint: isprint,
   putchar: putchar,
   puts: puts,
   malloc: malloc,
@@ -240,7 +246,6 @@ var ffi = {
   close: NYI('close'),
   printf: NYI('printf'),
   sprintf: NYI('sprintf'),
-  isprint: NYI('isprint'),
   signal: signal,
   qsort: NYI('qsort'),
   getpid: getpid,
