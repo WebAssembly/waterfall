@@ -84,8 +84,7 @@ function mempcpy(destination, source, num) {
 }
 
 function memset(ptr, value, num) {
-  for (var i = 0; i != num; ++i)
-    heap_uint8[ptr + i] = value;
+  for (var i = 0; i != num; ++i) heap_uint8[ptr + i] = value;
   return ptr;
 }
 
@@ -126,9 +125,7 @@ function strncmp(str1, str2, num) {
 }
 
 function strlen(str) {
-  for (var i = 0;; ++i)
-    if (heap_uint8[str + i] == 0)
-      return i;
+  for (var i = 0;; ++i) if (heap_uint8[str + i] == 0) return i;
 }
 
 function strcpy(destination, source) {
@@ -143,20 +140,56 @@ function strncpy(destination, source, num) {
   var i = 0;
   for (; i != num && heap_uint8[source + i] != 0; ++i)
     heap_uint8[destination + i] = heap_uint8[source + i];
-  for (; i != num; ++i)
-    heap_uint8[destination + i] = 0;
+  for (; i != num; ++i) heap_uint8[destination + i] = 0;
   return destination;
 }
 
 function strrchr(str, character) {
   character &= 0xff;
-  if (character == 0)
-    return str + strlen(str);
+  if (character == 0) return str + strlen(str);
   var found = str;
   for (var i = 0; heap_uint8[str + i] != 0; ++i)
-    if (heap_uint8[str + i] == character)
-      found = str + i;
+    if (heap_uint8[str + i] == character) found = str + i;
   return heap_uint8[found] == character ? found : 0;
+}
+
+var allocated_bytes = 1 << 14;  // Leave the heap bottom free.
+function malloc(size) {
+  if (size == 0) return 0;
+  if (allocated_bytes > HEAP_SIZE_BYTES) return 0;
+  allocated_bytes += size;
+  return allocated_bytes - size;
+}
+function free(ptr) {
+  throw new NotYetImplementedException('free');
+}
+function calloc(nmemb, size) {
+  var bytes = nmemb * size;
+  if (bytes == 0) return 0;
+  var ptr = malloc(bytes);
+  return ptr ? memset(ptr, 0, bytes) : 0;
+}
+function realloc(ptr, size) {
+  if (ptr == 0) return malloc(size);
+  if (size == 0) free(ptr);
+  throw new NotYetImplementedException('realloc');
+}
+var MAP_FAILED = 0xffffffff;
+var PROT_NONE = 0;
+var PROT_READ = 1;
+var PROT_WRITE = 2;
+var PROT_EXEC = 4;
+function mmap(addr, length, prot, flags, fd, offset) {
+  if (addr != 0)
+    throw new NotYetImplementedException('mmap with address' + address);
+  if (prot != PROT_READ & PROT_WRITE)
+    throw new NotYetImplementedException('mmap with non-RW prot' + prot);
+  if (fd != -1)
+    throw new NotYetImplementedException('mmap with fd' + fd);
+  return malloc(length);
+}
+function munmap(addr, length) {
+  throw new NotYetImplementedException('munmap');
 }
 
 var SIG_ERR = 0xffffffff;
@@ -196,12 +229,13 @@ var ffi = {
   strrchr: strrchr,
   putchar: putchar,
   puts: puts,
-  malloc: NYI('malloc'),
-  __builtin_malloc: NYI('__builtin_malloc'),
-  free: NYI('free'),
-  calloc: NYI('calloc'),
-  realloc: NYI('realloc'),
-  mmap: NYI('mmap'),
+  malloc: malloc,
+  __builtin_malloc: malloc,
+  free: free,
+  calloc: calloc,
+  realloc: realloc,
+  mmap: mmap,
+  munmap: munmap,
   open: NYI('open'),
   close: NYI('close'),
   printf: NYI('printf'),
