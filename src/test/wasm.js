@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-// Support JavaScript code to run WebAssembly in a JavaScript shell.
+/*
+ * Support JavaScript code to run WebAssembly in a JavaScript shell.
+ *
+ * This is a giant hack which stands in for a real libc and runtime.
+ */
+
 
 var HEAP_SIZE_BYTES = 1 << 20;
 var heap = new ArrayBuffer(HEAP_SIZE_BYTES);
