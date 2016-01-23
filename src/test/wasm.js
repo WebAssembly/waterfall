@@ -237,7 +237,6 @@ function NYI(what) {
 }
 
 var ffi = {
-  print: buffered_print,
   abort: abort,
   exit: exit,
   memcpy: memcpy,
@@ -309,7 +308,7 @@ var ffi = {
   __multf3: NYI('__multf3'),
   __multi3: NYI('__multi3'),
   __netf2: NYI('__netf2'),
-  __subtf3: NYI('__subtf3'),
+  __subtf3: NYI('__subtf3')
 };
 
 var wasm = _WASMEXP_.instantiateModule(readbuffer(arguments[0]), ffi, heap);
