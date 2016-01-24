@@ -720,8 +720,7 @@ var unix = (function() {
     setreuid: NYI('setreuid'),
     setsid: NYI('setsid'),
     setuid: NYI('setuid'),
-    sleep: function(seconds) { setInterval(function() {}, seconds * 1000);
-                               return 0; },
+    sleep: NYI('sleep'),
     swab: NYI('swab'),
     symlink: NYI('symlink'),
     sync: NYI('sync'),
@@ -733,8 +732,7 @@ var unix = (function() {
     ttyname_r: NYI('ttyname_r'),
     ualarm: NYI('ualarm'),
     unlink: NYI('unlink'),
-    usleep: function(useconds) { setInterval(function() {}, useconds / 1000);
-                                 return 0; },
+    usleep: NYI('usleep'),
     vfork: NYI('vfork'),
     write: NYI('write')
   };
