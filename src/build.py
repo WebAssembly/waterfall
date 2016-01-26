@@ -14,7 +14,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import argparse
 import glob
 import json
 import multiprocessing
@@ -445,8 +444,8 @@ def SyncRepos():
 
 
 def GetRepoInfo():
-  # Keep track of all repo information here, preventing the summary from
-  # getting out of sync with the actual list of repos.
+  """Collect a readable form of all repo information here, preventing the
+  summary from getting out of sync with the actual list of repos."""
   info = {}
   for r in ALL_SOURCES:
     info[r.name] = r.CurrentGitInfo()
@@ -651,6 +650,7 @@ def Summary(repos):
 
 
 def ParseArgs():
+  import argparse
   parser = argparse.ArgumentParser(
       description='Wasm waterfall top-level CI script')
   parser.add_argument('--no-sync', dest='sync',
