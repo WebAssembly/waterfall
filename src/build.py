@@ -67,8 +67,7 @@ BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = (
                  's2wasm_known_binaryen_shell_test_failures.txt'))
 
 PREBUILT_CLANG = os.path.join(WORK_DIR, 'chromium-clang')
-PREBUILT_CLANG_TOOLS = os.path.join(PREBUILT_CLANG, 'tools')
-PREBUILT_CLANG_TOOLS_CLANG = os.path.join(PREBUILT_CLANG_TOOLS, 'clang')
+PREBUILT_CLANG_TOOLS_CLANG = os.path.join(PREBUILT_CLANG, 'tools', 'clang')
 PREBUILT_CLANG_BIN = os.path.join(
     PREBUILT_CLANG, 'third_party', 'llvm-build', 'Release+Asserts', 'bin')
 CC = os.path.join(PREBUILT_CLANG_BIN, 'clang')
@@ -152,6 +151,8 @@ def StepFail():
   failed_steps += 1
 
 
+# Shell utilities
+
 def Chdir(path):
   print 'Change directory to: %s' % path
   os.chdir(path)
@@ -202,6 +203,8 @@ def Tar(directory, print_content=False):
   return tar
 
 
+# Archival and cloud storage utilities
+
 def UploadToCloud(local, remote, link_name):
   """Upload file to Cloud Storage."""
   if not os.environ.get('BUILDBOT_BUILDERNAME'):
@@ -231,6 +234,8 @@ def Archive(name, tar):
   git_gs = 'git/wasm-%s-%s.tbz2' % (name, BUILDBOT_BUILDNUMBER)
   UploadToCloud(tar, git_gs, 'download')
 
+
+# Repo and subproject utilities
 
 def GitRemoteUrl(cwd, remote):
   """Get the URL of a remote."""
@@ -262,38 +267,61 @@ def AddGithubRemote(cwd):
                   cwd=cwd)
 
 
-def CurrentGitInfo(cwd):
-  def pretty(fmt):
-    return proc.check_output(
-        ['git', 'log', '-n1', '--pretty=format:%s' % fmt], cwd=cwd).strip()
-  remote = proc.check_output(['git', 'config', '--get', 'remote.origin.url'],
-                             cwd=cwd).strip()
-  return {
-      'hash': pretty('%H'),
-      'name': pretty('%aN'),
-      'email': pretty('%ae'),
-      'subject': pretty('%s'),
-      'remote': remote,
-  }
+def GitConfigRebaseMaster(cwd):
+  """Avoid generating a non-linear history in the clone
+
+  The upstream repository is in Subversion. Use `git pull --rebase` instead of
+  git pull: llvm.org/docs/GettingStarted.html#git-mirror
+  """
+  proc.check_call(
+      ['git', 'config', 'branch.master.rebase', 'true'], cwd=cwd)
 
 
-def GitCloneFetchCheckout(name, work_dir, git_repo, rebase_master=False,
-                          checkout='origin/master', depth=None):
-  """Clone a git repo if not already cloned, then fetch and checkout."""
-  if os.path.isdir(work_dir):
-    print '%s directory already exists' % name
-  else:
-    clone = ['git', 'clone', git_repo, work_dir]
-    if depth:
-      clone.append('--depth')
-      clone.append(str(depth))
-    proc.check_call(clone)
-    if rebase_master:
-      GitConfigRebaseMaster(work_dir)
-  proc.check_call(['git', 'fetch'], cwd=work_dir)
-  proc.check_call(['git', 'checkout', checkout], cwd=work_dir)
-  AddGithubRemote(work_dir)
-  return (name, work_dir)
+class Source:
+  """Metadata about a sync-able source repo on the waterfall"""
+  def __init__(self, name, src_dir, git_repo, checkout='origin/master',
+               depth=None, custom_sync=None):
+    self.name = name
+    self.src_dir = src_dir
+    self.git_repo = git_repo
+    self.checkout = checkout
+    self.depth = depth
+    self.custom_sync = custom_sync
+
+  def Sync(self):
+    if self.custom_sync:
+      self.custom_sync(self.name, self.src_dir, self.git_repo)
+    else:
+      self.GitCloneFetchCheckout()
+
+  def GitCloneFetchCheckout(self):
+    """Clone a git repo if not already cloned, then fetch and checkout."""
+    if os.path.isdir(self.src_dir):
+      print '%s directory already exists' % self.name
+    else:
+      clone = ['git', 'clone', self.git_repo, self.src_dir]
+      if self.depth:
+        clone.append('--depth')
+        clone.append(str(self.depth))
+      proc.check_call(clone)
+      proc.check_call(['git', 'fetch'], cwd=self.src_dir)
+      proc.check_call(['git', 'checkout', self.checkout], cwd=self.src_dir)
+      AddGithubRemote(self.src_dir)
+
+  def CurrentGitInfo(self):
+    def pretty(fmt):
+      return proc.check_output(
+          ['git', 'log', '-n1', '--pretty=format:%s' % fmt],
+          cwd=self.src_dir).strip()
+    remote = proc.check_output(['git', 'config', '--get', 'remote.origin.url'],
+                               cwd=self.src_dir).strip()
+    return {
+        'hash': pretty('%H'),
+        'name': pretty('%aN'),
+        'email': pretty('%ae'),
+        'subject': pretty('%s'),
+        'remote': remote,
+    }
 
 
 def ChromiumFetchSync(name, work_dir, git_repo, checkout='origin/master'):
@@ -312,14 +340,39 @@ def ChromiumFetchSync(name, work_dir, git_repo, checkout='origin/master'):
   return (name, work_dir)
 
 
-def GitConfigRebaseMaster(cwd):
-  """Avoid generating a non-linear history in the clone
-
-  The upstream repository is in Subversion. Use `git pull --rebase` instead of
-  git pull: llvm.org/docs/GettingStarted.html#git-mirror
-  """
+def SyncPrebuiltClang(name, src_dir, git_repo):
+  tools_clang = os.path.join(src_dir, 'tools', 'clang')
+  if os.path.isdir(tools_clang):
+    print 'Prebuilt Chromium Clang directory already exists'
+  else:
+    print 'Cloning Prebuilt Chromium Clang directory'
+    Mkdir(src_dir)
+    Mkdir(os.path.join(src_dir, 'tools'))
+    proc.check_call(
+        ['git', 'clone', git_repo, tools_clang])
+  proc.check_call(['git', 'fetch'], cwd=tools_clang)
   proc.check_call(
-      ['git', 'config', 'branch.master.rebase', 'true'], cwd=cwd)
+      [os.path.join(tools_clang, 'scripts', 'update.py')])
+  assert os.path.isfile(CC), 'Expect clang at %s' % CC
+  assert os.path.isfile(CXX), 'Expect clang++ at %s' % CXX
+  return ('chromium-clang', tools_clang)
+
+
+def NoSync(*args):
+  pass
+
+ALL_SOURCES = [
+    Source('waterfall', SCRIPT_DIR, None, custom_sync=NoSync),
+    Source('llvm', LLVM_SRC_DIR, LLVM_GIT),
+    Source('clang', CLANG_SRC_DIR, CLANG_GIT),
+    Source('gcc', GCC_SRC_DIR, GCC_GIT, GCC_REVISION, GCC_CLONE_DEPTH),
+    Source('v8', V8_SRC_DIR, V8_GIT, custom_sync=ChromiumFetchSync),
+    Source('chromium-clang', PREBUILT_CLANG, PREBUILT_CLANG_GIT,
+           custom_sync=SyncPrebuiltClang),
+    Source('sexpr', SEXPR_SRC_DIR, SEXPR_GIT),
+    Source('spec', SPEC_SRC_DIR, SPEC_GIT),
+    Source('binaryen', BINARYEN_SRC_DIR, BINARYEN_GIT)
+]
 
 
 def CurrentSvnRev(path):
@@ -362,23 +415,6 @@ def SyncLLVMClang():
   SyncToSameSvnRev(primary, secondary)
 
 
-def SyncPrebuiltClang():
-  if os.path.isdir(PREBUILT_CLANG_TOOLS_CLANG):
-    print 'Prebuilt Chromium Clang directory already exists'
-  else:
-    print 'Cloning Prebuilt Chromium Clang directory'
-    Mkdir(PREBUILT_CLANG)
-    Mkdir(PREBUILT_CLANG_TOOLS)
-    proc.check_call(
-        ['git', 'clone', PREBUILT_CLANG_GIT, PREBUILT_CLANG_TOOLS_CLANG])
-  proc.check_call(['git', 'fetch'], cwd=PREBUILT_CLANG_TOOLS_CLANG)
-  proc.check_call(
-      [os.path.join(PREBUILT_CLANG_TOOLS_CLANG, 'scripts', 'update.py')])
-  assert os.path.isfile(CC), 'Expect clang at %s' % CC
-  assert os.path.isfile(CXX), 'Expect clang++ at %s' % CXX
-  return ('chromium-clang', PREBUILT_CLANG_TOOLS_CLANG)
-
-
 def SyncOCaml():
   if os.path.isdir(OCAML_DIR):
     print 'OCaml directory already exists'
@@ -402,30 +438,18 @@ def Clobber():
 
 def SyncRepos():
   BuildStep('Sync Repos')
-  repos = [
-      ('waterfall', SCRIPT_DIR),
-      GitCloneFetchCheckout(name='llvm', work_dir=LLVM_SRC_DIR,
-                            git_repo=LLVM_GIT),
-      GitCloneFetchCheckout(name='clang', work_dir=CLANG_SRC_DIR,
-                            git_repo=CLANG_GIT),
-      GitCloneFetchCheckout(name='gcc', work_dir=GCC_SRC_DIR, git_repo=GCC_GIT,
-                            checkout=GCC_REVISION, depth=GCC_CLONE_DEPTH),
-      ChromiumFetchSync(name='v8', git_repo=V8_GIT, work_dir=V8_SRC_DIR),
-      SyncPrebuiltClang(),
-      GitCloneFetchCheckout(name='sexpr', work_dir=SEXPR_SRC_DIR,
-                            git_repo=SEXPR_GIT),
-      GitCloneFetchCheckout(name='spec', work_dir=SPEC_SRC_DIR,
-                            git_repo=SPEC_GIT),
-      GitCloneFetchCheckout(name='binaryen', work_dir=BINARYEN_SRC_DIR,
-                            git_repo=BINARYEN_GIT)
-  ]
+  for repo in ALL_SOURCES:
+    repo.Sync()
   SyncLLVMClang()
   SyncOCaml()
+
+
+def GetRepoInfo():
   # Keep track of all repo information here, preventing the summary from
   # getting out of sync with the actual list of repos.
   info = {}
-  for r in repos:
-    info[r[0]] = CurrentGitInfo(r[1])
+  for r in ALL_SOURCES:
+    info[r.name] = r.CurrentGitInfo()
   return info
 
 
@@ -638,13 +662,14 @@ def ParseArgs():
   return parser.parse_args()
 
 
-def main():
-  options = ParseArgs()
+def main(do_sync, do_build):
   Clobber()
   Chdir(SCRIPT_DIR)
   Mkdir(WORK_DIR)
-  repos = {} if not options.sync else SyncRepos()
-  if options.build:
+  if do_sync:
+    SyncRepos()
+  repos = GetRepoInfo()
+  if do_build:
     Remove(INSTALL_DIR)
     Mkdir(INSTALL_DIR)
     Mkdir(INSTALL_BIN)
@@ -690,4 +715,5 @@ def main():
 
 
 if __name__ == '__main__':
-  sys.exit(main())
+  options = ParseArgs()
+  sys.exit(main(options.sync, options.build))
