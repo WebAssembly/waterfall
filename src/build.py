@@ -14,6 +14,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import argparse
 import glob
 import json
 import multiprocessing
@@ -468,7 +469,7 @@ def V8():
   BuildStep('V8')
   proc.check_call(['ninja', '-C', V8_OUT_DIR, 'd8', 'unittests'],
                   cwd=V8_SRC_DIR)
-  proc.check_call(['tools/run-tests.py', 'unittests',
+  proc.check_call(['tools/run-tests.py', 'unittests', '--no-presubmit',
                    '--shell-dir', V8_OUT_DIR],
                   cwd=V8_SRC_DIR)
   to_archive = ['d8', 'natives_blob.bin', 'snapshot_blob.bin']
@@ -625,19 +626,36 @@ def Summary(repos):
     UploadToCloud('lkgr', 'git/lkgr', 'lkgr')
 
 
+def ParseArgs():
+  parser = argparse.ArgumentParser(
+      description='Wasm waterfall top-level CI script')
+  parser.add_argument('--no-sync', dest='sync',
+                      default=True, action='store_false',
+                      help='Skip fetching and checking out source repos')
+  parser.add_argument(
+      '--no-build', dest='build', default=True, action='store_false',
+      help='Skip building source repos (also skips V8 and LLVM unit tests)')
+  return parser.parse_args()
+
+
 def main():
+  options = ParseArgs()
   Clobber()
   Chdir(SCRIPT_DIR)
   Mkdir(WORK_DIR)
-  Remove(INSTALL_DIR)
-  repos = SyncRepos()
-  LLVM()
-  V8()
-  Sexpr()
-  OCaml()
-  Spec()
-  Binaryen()
-  ArchiveBinaries()
+  repos = {} if not options.sync else SyncRepos()
+  if options.build:
+    Remove(INSTALL_DIR)
+    Mkdir(INSTALL_DIR)
+    Mkdir(INSTALL_BIN)
+    Mkdir(INSTALL_LIB)
+    LLVM()
+    V8()
+    Sexpr()
+    OCaml()
+    Spec()
+    Binaryen()
+    ArchiveBinaries()
   CompileLLVMTorture()
   s2wasm_out = LinkLLVMTorture(
       name='s2wasm',
