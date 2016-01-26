@@ -114,6 +114,7 @@ NPROC = multiprocessing.cpu_count()
 # https://chromium.googlesource.com/chromium/tools/build/+/master/masters/master.client.wasm.llvm/builders.pyl
 SCHEDULERS = {
     None: 'forced',
+    'None': 'forced',
     'llvm_commits': 'llvm',
     'clang_commits': 'clang'
 }
