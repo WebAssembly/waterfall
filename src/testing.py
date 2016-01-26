@@ -19,6 +19,7 @@ import math
 import multiprocessing
 import os
 import os.path
+import resource
 import sys
 
 import proc
@@ -63,6 +64,14 @@ class Tester(object):
     self.outdir = outdir
     self.extras = extras
 
+  @staticmethod
+  def setlimits():
+    # Set maximum CPU time to 1 second in child process
+    try:
+      resource.setrlimit(resource.RLIMIT_CPU, (10, 10))
+    except:
+      pass
+
   def __call__(self, test_file):
     """Execute a single test."""
     basename = os.path.basename(test_file)
@@ -70,7 +79,8 @@ class Tester(object):
     try:
       output = proc.check_output(
           self.command_ctor(test_file, outfile, self.extras),
-          stderr=proc.STDOUT, cwd=self.outdir or os.getcwd())
+          stderr=proc.STDOUT, cwd=self.outdir or os.getcwd(),
+          preexec_fn=Tester.setlimits)
       # Flush the logged command sobuildbots don't think the script is dead.
       sys.stdout.flush()
       if outfile:
