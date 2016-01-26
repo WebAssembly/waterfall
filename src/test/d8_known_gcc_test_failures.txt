@@ -6,7 +6,6 @@
 # The right place to put libc functionality would really be libc anyways.
 20020406-1.c.s.wast.wasm
 20020413-1.c.s.wast.wasm
-20051113-1.c.s.wast.wasm
 20101011-1.c.s.wast.wasm
 960215-1.c.s.wast.wasm
 960405-1.c.s.wast.wasm
