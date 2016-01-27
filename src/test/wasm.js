@@ -253,7 +253,8 @@ var runtime = (function() {
     __multf3: NYI('__multf3'),
     __multi3: NYI('__multi3'),
     __netf2: NYI('__netf2'),
-    __subtf3: NYI('__subtf3')
+    __subtf3: NYI('__subtf3'),
+    __divsc3: NYI('__divsc3')
   };
 })();
 
