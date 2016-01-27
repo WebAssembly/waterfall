@@ -51,6 +51,7 @@ pr59229.c.s.wast.wasm
 simd-5.c.s.wast.wasm
 strcmp-1.c.s.wast.wasm
 string-opt-5.c.s.wast.wasm
+930126-1.c.s.wast.wasm
 
 # d8 segfault.
 20011109-1.c.s.wast.wasm
@@ -155,6 +156,23 @@ pr60960.c.s.wast.wasm
 strcpy-1.c.s.wast.wasm
 string-opt-17.c.s.wast.wasm
 struct-aliasing-1.c.s.wast.wasm
+20030914-2.c.s.wast.wasm
+20040703-1.c.s.wast.wasm
+20040709-1.c.s.wast.wasm
+20081103-1.c.s.wast.wasm
+20081117-1.c.s.wast.wasm
+930126-1.c.s.wast.wasm
+931004-11.c.s.wast.wasm
+931004-13.c.s.wast.wasm
+980223.c.s.wast.wasm
+bitfld-5.c.s.wast.wasm
+complex-5.c.s.wast.wasm
+complex-7.c.s.wast.wasm
+pr38969.c.s.wast.wasm
+pr51323.c.s.wast.wasm
+pr52129.c.s.wast.wasm
+pr57130.c.s.wast.wasm
+struct-ret-1.c.s.wast.wasm
 
 # Unknown exception: function signature mismatch
 # Which function?
