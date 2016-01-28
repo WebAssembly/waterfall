@@ -54,8 +54,6 @@ string-opt-5.c.s.wast.wasm
 930126-1.c.s.wast.wasm
 
 # d8 segfault.
-20021118-2.c.s.wast.wasm
-921208-1.c.s.wast.wasm
 930513-1.c.s.wast.wasm
 
 # Unknown exception: memory access out of bounds
