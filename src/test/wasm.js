@@ -681,7 +681,7 @@ var unix = (function() {
     getcwd: NYI('getcwd'),
     getdtablesize: NYI('getdtablesize'),
     getegid: function() { return 0; },
-    geteuid:function() { return 0; },
+    geteuid: function() { return 0; },
     getgid: function() { return 0; },
     getgroups: NYI('getgroups'),
     gethostid: function() { return 0; },
