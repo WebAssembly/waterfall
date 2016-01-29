@@ -164,6 +164,46 @@ pr51323.c.s.wast.wasm
 pr52129.c.s.wast.wasm
 pr57130.c.s.wast.wasm
 struct-ret-1.c.s.wast.wasm
+20000519-1.c.s.wast.wasm
+20041113-1.c.s.wast.wasm
+20041214-1.c.s.wast.wasm
+20071213-1.c.s.wast.wasm
+920501-8.c.s.wast.wasm
+920726-1.c.s.wast.wasm
+980205.c.s.wast.wasm
+980608-1.c.s.wast.wasm
+980716-1.c.s.wast.wasm
+pr56205.c.s.wast.wasm
+stdarg-2.c.s.wast.wasm
+stdarg-4.c.s.wast.wasm
+va-arg-1.c.s.wast.wasm
+va-arg-11.c.s.wast.wasm
+va-arg-12.c.s.wast.wasm
+va-arg-13.c.s.wast.wasm
+va-arg-14.c.s.wast.wasm
+va-arg-15.c.s.wast.wasm
+va-arg-16.c.s.wast.wasm
+va-arg-17.c.s.wast.wasm
+va-arg-18.c.s.wast.wasm
+va-arg-19.c.s.wast.wasm
+va-arg-2.c.s.wast.wasm
+va-arg-20.c.s.wast.wasm
+va-arg-23.c.s.wast.wasm
+va-arg-24.c.s.wast.wasm
+va-arg-26.c.s.wast.wasm
+va-arg-4.c.s.wast.wasm
+va-arg-5.c.s.wast.wasm
+va-arg-6.c.s.wast.wasm
+va-arg-7.c.s.wast.wasm
+va-arg-8.c.s.wast.wasm
+va-arg-9.c.s.wast.wasm
+va-arg-trap-1.c.s.wast.wasm
+vla-dealloc-1.c.s.wast.wasm
+
+# (more OOB exceptions, known to work in spec interp)
+20040811-1.c.s.wast.wasm
+vla-dealloc-1.c.s.wast.wasm
+pr43220.c.s.wast.wasm
 
 # Unknown exception: function signature mismatch
 # Which function?
