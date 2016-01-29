@@ -570,6 +570,7 @@ def CompileLLVMTorture():
       c=c, cxx=cxx, testsuite=GCC_TEST_DIR,
       fails=LLVM_KNOWN_TORTURE_FAILURES,
       out=TORTURE_S_OUT_DIR)
+  Archive('torture-c', Tar(GCC_TEST_DIR))
   Archive('torture-s', Tar(TORTURE_S_OUT_DIR))
   if 0 != unexpected_result_count:
     StepFail()
