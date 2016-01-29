@@ -144,8 +144,11 @@ def StepLink(label, url):
 failed_steps = 0
 
 
-def StepFail():
+def StepFail(is_flaky=False):
   """Mark one step as failing, but keep going."""
+  if is_flaky:
+    sys.stdout.write('\n@@@STEP_WARNINGS@@@\n')
+    return
   sys.stdout.write('\n@@@STEP_FAILURE@@@\n')
   global failed_steps
   failed_steps += 1
@@ -627,8 +630,7 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, has_output,
   if has_output:
     Archive('torture-%s' % name, Tar(out))
   if 0 != unexpected_result_count:
-    if not is_flaky:
-      StepFail()
+      StepFail(is_flaky)
   return out
 
 
