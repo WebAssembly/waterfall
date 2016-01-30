@@ -29,10 +29,8 @@ strncmp-1.c.s.wast.wasm
 20001027-1.c.s.wast.wasm
 20030125-1.c.s.wast.wasm
 20050826-1.c.s.wast.wasm
-20060110-1.c.s.wast.wasm
 920612-1.c.s.wast.wasm
 920711-1.c.s.wast.wasm
-950915-1.c.s.wast.wasm
 990222-1.c.s.wast.wasm
 bitfld-3.c.s.wast.wasm
 builtin-constant.c.s.wast.wasm
@@ -46,7 +44,6 @@ pr34768-1.c.s.wast.wasm
 pr34971.c.s.wast.wasm
 pr43784.c.s.wast.wasm
 pr48814-1.c.s.wast.wasm
-pr57860.c.s.wast.wasm
 pr59229.c.s.wast.wasm
 simd-5.c.s.wast.wasm
 strcmp-1.c.s.wast.wasm
