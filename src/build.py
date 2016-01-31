@@ -37,8 +37,6 @@ CLOUD_STORAGE_PATH = 'wasm-llvm/builds/'
 
 IT_IS_KNOWN = 'known_gcc_test_failures.txt'
 
-WASMJS = os.path.join(SCRIPT_DIR, 'test', 'wasm.js')
-
 LLVM_SRC_DIR = os.path.join(WORK_DIR, 'llvm')
 CLANG_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'clang')
 LLVM_KNOWN_TORTURE_FAILURES = os.path.join(LLVM_SRC_DIR, 'lib', 'Target',
@@ -78,6 +76,7 @@ V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out', 'Release')
 SEXPR_OUT_DIR = os.path.join(SEXPR_SRC_DIR, 'out')
 BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
 BINARYEN_BIN_DIR = os.path.join(BINARYEN_OUT_DIR, 'bin')
+MUSL_OUT_DIR = os.path.join(WORK_DIR, 'musl-out')
 TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
 
 INSTALL_DIR = os.path.join(WORK_DIR, 'wasm-install')
@@ -561,6 +560,20 @@ def Binaryen():
       CopyBinaryToArchive(f)
 
 
+def Musl():
+  BuildStep('musl')
+  Mkdir(MUSL_OUT_DIR)
+  proc.check_call([
+      os.path.join(MUSL_SRC_DIR, 'libc.py'),
+      '--clang_dir', INSTALL_BIN,
+      '--binaryen_dir', INSTALL_BIN,
+      '--sexpr_wasm', os.path.join(INSTALL_BIN, 'sexpr-wasm'),
+      '--musl', MUSL_SRC_DIR], cwd=MUSL_OUT_DIR)
+  for f in ['musl.wast', 'musl.wasm']:
+    CopyLibraryToArchive(os.path.join(MUSL_OUT_DIR, f))
+  CopyLibraryToArchive(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32', 'wasm.js'))
+
+
 def ArchiveBinaries():
   BuildStep('Archive binaries')
   # All relevant binaries were copied to the LLVM directory.
@@ -689,6 +702,7 @@ def main(do_sync, do_build):
     OCaml()
     Spec()
     Binaryen()
+    Musl()
     ArchiveBinaries()
   CompileLLVMTorture()
   s2wasm_out = LinkLLVMTorture(
@@ -716,7 +730,7 @@ def main(do_sync, do_build):
       fails=V8_KNOWN_TORTURE_FAILURES,
       extension='wasm',
       has_output=False,
-      wasmjs=WASMJS)
+      wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
   # Keep the summary step last: it'll be marked as red if the return code is
   # non-zero. Individual steps are marked as red with StepFail().
   Summary(repos)
