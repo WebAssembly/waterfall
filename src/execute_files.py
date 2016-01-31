@@ -35,14 +35,15 @@ def execute(infile, outfile, extras):
   basename = os.path.basename(runner)
   out_opt = ['-o', outfile] if outfile else []
   wasmjs = [extras['wasmjs']] if extras['wasmjs'] else []
+  extra_files = extras['extra_files']
   commands = {
       'binaryen-shell': [runner, '--entry=main', infile] + out_opt,
-      'd8': [runner, '--expose-wasm'] + wasmjs + ['--', infile],
+      'd8': [runner, '--expose-wasm'] + wasmjs + ['--', infile] + extra_files
   }
   return commands[basename]
 
 
-def run(runner, files, fails, out, wasmjs):
+def run(runner, files, fails, out, wasmjs='', extra_files=[]):
   """Execute all files."""
   assert os.path.isfile(runner), 'Cannot find runner at %s' % runner
   if out:
@@ -56,7 +57,11 @@ def run(runner, files, fails, out, wasmjs):
           command_ctor=execute,
           outname_ctor=create_outname,
           outdir=out,
-          extras={'runner': runner, 'wasmjs': wasmjs}),
+          extras={
+              'runner': runner,
+              'wasmjs': wasmjs,
+              'extra_files': extra_files if extra_files else []
+          }),
       inputs=executable_files,
       fails=fails)
 
@@ -74,9 +79,12 @@ def getargs():
                       help='Output directory')
   parser.add_argument('--wasmjs', type=str, required=False,
                       help='JavaScript support runtime for WebAssembly')
+  parser.add_argument('--extra', type=str, required=False, action='append',
+                      help='Extra files to pass to the runner')
   return parser.parse_args()
 
 
 if __name__ == '__main__':
   args = getargs()
-  sys.exit(run(args.runner, args.files, args.fails, args.out, args.wasmjs))
+  sys.exit(run(args.runner, args.files, args.fails, args.out, args.wasmjs,
+               args.extra))
