@@ -48,6 +48,8 @@ GCC_TEST_DIR = os.path.join(GCC_SRC_DIR, 'gcc', 'testsuite')
 V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
 V8_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
                                          'd8_' + IT_IS_KNOWN)
+V8_MUSL_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
+                                              'd8_musl_' + IT_IS_KNOWN)
 os.environ['GYP_GENERATORS'] = 'ninja'  # Used to build V8.
 
 SEXPR_SRC_DIR = os.path.join(WORK_DIR, 'sexpr-wasm-prototype')
@@ -631,7 +633,7 @@ def AssembleLLVMTorture(name, assembler, indir, fails):
 
 
 def ExecuteLLVMTorture(name, runner, indir, fails, extension, has_output,
-                       wasmjs, is_flaky=False):
+                       wasmjs='', extra_files=[], is_flaky=False):
   BuildStep('Execute LLVM Torture with %s' % name)
   assert os.path.isfile(runner), 'Cannot find runner at %s' % runner
   files = os.path.join(indir, '*.%s' % extension)
@@ -644,7 +646,8 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, has_output,
       files=files,
       fails=fails,
       out=out,
-      wasmjs=wasmjs)
+      wasmjs=wasmjs,
+      extra_files=extra_files)
   if has_output:
     Archive('torture-%s' % name, Tar(out))
   if 0 != unexpected_result_count:
@@ -721,7 +724,6 @@ def main(do_sync, do_build):
       fails=BINARYEN_SHELL_KNOWN_TORTURE_FAILURES,
       extension='wast',
       has_output=False,
-      wasmjs=None,
       is_flaky=True)  # TODO binaryen-shell is flaky when running tests.
   ExecuteLLVMTorture(
       name='d8',
@@ -731,6 +733,15 @@ def main(do_sync, do_build):
       extension='wasm',
       has_output=False,
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
+  ExecuteLLVMTorture(
+      name='d8-musl',
+      runner=os.path.join(INSTALL_BIN, 'd8'),
+      indir=sexpr_wasm_out,
+      fails=V8_MUSL_KNOWN_TORTURE_FAILURES,
+      extension='wasm',
+      has_output=False,
+      wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
+      extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
   # Keep the summary step last: it'll be marked as red if the return code is
   # non-zero. Individual steps are marked as red with StepFail().
   Summary(repos)
