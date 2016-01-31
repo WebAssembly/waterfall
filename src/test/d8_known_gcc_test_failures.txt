@@ -213,3 +213,6 @@ pr34768-2.c.s.wast.wasm
 # m = _WASMEXP_.instantiateModule(readbuffer(arguments[0]), ffi);
 #               ^
 pr38533.c.s.wast.wasm
+
+# wasm.js:752: WasmModule::Instantiate(): Compiling WASM function #3:f failed:Result = improperly nested conditional branch @+5666
+multi-ix.c.s.wast.wasm
