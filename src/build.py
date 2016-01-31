@@ -64,6 +64,7 @@ S2WASM_KNOWN_TORTURE_FAILURES = os.path.join(BINARYEN_SRC_DIR, 'test',
 BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = (
     os.path.join(BINARYEN_SRC_DIR, 'test',
                  's2wasm_known_binaryen_shell_test_failures.txt'))
+MUSL_SRC_DIR = os.path.join(WORK_DIR, 'musl')
 
 PREBUILT_CLANG = os.path.join(WORK_DIR, 'chromium-clang')
 PREBUILT_CLANG_TOOLS_CLANG = os.path.join(PREBUILT_CLANG, 'tools', 'clang')
@@ -96,6 +97,9 @@ GCC_GIT = GIT_MIRROR_BASE + 'chromiumos/third_party/gcc'
 SEXPR_GIT = WASM_GIT_BASE + 'sexpr-wasm-prototype.git'
 SPEC_GIT = WASM_GIT_BASE + 'spec.git'
 BINARYEN_GIT = WASM_GIT_BASE + 'binaryen.git'
+# TODO Redirect to WASM_GIT_BASE + 'musl.git' when mirror is up.
+MUSL_GIT = 'https://github.com/WebAssembly/musl.git'
+MUSL_BRANCH = 'wasm-prototype-1'
 
 # Sync OCaml from a cached tar file because the upstream repository is only
 # http. The file untars into a directory of the same name as the tar file.
@@ -374,7 +378,8 @@ ALL_SOURCES = [
            custom_sync=SyncPrebuiltClang),
     Source('sexpr', SEXPR_SRC_DIR, SEXPR_GIT),
     Source('spec', SPEC_SRC_DIR, SPEC_GIT),
-    Source('binaryen', BINARYEN_SRC_DIR, BINARYEN_GIT)
+    Source('binaryen', BINARYEN_SRC_DIR, BINARYEN_GIT),
+    Source('musl', MUSL_SRC_DIR, MUSL_GIT, checkout=MUSL_BRANCH)
 ]
 
 
