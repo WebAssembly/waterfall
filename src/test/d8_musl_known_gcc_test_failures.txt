@@ -40,7 +40,6 @@ memcpy-bi.c.s.wast.wasm
 memset-2.c.s.wast.wasm
 pr22493-1.c.s.wast.wasm
 pr32244-1.c.s.wast.wasm
-pr34768-1.c.s.wast.wasm
 pr34971.c.s.wast.wasm
 pr43784.c.s.wast.wasm
 pr48814-1.c.s.wast.wasm
@@ -248,14 +247,6 @@ pr43220.c.s.wast.wasm
 # Unknown exception: function signature mismatch
 # Which function?
 bcp-1.c.s.wast.wasm
-pr28289.c.s.wast.wasm
-pr34768-2.c.s.wast.wasm
-
-# What is this?
-# wasm.js:46: WasmModule::Instantiate(): 
-# m = _WASMEXP_.instantiateModule(readbuffer(arguments[0]), ffi);
-#               ^
-pr38533.c.s.wast.wasm
 
 # wasm.js:752: WasmModule::Instantiate(): Compiling WASM function #3:f failed:Result = improperly nested conditional branch @+5666
 multi-ix.c.s.wast.wasm
