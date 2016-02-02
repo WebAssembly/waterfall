@@ -67,7 +67,6 @@ string-opt-5.c.s.wast.wasm
 20030218-1.c.s.wast.wasm
 20030221-1.c.s.wast.wasm
 20030222-1.c.s.wast.wasm
-20030313-1.c.s.wast.wasm
 20030828-1.c.s.wast.wasm
 20030914-2.c.s.wast.wasm
 20031012-1.c.s.wast.wasm
@@ -110,8 +109,6 @@ string-opt-5.c.s.wast.wasm
 920726-1.c.s.wast.wasm
 930126-1.c.s.wast.wasm
 930930-2.c.s.wast.wasm
-931004-11.c.s.wast.wasm
-931004-13.c.s.wast.wasm
 960327-1.c.s.wast.wasm
 980205.c.s.wast.wasm
 980223.c.s.wast.wasm
@@ -215,6 +212,13 @@ va-arg-8.c.s.wast.wasm
 va-arg-9.c.s.wast.wasm
 va-arg-trap-1.c.s.wast.wasm
 vla-dealloc-1.c.s.wast.wasm
+20000706-4.c.s.wast.wasm
+20020206-1.c.s.wast.wasm
+20020418-1.c.s.wast.wasm
+980617-1.c.s.wast.wasm
+991201-1.c.s.wast.wasm
+bf-pack-1.c.s.wast.wasm
+loop-8.c.s.wast.wasm
 
 # (more OOB exceptions, known to work in spec interp)
 20040811-1.c.s.wast.wasm
