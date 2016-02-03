@@ -19,7 +19,8 @@ loop-2g.c.s.wast.wasm # mmap addr 2147450880
 printf-1.c.s.wast.wasm # printf
 pr34456.c.s.wast.wasm # qsort
 
-# The test doesn't divide by zero, there's a problem somewhere.
+# LLVM emits a divide by zero:
+#   https://llvm.org/bugs/show_bug.cgi?id=26452
 pr60960.c.s.wast.wasm # divide by zero
 
 # Program terminated with: Terminating wasm: abort()
