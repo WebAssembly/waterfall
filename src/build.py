@@ -58,6 +58,8 @@ SEXPR_S2WASM_KNOWN_TORTURE_FAILURES = os.path.join(SEXPR_SRC_DIR, 's2wasm_' +
 
 SPEC_SRC_DIR = os.path.join(WORK_DIR, 'spec')
 ML_DIR = os.path.join(SPEC_SRC_DIR, 'ml-proto')
+SPEC_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
+                                           'spec_' + IT_IS_KNOWN)
 BINARYEN_SRC_DIR = os.path.join(WORK_DIR, 'binaryen')
 S2WASM_KNOWN_TORTURE_FAILURES = os.path.join(BINARYEN_SRC_DIR, 'test',
                                              's2wasm_' + IT_IS_KNOWN)
@@ -724,6 +726,13 @@ def main(do_sync, do_build):
       extension='wast',
       has_output=False,
       is_flaky=True)  # TODO binaryen-shell is flaky when running tests.
+  ExecuteLLVMTorture(
+      name='spec',
+      runner=os.path.join(INSTALL_BIN, 'wasm.opt'),
+      indir=s2wasm_out,
+      fails=SPEC_KNOWN_TORTURE_FAILURES,
+      extension='wast',
+      has_output=False)
   ExecuteLLVMTorture(
       name='d8',
       runner=os.path.join(INSTALL_BIN, 'd8'),
