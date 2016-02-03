@@ -38,7 +38,8 @@ def execute(infile, outfile, extras):
   extra_files = extras['extra_files']
   commands = {
       'binaryen-shell': [runner, '--entry=main', infile] + out_opt,
-      'd8': [runner, '--expose-wasm'] + wasmjs + ['--', infile] + extra_files
+      'd8': [runner, '--expose-wasm'] + wasmjs + ['--', infile] + extra_files,
+      'wasm.opt': [runner, infile]
   }
   return commands[basename]
 
