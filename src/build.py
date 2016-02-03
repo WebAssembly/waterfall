@@ -98,8 +98,7 @@ GCC_GIT = GIT_MIRROR_BASE + 'chromiumos/third_party/gcc'
 SEXPR_GIT = WASM_GIT_BASE + 'sexpr-wasm-prototype.git'
 SPEC_GIT = WASM_GIT_BASE + 'spec.git'
 BINARYEN_GIT = WASM_GIT_BASE + 'binaryen.git'
-# TODO Redirect to WASM_GIT_BASE + 'musl.git' when mirror is up.
-MUSL_GIT = 'https://github.com/WebAssembly/musl.git'
+MUSL_GIT = WASM_GIT_BASE + 'musl.git'
 MUSL_BRANCH = 'wasm-prototype-1'
 
 # Sync OCaml from a cached tar file because the upstream repository is only
