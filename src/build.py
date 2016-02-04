@@ -200,6 +200,8 @@ def CopyLibraryToArchive(library):
 
 def Tar(directory, print_content=False):
   """Create a tar file from directory."""
+  if not os.environ.get('BUILDBOT_BUILDERNAME'):
+    return
   assert os.path.isdir(directory), 'Must tar a directory to avoid tarbombs'
   (up_directory, basename) = os.path.split(directory)
   tar = os.path.join(up_directory, basename + '.tbz2')
