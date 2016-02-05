@@ -708,7 +708,12 @@ def main(do_sync, do_build):
     OCaml()
     Spec()
     Binaryen()
-    Musl()
+    try:
+      Musl()
+    except subprocess.CalledProcessError:
+      # Ignore failures of target (i.e. wasm lib) builds so we at least archive
+      # the host components.
+      StepFail()
     ArchiveBinaries()
   CompileLLVMTorture()
   s2wasm_out = LinkLLVMTorture(
