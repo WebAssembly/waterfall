@@ -710,7 +710,7 @@ def main(do_sync, do_build):
     Binaryen()
     try:
       Musl()
-    except subprocess.CalledProcessError:
+    except proc.CalledProcessError:
       # Ignore failures of target (i.e. wasm lib) builds so we at least archive
       # the host components.
       StepFail()
