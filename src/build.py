@@ -23,6 +23,8 @@ import sys
 import urllib2
 
 import assemble_files
+import buildbot
+import cloud
 import compile_torture_tests
 import execute_files
 import link_assembly_files
@@ -31,9 +33,6 @@ import proc
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 WORK_DIR = os.path.join(SCRIPT_DIR, 'work')
-
-CLOUD_STORAGE_BASE_URL = 'https://storage.googleapis.com/'
-CLOUD_STORAGE_PATH = 'wasm-llvm/builds/'
 
 IT_IS_KNOWN = 'known_gcc_test_failures.txt'
 
@@ -137,29 +136,6 @@ GCC_REVISION = 'b6125c702850488ac3bfb1079ae5c9db89989406'
 GCC_CLONE_DEPTH = 1000
 
 
-# Magic annotations:
-# https://chromium.googlesource.com/chromium/tools/build/+/master/scripts/common/annotator.py
-def BuildStep(name):
-  sys.stdout.write('\n@@@BUILD_STEP %s@@@\n' % name)
-
-
-def StepLink(label, url):
-  sys.stdout.write('@@@STEP_LINK@%s@%s@@@\n' % (label, url))
-
-
-failed_steps = 0
-
-
-def StepFail(is_flaky=False):
-  """Mark one step as failing, but keep going."""
-  if is_flaky:
-    sys.stdout.write('\n@@@STEP_WARNINGS@@@\n')
-    return
-  sys.stdout.write('\n@@@STEP_FAILURE@@@\n')
-  global failed_steps
-  failed_steps += 1
-
-
 # Shell utilities
 
 def Chdir(path):
@@ -214,36 +190,12 @@ def Tar(directory, print_content=False):
   return tar
 
 
-# Archival and cloud storage utilities
-
-def UploadToCloud(local, remote, link_name):
-  """Upload file to Cloud Storage."""
-  if not os.environ.get('BUILDBOT_BUILDERNAME'):
-    return
-  remote = CLOUD_STORAGE_PATH + remote
-  proc.check_call(
-      ['gsutil', 'cp', '-a', 'public-read', local, 'gs://' + remote])
-  StepLink(link_name, CLOUD_STORAGE_BASE_URL + remote)
-
-
-def CopyCloudStorage(copy_from, copy_to, link_name):
-  """Copy from one Cloud Storage file to another."""
-  if not os.environ.get('BUILDBOT_BUILDERNAME'):
-    return
-  copy_from = CLOUD_STORAGE_PATH + copy_from
-  copy_to = CLOUD_STORAGE_PATH + copy_to
-  proc.check_call(
-      ['gsutil', 'cp', '-a', 'public-read',
-       'gs://' + copy_from, 'gs://' + copy_to])
-  StepLink(link_name, CLOUD_STORAGE_BASE_URL + copy_to)
-
-
 def Archive(name, tar):
   """Archive the tar file with the given name, and with the LLVM git hash."""
   if not os.environ.get('BUILDBOT_BUILDERNAME'):
     return
   git_gs = 'git/wasm-%s-%s.tbz2' % (name, BUILDBOT_BUILDNUMBER)
-  UploadToCloud(tar, git_gs, 'download')
+  buildbot.Link('download', cloud.Upload(tar, git_gs))
 
 
 # Repo and subproject utilities
@@ -443,13 +395,13 @@ def SyncOCaml():
 
 def Clobber():
   if os.environ.get('BUILDBOT_CLOBBER'):
-    BuildStep('Clobbering work dir')
+    buildbot.Step('Clobbering work dir')
     if os.path.isdir(WORK_DIR):
       shutil.rmtree(WORK_DIR)
 
 
 def SyncRepos():
-  BuildStep('Sync Repos')
+  buildbot.Step('Sync Repos')
   for repo in ALL_SOURCES:
     repo.Sync()
   SyncLLVMClang()
@@ -466,7 +418,7 @@ def GetRepoInfo():
 
 
 def LLVM():
-  BuildStep('LLVM')
+  buildbot.Step('LLVM')
   Mkdir(LLVM_OUT_DIR)
   proc.check_call(
       ['cmake', '-G', 'Ninja', LLVM_SRC_DIR,
@@ -502,7 +454,7 @@ def LLVM():
 
 
 def V8():
-  BuildStep('V8')
+  buildbot.Step('V8')
   proc.check_call(['ninja', '-C', V8_OUT_DIR, 'd8', 'unittests'],
                   cwd=V8_SRC_DIR)
   proc.check_call(['tools/run-tests.py', 'unittests', '--no-presubmit',
@@ -514,7 +466,7 @@ def V8():
 
 
 def Sexpr():
-  BuildStep('Sexpr')
+  buildbot.Step('Sexpr')
   # sexpr-wasm builds in its own in-tree out/ folder. The build is fast, so
   # always clobber.
   proc.check_call(['make', 'clean'], cwd=SEXPR_SRC_DIR)
@@ -527,7 +479,7 @@ def Sexpr():
 
 
 def OCaml():
-  BuildStep('OCaml')
+  buildbot.Step('OCaml')
   makefile = os.path.join(OCAML_DIR, 'config', 'Makefile')
   if not os.path.isfile(makefile):
     configure = os.path.join(OCAML_DIR, 'configure')
@@ -541,7 +493,7 @@ def OCaml():
 
 
 def Spec():
-  BuildStep('spec')
+  buildbot.Step('spec')
   # Spec builds in-tree. Always clobber and run the tests.
   proc.check_call(['make', 'clean'], cwd=ML_DIR)
   proc.check_call(['make', 'all'], cwd=ML_DIR)
@@ -550,7 +502,7 @@ def Spec():
 
 
 def Binaryen():
-  BuildStep('binaryen')
+  buildbot.Step('binaryen')
   Mkdir(BINARYEN_OUT_DIR)
   proc.check_call(
       ['cmake', '-G', 'Ninja', BINARYEN_SRC_DIR,
@@ -566,7 +518,7 @@ def Binaryen():
 
 
 def Musl():
-  BuildStep('musl')
+  buildbot.Step('musl')
   Mkdir(MUSL_OUT_DIR)
   proc.check_call([
       os.path.join(MUSL_SRC_DIR, 'libc.py'),
@@ -580,14 +532,14 @@ def Musl():
 
 
 def ArchiveBinaries():
-  BuildStep('Archive binaries')
+  buildbot.Step('Archive binaries')
   # All relevant binaries were copied to the LLVM directory.
   Archive('binaries', Tar(INSTALL_DIR, print_content=True))
 
 
 def CompileLLVMTorture():
   name = 'Compile LLVM Torture'
-  BuildStep(name)
+  buildbot.Step(name)
   c = os.path.join(LLVM_OUT_DIR, 'bin', 'clang')
   cxx = os.path.join(LLVM_OUT_DIR, 'bin', 'clang++')
   Remove(TORTURE_S_OUT_DIR)
@@ -599,11 +551,11 @@ def CompileLLVMTorture():
   Archive('torture-c', Tar(GCC_TEST_DIR))
   Archive('torture-s', Tar(TORTURE_S_OUT_DIR))
   if 0 != unexpected_result_count:
-    StepFail()
+    buildbot.Fail()
 
 
 def LinkLLVMTorture(name, linker, fails):
-  BuildStep('Link LLVM Torture with %s' % name)
+  buildbot.Step('Link LLVM Torture with %s' % name)
   assert os.path.isfile(linker), 'Cannot find linker at %s' % linker
   assembly_files = os.path.join(TORTURE_S_OUT_DIR, '*.s')
   out = os.path.join(WORK_DIR, 'torture-%s' % name)
@@ -613,12 +565,12 @@ def LinkLLVMTorture(name, linker, fails):
       linker=linker, files=assembly_files, fails=fails, out=out)
   Archive('torture-%s' % name, Tar(out))
   if 0 != unexpected_result_count:
-    StepFail()
+    buildbot.Fail()
   return out
 
 
 def AssembleLLVMTorture(name, assembler, indir, fails):
-  BuildStep('Assemble LLVM Torture with %s' % name)
+  buildbot.Step('Assemble LLVM Torture with %s' % name)
   assert os.path.isfile(assembler), 'Cannot find assembler at %s' % assembler
   files = os.path.join(indir, '*.wast')
   out = os.path.join(WORK_DIR, 'torture-%s' % name)
@@ -631,13 +583,13 @@ def AssembleLLVMTorture(name, assembler, indir, fails):
       out=out)
   Archive('torture-%s' % name, Tar(out))
   if 0 != unexpected_result_count:
-    StepFail()
+    buildbot.Fail()
   return out
 
 
 def ExecuteLLVMTorture(name, runner, indir, fails, extension, has_output,
                        wasmjs='', extra_files=[], is_flaky=False):
-  BuildStep('Execute LLVM Torture with %s' % name)
+  buildbot.Step('Execute LLVM Torture with %s' % name)
   assert os.path.isfile(runner), 'Cannot find runner at %s' % runner
   files = os.path.join(indir, '*.%s' % extension)
   out = os.path.join(WORK_DIR, 'torture-%s' % name) if has_output else ''
@@ -654,27 +606,27 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, has_output,
   if has_output:
     Archive('torture-%s' % name, Tar(out))
   if 0 != unexpected_result_count:
-      StepFail(is_flaky)
+      buildbot.Fail(is_flaky)
   return out
 
 
 def Summary(repos):
-  BuildStep('Summary')
+  buildbot.Step('Summary')
   info = {'repositories': repos}
   info['build'] = BUILDBOT_BUILDNUMBER
   info['scheduler'] = SCHEDULER
   info_json = json.dumps(info)
   print info
-  print 'Failed steps: %s.' % failed_steps
+  print 'Failed steps: %s.' % buildbot.Failed()
   with open('latest', 'w+') as f:
     f.write(info_json)
-  UploadToCloud('latest', 'git/latest', 'latest')
-  if failed_steps:
-    StepFail()
+  buildbot.Link('latest', cloud.Upload('latest', 'git/latest'))
+  if buildbot.Failed():
+    buildbot.Fail()
   else:
     with open('lkgr', 'w+') as f:
       f.write(info_json)
-    UploadToCloud('lkgr', 'git/lkgr', 'lkgr')
+    buildbot.Link('lkgr', cloud.Upload('lkgr', 'git/lkgr'))
 
 
 def ParseArgs():
@@ -713,7 +665,7 @@ def main(do_sync, do_build):
     except proc.CalledProcessError:
       # Ignore failures of target (i.e. wasm lib) builds so we at least archive
       # the host components.
-      StepFail()
+      buildbot.Fail()
     ArchiveBinaries()
   CompileLLVMTorture()
   s2wasm_out = LinkLLVMTorture(
@@ -758,9 +710,9 @@ def main(do_sync, do_build):
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
       extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
   # Keep the summary step last: it'll be marked as red if the return code is
-  # non-zero. Individual steps are marked as red with StepFail().
+  # non-zero. Individual steps are marked as red with buildbot.Fail().
   Summary(repos)
-  return failed_steps
+  return buildbot.Failed()
 
 
 if __name__ == '__main__':
