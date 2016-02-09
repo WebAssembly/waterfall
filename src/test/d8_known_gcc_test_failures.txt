@@ -1,51 +1,5 @@
 # Expected failures from running the assembled GCC torture tests with d8.
 
-# No output, program just fails.
-20000224-1.c.s.wast.wasm
-
-# Terminates with abort(), started after select operand change.
-20020615-1.c.s.wast.wasm
-20021010-2.c.s.wast.wasm
-20021204-1.c.s.wast.wasm
-20031010-1.c.s.wast.wasm
-20040703-1.c.s.wast.wasm
-20051110-1.c.s.wast.wasm
-20070623-1.c.s.wast.wasm
-20071216-1.c.s.wast.wasm
-20100416-1.c.s.wast.wasm
-961125-1.c.s.wast.wasm
-980604-1.c.s.wast.wasm
-990404-1.c.s.wast.wasm
-arith-rand-ll.c.s.wast.wasm
-arith-rand.c.s.wast.wasm
-cmpdi-1.c.s.wast.wasm
-cmpsf-1.c.s.wast.wasm
-cmpsi-2.c.s.wast.wasm
-pr34768-1.c.s.wast.wasm
-pr34768-2.c.s.wast.wasm
-pr36343.c.s.wast.wasm
-pr38236.c.s.wast.wasm
-pr42142.c.s.wast.wasm
-pr44683.c.s.wast.wasm
-pr45695.c.s.wast.wasm
-pr46909-1.c.s.wast.wasm
-pr49039.c.s.wast.wasm
-pr59221.c.s.wast.wasm
-pr59358.c.s.wast.wasm
-
-# Started after select operand change.
-# WasmModule::Instantiate(): Compiling WASM function #2:CalcPing failed:Result = ExprSelect[1] expected type i32, found ExprF32Add of type f32 @+54
-20071030-1.c.s.wast.wasm
-920501-2.c.s.wast.wasm
-950512-1.c.s.wast.wasm
-960416-1.c.s.wast.wasm
-960513-1.c.s.wast.wasm
-pr29695-2.c.s.wast.wasm
-pr35456.c.s.wast.wasm
-pr39501.c.s.wast.wasm
-pr46316.c.s.wast.wasm
-pr59014-2.c.s.wast.wasm
-
 # Toolchain problem: need some libc support.
 # Not yet implemented.
 # See wasm.js for the list of libc functions which are missing.
