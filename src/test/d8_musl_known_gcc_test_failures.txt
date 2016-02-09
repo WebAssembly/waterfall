@@ -167,6 +167,3 @@ bcp-1.c.s.wast.wasm
 
 # wasm.js:752: WasmModule::Instantiate(): Compiling WASM function #3:f failed:Result = improperly nested conditional branch @+5666
 multi-ix.c.s.wast.wasm
-
-# Exit 272 from main()
-pr20621-1.c.s.wast.wasm
