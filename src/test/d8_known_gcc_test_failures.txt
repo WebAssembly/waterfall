@@ -46,9 +46,10 @@ memset-2.c.s.wast.wasm # abort()
 pr22493-1.c.s.wast.wasm # abort()
 pr32244-1.c.s.wast.wasm # abort()
 pr34971.c.s.wast.wasm # abort()
+pr37573.c.s.wast.wasm # abort()
 pr39228.c.s.wast.wasm # abort()
 pr48814-1.c.s.wast.wasm # abort()
-alloca-1.c.s.wast.wasm # abort()
+pr51933.c.s.wast.wasm # abort()
 simd-5.c.s.wast.wasm # abort()
 strcmp-1.c.s.wast.wasm # abort()
 string-opt-5.c.s.wast.wasm # abort()
@@ -63,11 +64,8 @@ strncmp-1.c.s.wast.wasm # abort()
 20040709-1.c.s.wast.wasm # memory access out of bounds
 20041113-1.c.s.wast.wasm # memory access out of bounds
 20041214-1.c.s.wast.wasm # memory access out of bounds
-20050119-1.c.s.wast.wasm # memory access out of bounds
 20050502-2.c.s.wast.wasm # memory access out of bounds
 20070201-1.c.s.wast.wasm # memory access out of bounds
-20071029-1.c.s.wast.wasm # memory access out of bounds
-20071202-1.c.s.wast.wasm # memory access out of bounds
 20071213-1.c.s.wast.wasm # memory access out of bounds
 20080502-1.c.s.wast.wasm # memory access out of bounds
 20080506-2.c.s.wast.wasm # memory access out of bounds
@@ -86,18 +84,10 @@ complex-7.c.s.wast.wasm # memory access out of bounds
 memcpy-1.c.s.wast.wasm # memory access out of bounds
 memcpy-2.c.s.wast.wasm # memory access out of bounds
 multi-ix.c.s.wast.wasm # memory access out of bounds
-pr15296.c.s.wast.wasm # memory access out of bounds
-pr27073.c.s.wast.wasm # memory access out of bounds
-pr27285.c.s.wast.wasm # memory access out of bounds
 pr30778.c.s.wast.wasm # memory access out of bounds
-pr36339.c.s.wast.wasm # memory access out of bounds
-pr38969.c.s.wast.wasm # memory access out of bounds
 pr44852.c.s.wast.wasm # memory access out of bounds
 pr47337.c.s.wast.wasm # memory access out of bounds
 pr48571-1.c.s.wast.wasm # memory access out of bounds
-pr49279.c.s.wast.wasm # memory access out of bounds
-pr49419.c.s.wast.wasm # memory access out of bounds
-pr51323.c.s.wast.wasm # memory access out of bounds
 pr51581-1.c.s.wast.wasm # memory access out of bounds
 pr51581-2.c.s.wast.wasm # memory access out of bounds
 pr52760.c.s.wast.wasm # memory access out of bounds
@@ -105,8 +95,6 @@ pr56205.c.s.wast.wasm # memory access out of bounds
 pr56837.c.s.wast.wasm # memory access out of bounds
 pr56982.c.s.wast.wasm # memory access out of bounds
 pr57124.c.s.wast.wasm # memory access out of bounds
-pta-field-1.c.s.wast.wasm # memory access out of bounds
-pta-field-2.c.s.wast.wasm # memory access out of bounds
 stdarg-1.c.s.wast.wasm # memory access out of bounds
 stdarg-2.c.s.wast.wasm # memory access out of bounds
 stdarg-4.c.s.wast.wasm # memory access out of bounds

@@ -32,7 +32,6 @@ strncmp-1.c.s.wast.wasm
 920612-1.c.s.wast.wasm
 920711-1.c.s.wast.wasm
 990222-1.c.s.wast.wasm
-alloca-1.c.s.wast.wasm
 bitfld-3.c.s.wast.wasm
 builtin-constant.c.s.wast.wasm
 builtin-prefetch-4.c.s.wast.wasm
@@ -50,6 +49,7 @@ string-opt-5.c.s.wast.wasm
 
 # abort() as well, but occurring for musl only.
 20021111-1.c.s.wast.wasm
+20031012-1.c.s.wast.wasm
 20050604-1.c.s.wast.wasm
 20080424-1.c.s.wast.wasm
 930513-2.c.s.wast.wasm
@@ -75,11 +75,8 @@ strlen-1.c.s.wast.wasm
 20040709-1.c.s.wast.wasm
 20041113-1.c.s.wast.wasm
 20041214-1.c.s.wast.wasm
-20050119-1.c.s.wast.wasm
 20050502-2.c.s.wast.wasm
 20070201-1.c.s.wast.wasm
-20071029-1.c.s.wast.wasm
-20071202-1.c.s.wast.wasm
 20071213-1.c.s.wast.wasm
 20080502-1.c.s.wast.wasm
 20080506-2.c.s.wast.wasm
@@ -98,21 +95,13 @@ complex-5.c.s.wast.wasm
 complex-7.c.s.wast.wasm
 memcpy-1.c.s.wast.wasm
 memcpy-2.c.s.wast.wasm
-pr15296.c.s.wast.wasm
-pr27073.c.s.wast.wasm
-pr27285.c.s.wast.wasm
 pr30778.c.s.wast.wasm
 pr34176.c.s.wast.wasm
-pr36339.c.s.wast.wasm
 pr37573.c.s.wast.wasm
-pr38969.c.s.wast.wasm
 pr40022.c.s.wast.wasm
 pr44852.c.s.wast.wasm
 pr47337.c.s.wast.wasm
 pr48571-1.c.s.wast.wasm
-pr49279.c.s.wast.wasm
-pr49419.c.s.wast.wasm
-pr51323.c.s.wast.wasm
 pr51581-1.c.s.wast.wasm
 pr51581-2.c.s.wast.wasm
 pr51877.c.s.wast.wasm
@@ -122,10 +111,7 @@ pr56205.c.s.wast.wasm
 pr56837.c.s.wast.wasm
 pr56982.c.s.wast.wasm
 pr57124.c.s.wast.wasm
-pr57130.c.s.wast.wasm
 pr60960.c.s.wast.wasm
-pta-field-1.c.s.wast.wasm
-pta-field-2.c.s.wast.wasm
 stdarg-1.c.s.wast.wasm
 stdarg-2.c.s.wast.wasm
 stdarg-4.c.s.wast.wasm
