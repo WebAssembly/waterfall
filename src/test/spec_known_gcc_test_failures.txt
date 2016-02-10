@@ -580,6 +580,7 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 991202-2.c.s.wast # env.exit
 991202-3.c.s.wast # env.exit
 991216-1.c.s.wast # env.abort
+991216-2.c.s.wast # env.abort
 991216-4.c.s.wast # env.exit
 991221-1.c.s.wast # env.exit
 991227-1.c.s.wast # env.exit

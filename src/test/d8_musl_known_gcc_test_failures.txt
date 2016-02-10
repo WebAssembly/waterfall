@@ -65,7 +65,6 @@ strlen-1.c.s.wast.wasm
 930513-1.c.s.wast.wasm
 
 # Unknown exception: memory access out of bounds
-20000519-1.c.s.wast.wasm
 20000801-1.c.s.wast.wasm
 20000914-1.c.s.wast.wasm
 20010518-2.c.s.wast.wasm
@@ -73,11 +72,8 @@ strlen-1.c.s.wast.wasm
 20021120-3.c.s.wast.wasm
 20031201-1.c.s.wast.wasm
 20040709-1.c.s.wast.wasm
-20041113-1.c.s.wast.wasm
-20041214-1.c.s.wast.wasm
 20050502-2.c.s.wast.wasm
 20070201-1.c.s.wast.wasm
-20071213-1.c.s.wast.wasm
 20080502-1.c.s.wast.wasm
 20080506-2.c.s.wast.wasm
 20121108-1.c.s.wast.wasm
@@ -86,9 +82,7 @@ strlen-1.c.s.wast.wasm
 920726-1.c.s.wast.wasm
 930126-1.c.s.wast.wasm
 960327-1.c.s.wast.wasm
-980205.c.s.wast.wasm
 980605-1.c.s.wast.wasm
-980608-1.c.s.wast.wasm
 991201-1.c.s.wast.wasm
 bitfld-5.c.s.wast.wasm
 complex-5.c.s.wast.wasm
@@ -107,37 +101,17 @@ pr51581-2.c.s.wast.wasm
 pr51877.c.s.wast.wasm
 pr51933.c.s.wast.wasm
 pr52760.c.s.wast.wasm
-pr56205.c.s.wast.wasm
 pr56837.c.s.wast.wasm
 pr56982.c.s.wast.wasm
 pr57124.c.s.wast.wasm
 pr60960.c.s.wast.wasm
 stdarg-1.c.s.wast.wasm
 stdarg-2.c.s.wast.wasm
-stdarg-4.c.s.wast.wasm
 strcpy-1.c.s.wast.wasm
 struct-ret-1.c.s.wast.wasm
-va-arg-1.c.s.wast.wasm
-va-arg-11.c.s.wast.wasm
-va-arg-12.c.s.wast.wasm
-va-arg-13.c.s.wast.wasm
-va-arg-14.c.s.wast.wasm
-va-arg-15.c.s.wast.wasm
-va-arg-16.c.s.wast.wasm
-va-arg-17.c.s.wast.wasm
-va-arg-18.c.s.wast.wasm
-va-arg-19.c.s.wast.wasm
-va-arg-2.c.s.wast.wasm
-va-arg-20.c.s.wast.wasm
-va-arg-23.c.s.wast.wasm
 va-arg-24.c.s.wast.wasm
-va-arg-26.c.s.wast.wasm
-va-arg-4.c.s.wast.wasm
 va-arg-5.c.s.wast.wasm
 va-arg-6.c.s.wast.wasm
-va-arg-7.c.s.wast.wasm
-va-arg-8.c.s.wast.wasm
-va-arg-9.c.s.wast.wasm
 
 # Same out of bound error, but in the musl version only.
 20051113-1.c.s.wast.wasm
