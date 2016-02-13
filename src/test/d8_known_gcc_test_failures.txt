@@ -77,6 +77,7 @@ bitfld-5.c.s.wast.wasm # memory access out of bounds
 complex-7.c.s.wast.wasm # memory access out of bounds
 memcpy-1.c.s.wast.wasm # memory access out of bounds
 memcpy-2.c.s.wast.wasm # memory access out of bounds
+mode-dependent-address.c.s.wast.wasm # memory access out of bounds
 multi-ix.c.s.wast.wasm # memory access out of bounds
 pr30778.c.s.wast.wasm # memory access out of bounds
 pr44852.c.s.wast.wasm # memory access out of bounds
