@@ -520,15 +520,18 @@ def Binaryen():
 def Musl():
   buildbot.Step('musl')
   Mkdir(MUSL_OUT_DIR)
-  proc.check_call([
-      os.path.join(MUSL_SRC_DIR, 'libc.py'),
-      '--clang_dir', INSTALL_BIN,
-      '--binaryen_dir', INSTALL_BIN,
-      '--sexpr_wasm', os.path.join(INSTALL_BIN, 'sexpr-wasm'),
-      '--musl', MUSL_SRC_DIR], cwd=MUSL_OUT_DIR)
-  for f in ['musl.wast', 'musl.wasm']:
-    CopyLibraryToArchive(os.path.join(MUSL_OUT_DIR, f))
-  CopyLibraryToArchive(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32', 'wasm.js'))
+  try:
+    proc.check_call([
+        os.path.join(MUSL_SRC_DIR, 'libc.py'),
+        '--clang_dir', INSTALL_BIN,
+        '--binaryen_dir', INSTALL_BIN,
+        '--sexpr_wasm', os.path.join(INSTALL_BIN, 'sexpr-wasm'),
+        '--musl', MUSL_SRC_DIR], cwd=MUSL_OUT_DIR)
+    for f in ['musl.wast', 'musl.wasm']:
+      CopyLibraryToArchive(os.path.join(MUSL_OUT_DIR, f))
+    CopyLibraryToArchive(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32', 'wasm.js'))
+  except proc.CalledProcessError:
+    buildbot.Fail()
 
 
 def ArchiveBinaries():
@@ -655,17 +658,12 @@ def main(do_sync, do_build):
     Mkdir(INSTALL_BIN)
     Mkdir(INSTALL_LIB)
     LLVM()
+    Musl()
     V8()
     Sexpr()
     OCaml()
     Spec()
     Binaryen()
-    try:
-      Musl()
-    except proc.CalledProcessError:
-      # Ignore failures of target (i.e. wasm lib) builds so we at least archive
-      # the host components.
-      buildbot.Fail()
     ArchiveBinaries()
   CompileLLVMTorture()
   s2wasm_out = LinkLLVMTorture(
