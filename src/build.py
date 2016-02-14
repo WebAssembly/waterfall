@@ -662,12 +662,12 @@ def main(do_sync, do_build):
     Mkdir(INSTALL_BIN)
     Mkdir(INSTALL_LIB)
     LLVM()
-    Musl()
     V8()
     Sexpr()
     OCaml()
     Spec()
     Binaryen()
+    Musl()
     ArchiveBinaries()
   CompileLLVMTorture()
   s2wasm_out = LinkLLVMTorture(
