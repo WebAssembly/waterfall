@@ -269,6 +269,9 @@ class Source:
       proc.check_call(clone)
     proc.check_call(['git', 'fetch'], cwd=self.src_dir)
     proc.check_call(['git', 'checkout', self.checkout], cwd=self.src_dir)
+    if self.checkout != 'master':
+      # Fast-forward.
+      proc.check_call(['git', 'pull'], cwd=self.src_dir)
     AddGithubRemote(self.src_dir)
 
   def CurrentGitInfo(self):
