@@ -29,24 +29,18 @@ strncmp-1.c.s.wast.wasm
 # It should never happen (the torture tests are self-validating).
 20001027-1.c.s.wast.wasm
 20030125-1.c.s.wast.wasm
-20050826-1.c.s.wast.wasm
 920612-1.c.s.wast.wasm
 920711-1.c.s.wast.wasm
-990222-1.c.s.wast.wasm
 bitfld-3.c.s.wast.wasm
 builtin-constant.c.s.wast.wasm
 builtin-prefetch-4.c.s.wast.wasm
 eeprof-1.c.s.wast.wasm
-memcpy-bi.c.s.wast.wasm
-memset-2.c.s.wast.wasm
 pr22493-1.c.s.wast.wasm
 pr32244-1.c.s.wast.wasm
 pr34971.c.s.wast.wasm
 pr48814-1.c.s.wast.wasm
-simd-5.c.s.wast.wasm
 strcmp-1.c.s.wast.wasm
 string-opt-5.c.s.wast.wasm
-930126-1.c.s.wast.wasm
 
 # abort() as well, but occurring for musl only.
 20021111-1.c.s.wast.wasm
@@ -68,12 +62,10 @@ strlen-1.c.s.wast.wasm
 # Unknown exception: memory access out of bounds
 20000801-1.c.s.wast.wasm
 20000914-1.c.s.wast.wasm
-20010518-2.c.s.wast.wasm
 20020529-1.c.s.wast.wasm
 20021120-3.c.s.wast.wasm
 20031201-1.c.s.wast.wasm
 20040709-1.c.s.wast.wasm
-20050502-2.c.s.wast.wasm
 20070201-1.c.s.wast.wasm
 20080502-1.c.s.wast.wasm
 20080506-2.c.s.wast.wasm
@@ -91,21 +83,18 @@ complex-7.c.s.wast.wasm
 memcpy-1.c.s.wast.wasm
 memcpy-2.c.s.wast.wasm
 mode-dependent-address.c.s.wast.wasm
-pr30778.c.s.wast.wasm
 pr34176.c.s.wast.wasm
-pr37573.c.s.wast.wasm
 pr40022.c.s.wast.wasm
-pr44852.c.s.wast.wasm
 pr47337.c.s.wast.wasm
 pr48571-1.c.s.wast.wasm
 pr51581-1.c.s.wast.wasm
 pr51581-2.c.s.wast.wasm
 pr51877.c.s.wast.wasm
-pr51933.c.s.wast.wasm
+
+
 pr52760.c.s.wast.wasm
 pr56837.c.s.wast.wasm
 pr56982.c.s.wast.wasm
-pr57124.c.s.wast.wasm
 pr60960.c.s.wast.wasm
 stdarg-1.c.s.wast.wasm
 stdarg-2.c.s.wast.wasm
