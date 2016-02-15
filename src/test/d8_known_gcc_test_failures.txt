@@ -4,20 +4,21 @@
 # Not yet implemented.
 # See wasm.js for the list of libc functions which are missing.
 # The right place to put libc functionality would really be libc anyways.
+20020413-1.c.s.wast.wasm # __lttf2
 960215-1.c.s.wast.wasm # __addtf3
-regstack-1.c.s.wast.wasm # __addtf3
-pr47237.c.s.wast.wasm # __builtin_apply_args
-complex-5.c.s.wast.wasm # __divsc3
 960405-1.c.s.wast.wasm # __eqtf2
 align-2.c.s.wast.wasm # __eqtf2
-pr49218.c.s.wast.wasm # __fixsfti
-20020413-1.c.s.wast.wasm # __lttf2
-pr54471.c.s.wast.wasm # __multi3
+builtin-bitops-1.c.s.wast.wasm # __builtin_clrsb
+complex-5.c.s.wast.wasm # __divsc3
 ipa-sra-2.c.s.wast.wasm # free
 loop-2f.c.s.wast.wasm # mmap addr 2147450880
 loop-2g.c.s.wast.wasm # mmap addr 2147450880
-printf-1.c.s.wast.wasm # printf
 pr34456.c.s.wast.wasm # qsort
+pr47237.c.s.wast.wasm # __builtin_apply_args
+pr49218.c.s.wast.wasm # __fixsfti
+pr54471.c.s.wast.wasm # __multi3
+printf-1.c.s.wast.wasm # printf
+regstack-1.c.s.wast.wasm # __addtf3
 
 # LLVM emits a divide by zero:
 #   https://llvm.org/bugs/show_bug.cgi?id=26452

@@ -11,6 +11,7 @@
 960405-1.c.s.wast.wasm
 960521-1.c.s.wast.wasm
 align-2.c.s.wast.wasm
+builtin-bitops-1.c.s.wast.wasm # __builtin_clrsb
 ipa-sra-2.c.s.wast.wasm
 loop-2f.c.s.wast.wasm
 loop-2g.c.s.wast.wasm
@@ -121,6 +122,9 @@ va-arg-6.c.s.wast.wasm
 pr41395-1.c.s.wast.wasm
 pr41395-2.c.s.wast.wasm
 pr41463.c.s.wast.wasm
+
+# Fails with musl only.
+pr20621-1.c.s.wast.wasm # main() returned 272
 
 # Unknown exception: function signature mismatch
 # Which function?
