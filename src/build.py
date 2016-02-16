@@ -533,7 +533,8 @@ def Musl():
         '--musl', MUSL_SRC_DIR], cwd=MUSL_OUT_DIR)
     for f in ['musl.wast', 'musl.wasm']:
       CopyLibraryToArchive(os.path.join(MUSL_OUT_DIR, f))
-    CopyLibraryToArchive(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32', 'wasm.js'))
+    CopyLibraryToArchive(os.path.join(MUSL_SRC_DIR,
+                                      'arch', 'wasm32', 'wasm.js'))
   except proc.CalledProcessError:
     buildbot.Fail()
 
