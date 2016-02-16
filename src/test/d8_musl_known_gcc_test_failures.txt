@@ -22,7 +22,6 @@ pr49218.c.s.wast.wasm
 pr54471.c.s.wast.wasm
 printf-1.c.s.wast.wasm
 regstack-1.c.s.wast.wasm
-strncmp-1.c.s.wast.wasm
 
 # Program terminated with: Terminating wasm: abort()
 # This could be a problem in any part of the toolchain (not just d8).
@@ -39,22 +38,16 @@ pr22493-1.c.s.wast.wasm
 pr32244-1.c.s.wast.wasm
 pr34971.c.s.wast.wasm
 pr48814-1.c.s.wast.wasm
-strcmp-1.c.s.wast.wasm
-string-opt-5.c.s.wast.wasm
 
 # abort() as well, but occurring for musl only.
 20021111-1.c.s.wast.wasm
-20031012-1.c.s.wast.wasm
 20050604-1.c.s.wast.wasm
 20080424-1.c.s.wast.wasm
 930513-2.c.s.wast.wasm
 980602-2.c.s.wast.wasm
 loop-10.c.s.wast.wasm
-memset-1.c.s.wast.wasm
-memset-3.c.s.wast.wasm
 pr42231.c.s.wast.wasm
 pr42721.c.s.wast.wasm
-strlen-1.c.s.wast.wasm
 
 # d8 segfault.
 930513-1.c.s.wast.wasm
@@ -73,7 +66,6 @@ strlen-1.c.s.wast.wasm
 920501-8.c.s.wast.wasm
 920501-9.c.s.wast.wasm
 920726-1.c.s.wast.wasm
-930126-1.c.s.wast.wasm
 960327-1.c.s.wast.wasm
 980605-1.c.s.wast.wasm
 991201-1.c.s.wast.wasm
@@ -90,9 +82,6 @@ pr48571-1.c.s.wast.wasm
 pr51581-1.c.s.wast.wasm
 pr51581-2.c.s.wast.wasm
 pr51877.c.s.wast.wasm
-
-
-pr52760.c.s.wast.wasm
 pr56837.c.s.wast.wasm
 pr56982.c.s.wast.wasm
 pr60960.c.s.wast.wasm

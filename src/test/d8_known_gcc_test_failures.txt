@@ -33,7 +33,6 @@ pr60960.c.s.wast.wasm # divide by zero
 20101011-1.c.s.wast.wasm # abort()
 920612-1.c.s.wast.wasm # abort()
 920711-1.c.s.wast.wasm # abort()
-930126-1.c.s.wast.wasm # abort()
 bcp-1.c.s.wast.wasm # abort()
 bitfld-3.c.s.wast.wasm # abort()
 builtin-constant.c.s.wast.wasm # abort()
