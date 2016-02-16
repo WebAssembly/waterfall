@@ -26,18 +26,15 @@ regstack-1.c.s.wast.wasm
 # Program terminated with: Terminating wasm: abort()
 # This could be a problem in any part of the toolchain (not just d8).
 # It should never happen (the torture tests are self-validating).
-20001027-1.c.s.wast.wasm
 20030125-1.c.s.wast.wasm
 920612-1.c.s.wast.wasm
 920711-1.c.s.wast.wasm
 bitfld-3.c.s.wast.wasm
 builtin-constant.c.s.wast.wasm
-builtin-prefetch-4.c.s.wast.wasm
 eeprof-1.c.s.wast.wasm
 pr22493-1.c.s.wast.wasm
 pr32244-1.c.s.wast.wasm
 pr34971.c.s.wast.wasm
-pr48814-1.c.s.wast.wasm
 
 # abort() as well, but occurring for musl only.
 20021111-1.c.s.wast.wasm
@@ -53,7 +50,6 @@ pr42721.c.s.wast.wasm
 930513-1.c.s.wast.wasm
 
 # Unknown exception: memory access out of bounds
-20000801-1.c.s.wast.wasm
 20000914-1.c.s.wast.wasm
 20020529-1.c.s.wast.wasm
 20021120-3.c.s.wast.wasm
@@ -61,12 +57,10 @@ pr42721.c.s.wast.wasm
 20040709-1.c.s.wast.wasm
 20070201-1.c.s.wast.wasm
 20080502-1.c.s.wast.wasm
-20080506-2.c.s.wast.wasm
 20121108-1.c.s.wast.wasm
 920501-8.c.s.wast.wasm
 920501-9.c.s.wast.wasm
 920726-1.c.s.wast.wasm
-960327-1.c.s.wast.wasm
 980605-1.c.s.wast.wasm
 991201-1.c.s.wast.wasm
 bitfld-5.c.s.wast.wasm
