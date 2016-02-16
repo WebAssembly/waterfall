@@ -59,9 +59,11 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 20000731-1.c.s.wast # env.exit
 20000731-2.c.s.wast # env.exit
 20000801-1.c.s.wast # env.exit
+20000801-2.c.s.wast # env.exit
 20000801-3.c.s.wast # env.exit
 20000801-4.c.s.wast # env.exit
 20000808-1.c.s.wast # env.abort
+20000815-1.c.s.wast # env.exit
 20000818-1.c.s.wast # env.exit
 20000819-1.c.s.wast # env.exit
 20000910-1.c.s.wast # env.exit
@@ -210,6 +212,7 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 20030913-1.c.s.wast # env.exit
 20030914-1.c.s.wast # env.__floatsitf
 20030914-2.c.s.wast # env.exit
+20030916-1.c.s.wast # env.exit
 20030928-1.c.s.wast # env.exit
 20031010-1.c.s.wast # env.abort
 20031012-1.c.s.wast # env.memset
@@ -265,6 +268,7 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 20050613-1.c.s.wast # env.abort
 20050713-1.c.s.wast # env.abort
 20050826-1.c.s.wast # env.abort
+20050826-2.c.s.wast # env.exit
 20050929-1.c.s.wast # env.abort
 20051021-1.c.s.wast # env.abort
 20051110-1.c.s.wast # env.abort
@@ -309,6 +313,8 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 20081103-1.c.s.wast # env.abort
 20081117-1.c.s.wast # env.abort
 20081218-1.c.s.wast # env.memset
+20090113-1.c.s.wast # env.exit
+20090113-2.c.s.wast # env.exit
 20090527-1.c.s.wast # env.abort
 20090711-1.c.s.wast # env.abort
 20090814-1.c.s.wast # env.abort
@@ -344,6 +350,7 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 920429-1.c.s.wast # env.exit
 920501-1.c.s.wast # env.exit
 920501-2.c.s.wast # env.exit
+920501-6.c.s.wast # env.exit
 920501-8.c.s.wast # env.sprintf
 920501-9.c.s.wast # env.sprintf
 920506-1.c.s.wast # env.exit
@@ -400,6 +407,7 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 930429-2.c.s.wast # env.exit
 930513-1.c.s.wast # env.sprintf
 930513-2.c.s.wast # env.abort
+930518-1.c.s.wast # env.exit
 930526-1.c.s.wast # env.exit
 930527-1.c.s.wast # env.exit
 930529-1.c.s.wast # env.exit
@@ -412,6 +420,7 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 930621-1.c.s.wast # env.exit
 930622-1.c.s.wast # env.exit
 930622-2.c.s.wast # env.__floatditf
+930628-1.c.s.wast # env.exit
 930630-1.c.s.wast # env.exit
 930702-1.c.s.wast # env.abort
 930713-1.c.s.wast # env.exit
@@ -541,6 +550,7 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 980617-1.c.s.wast # env.abort
 980618-1.c.s.wast # env.exit
 980701-1.c.s.wast # env.abort
+980707-1.c.s.wast # env.exit
 980716-1.c.s.wast # env.exit
 980929-1.c.s.wast # env.abort
 981001-1.c.s.wast # env.exit
@@ -549,6 +559,7 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 981206-1.c.s.wast # env.exit
 990106-1.c.s.wast # env.exit
 990106-2.c.s.wast # env.exit
+990127-1.c.s.wast # env.exit
 990127-2.c.s.wast # env.abort
 990128-1.c.s.wast # env.exit
 990130-1.c.s.wast # env.exit
@@ -657,6 +668,7 @@ loop-1.c.s.wast # env.exit
 loop-10.c.s.wast # env.abort
 loop-11.c.s.wast # env.abort
 loop-14.c.s.wast # env.exit
+loop-15.c.s.wast # env.exit
 loop-2.c.s.wast # env.exit
 loop-2b.c.s.wast # env.exit
 loop-2c.c.s.wast # env.exit
@@ -672,6 +684,7 @@ loop-5.c.s.wast # env.exit
 loop-6.c.s.wast # env.exit
 loop-7.c.s.wast # env.abort
 loop-8.c.s.wast # env.abort
+loop-ivopts-2.c.s.wast # env.exit
 lshrdi-1.c.s.wast # env.exit
 mayalias-1.c.s.wast # env.exit
 mayalias-3.c.s.wast # env.abort
@@ -695,6 +708,7 @@ pr19005.c.s.wast # env.abort
 pr19449.c.s.wast # env.abort
 pr19606.c.s.wast # env.exit
 pr20100-1.c.s.wast # env.exit
+pr20466-1.c.s.wast # env.exit
 pr20527-1.c.s.wast # env.exit
 pr20601-1.c.s.wast # env.abort
 pr21173.c.s.wast # env.abort
@@ -723,12 +737,15 @@ pr28403.c.s.wast # env.exit
 pr28651.c.s.wast # env.abort
 pr29695-2.c.s.wast # env.abort
 pr30778.c.s.wast # env.abort
+pr28778.c.s.wast # env.abort
 pr31072.c.s.wast # env.abort
 pr31605.c.s.wast # env.exit
 pr32244-1.c.s.wast # env.abort
 pr32500.c.s.wast # env.exit
 pr33142.c.s.wast # env.abort
 pr33382.c.s.wast # env.abort
+pr33870-1.c.s.wast # env.exit
+pr33870.c.s.wast # env.exit
 pr33992.c.s.wast # env.abort
 pr34176.c.s.wast # env.abort
 pr34456.c.s.wast # env.qsort
@@ -754,6 +771,7 @@ pr38236.c.s.wast # env.abort
 pr38533.c.s.wast # env.abort
 pr38819.c.s.wast # env.exit
 pr38969.c.s.wast # env.abort
+pr39100.c.s.wast # env.exit
 pr39120.c.s.wast # env.abort
 pr39228.c.s.wast # env.__builtin_isinff
 pr39233.c.s.wast # env.abort
@@ -786,6 +804,7 @@ pr43385.c.s.wast # env.abort
 pr43629.c.s.wast # env.abort
 pr43784.c.s.wast # env.memcpy
 pr43835.c.s.wast # env.abort
+pr49390.c.s.wast # env.exit
 pr44164.c.s.wast # env.abort
 pr44202-1.c.s.wast # env.exit
 pr44468.c.s.wast # env.abort
@@ -880,6 +899,7 @@ pr59101.c.s.wast # env.abort
 pr59221.c.s.wast # env.abort
 pr59229.c.s.wast # env.memcmp
 pr59358.c.s.wast # env.abort
+pr59643.c.s.wast # env.exit
 pr59747.c.s.wast # env.exit
 pr60017.c.s.wast # env.abort
 pr60454.c.s.wast # env.abort

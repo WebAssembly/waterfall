@@ -28,7 +28,6 @@ pr60960.c.s.wast.wasm # divide by zero
 # This could be a problem in any part of the toolchain (not just d8).
 # It should never happen (the torture tests are self-validating).
 20000910-2.c.s.wast.wasm # abort()
-20001027-1.c.s.wast.wasm # abort()
 20030125-1.c.s.wast.wasm # abort()
 20101011-1.c.s.wast.wasm # abort()
 920612-1.c.s.wast.wasm # abort()
@@ -36,31 +35,26 @@ pr60960.c.s.wast.wasm # divide by zero
 bcp-1.c.s.wast.wasm # abort()
 bitfld-3.c.s.wast.wasm # abort()
 builtin-constant.c.s.wast.wasm # abort()
-builtin-prefetch-4.c.s.wast.wasm # abort()
 eeprof-1.c.s.wast.wasm # abort()
 pr22493-1.c.s.wast.wasm # abort()
 pr32244-1.c.s.wast.wasm # abort()
 pr34971.c.s.wast.wasm # abort()
 pr39228.c.s.wast.wasm # abort()
-pr48814-1.c.s.wast.wasm # abort()
 strcmp-1.c.s.wast.wasm # abort()
 string-opt-5.c.s.wast.wasm # abort()
 strncmp-1.c.s.wast.wasm # abort()
 
 # Unknown exception: memory access out of bounds
-20000801-1.c.s.wast.wasm # memory access out of bounds
 20020406-1.c.s.wast.wasm # memory access out of bounds
 20021120-3.c.s.wast.wasm # memory access out of bounds
 20040709-1.c.s.wast.wasm # memory access out of bounds
 20070201-1.c.s.wast.wasm # memory access out of bounds
 20080502-1.c.s.wast.wasm # memory access out of bounds
-20080506-2.c.s.wast.wasm # memory access out of bounds
 20121108-1.c.s.wast.wasm # memory access out of bounds
 920501-8.c.s.wast.wasm # memory access out of bounds
 920501-9.c.s.wast.wasm # memory access out of bounds
 920726-1.c.s.wast.wasm # memory access out of bounds
 930513-1.c.s.wast.wasm # memory access out of bounds
-960327-1.c.s.wast.wasm # memory access out of bounds
 980605-1.c.s.wast.wasm # memory access out of bounds
 991201-1.c.s.wast.wasm # memory access out of bounds
 bitfld-5.c.s.wast.wasm # memory access out of bounds
