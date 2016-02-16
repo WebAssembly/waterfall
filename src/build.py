@@ -100,7 +100,7 @@ SEXPR_GIT = WASM_GIT_BASE + 'sexpr-wasm-prototype.git'
 SPEC_GIT = WASM_GIT_BASE + 'spec.git'
 BINARYEN_GIT = WASM_GIT_BASE + 'binaryen.git'
 MUSL_GIT = WASM_GIT_BASE + 'musl.git'
-MUSL_BRANCH = 'wasm-prototype-1'
+MUSL_BRANCH = 'origin/wasm-prototype-1'
 
 # Sync OCaml from a cached tar file because the upstream repository is only
 # http. The file untars into a directory of the same name as the tar file.
@@ -268,11 +268,10 @@ class Source:
         clone.append(str(self.depth))
       proc.check_call(clone)
     proc.check_call(['git', 'fetch'], cwd=self.src_dir)
+    if not self.checkout.startswith('origin/'):
+      sys.stderr.write(('WARNING: `git checkout %s` not based on origin, '
+                        'checking out local branch' % self.checkout))
     proc.check_call(['git', 'checkout', self.checkout], cwd=self.src_dir)
-    branch = proc.check_output(['git', 'branch'], cwd=self.src_dir)
-    if '* (HEAD detached at ' not in branch:
-      # Fast-forward.
-      proc.check_call(['git', 'pull'], cwd=self.src_dir)
     AddGithubRemote(self.src_dir)
 
   def CurrentGitInfo(self):
