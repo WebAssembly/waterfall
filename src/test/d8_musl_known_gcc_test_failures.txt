@@ -32,6 +32,7 @@ regstack-1.c.s.wast.wasm
 bitfld-3.c.s.wast.wasm
 builtin-constant.c.s.wast.wasm
 eeprof-1.c.s.wast.wasm
+frame-address.c.wast.wasm # abort()
 pr22493-1.c.s.wast.wasm
 pr32244-1.c.s.wast.wasm
 pr34971.c.s.wast.wasm
