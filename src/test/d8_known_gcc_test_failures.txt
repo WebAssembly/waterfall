@@ -36,7 +36,7 @@ bcp-1.c.s.wast.wasm # abort()
 bitfld-3.c.s.wast.wasm # abort()
 builtin-constant.c.s.wast.wasm # abort()
 eeprof-1.c.s.wast.wasm # abort()
-frame-address.c.wast.wasm # abort()
+frame-address.c.s.wast.wasm # abort()
 pr22493-1.c.s.wast.wasm # abort()
 pr32244-1.c.s.wast.wasm # abort()
 pr34971.c.s.wast.wasm # abort()
@@ -64,6 +64,7 @@ memcpy-1.c.s.wast.wasm # memory access out of bounds
 memcpy-2.c.s.wast.wasm # memory access out of bounds
 mode-dependent-address.c.s.wast.wasm # memory access out of bounds
 multi-ix.c.s.wast.wasm # memory access out of bounds
+pr28982b.c.s.wast.wams # memory access out of bounds
 pr47337.c.s.wast.wasm # memory access out of bounds
 pr48571-1.c.s.wast.wasm # memory access out of bounds
 pr51581-1.c.s.wast.wasm # memory access out of bounds

@@ -657,7 +657,7 @@ ffs-1.c.s.wast # env.exit
 ffs-2.c.s.wast # env.exit
 float-floor.c.s.wast # env.abort
 floatunsisf-1.c.s.wast # env.abort
-frame-address.c.wast.wasm # env.abort
+frame-address.c.s.wast # env.abort
 func-ptr-1.c.s.wast # env.exit
 ifcvt-onecmpl-abs-1.c.s.wast # env.abort
 index-1.c.s.wast # env.exit
@@ -737,6 +737,7 @@ pr28289.c.s.wast # env.exit
 pr28403.c.s.wast # env.exit
 pr28651.c.s.wast # env.abort
 pr28778.c.s.wast # env.abort
+pr28982b.c.s.wast # env.memset
 pr29695-2.c.s.wast # env.abort
 pr30778.c.s.wast # env.abort
 pr31072.c.s.wast # env.abort
