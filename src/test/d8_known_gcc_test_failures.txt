@@ -55,6 +55,7 @@ complex-7.c.s.wast.wasm # memory access out of bounds
 memcpy-1.c.s.wast.wasm # memory access out of bounds
 multi-ix.c.s.wast.wasm # memory access out of bounds
 pr28982b.c.s.wast.wams # memory access out of bounds
+pr28982b.c.s.wast.wasm # memory access out of bounds
 pr56982.c.s.wast.wasm # memory access out of bounds
 stdarg-1.c.s.wast.wasm # memory access out of bounds
 stdarg-2.c.s.wast.wasm # memory access out of bounds
