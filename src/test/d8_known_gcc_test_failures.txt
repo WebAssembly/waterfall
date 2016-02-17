@@ -4,6 +4,7 @@
 # Not yet implemented.
 # See wasm.js for the list of libc functions which are missing.
 # The right place to put libc functionality would really be libc anyways.
+20101011-1.c.s.wast.wasm # signal
 20020413-1.c.s.wast.wasm # __lttf2
 960215-1.c.s.wast.wasm # __addtf3
 960405-1.c.s.wast.wasm # __eqtf2
@@ -19,6 +20,7 @@ pr49218.c.s.wast.wasm # __fixsfti
 pr54471.c.s.wast.wasm # __multi3
 printf-1.c.s.wast.wasm # printf
 regstack-1.c.s.wast.wasm # __addtf3
+pr39228.c.s.wast.wasm # isinfl
 
 # LLVM emits a divide by zero:
 #   https://llvm.org/bugs/show_bug.cgi?id=26452
@@ -27,13 +29,6 @@ pr60960.c.s.wast.wasm # divide by zero
 # Program terminated with: Terminating wasm: abort()
 # This could be a problem in any part of the toolchain (not just d8).
 # It should never happen (the torture tests are self-validating).
-20000910-2.c.s.wast.wasm # abort()
-20101011-1.c.s.wast.wasm # abort()
-bitfld-3.c.s.wast.wasm # abort()
-eeprof-1.c.s.wast.wasm # abort()
-pr32244-1.c.s.wast.wasm # abort()
-pr34971.c.s.wast.wasm # abort()
-pr39228.c.s.wast.wasm # abort()
 strcmp-1.c.s.wast.wasm # abort()
 string-opt-5.c.s.wast.wasm # abort()
 strncmp-1.c.s.wast.wasm # abort()
@@ -41,7 +36,6 @@ strncmp-1.c.s.wast.wasm # abort()
 # Unknown exception: memory access out of bounds
 20020406-1.c.s.wast.wasm # memory access out of bounds
 20021120-3.c.s.wast.wasm # memory access out of bounds
-20040709-1.c.s.wast.wasm # memory access out of bounds
 20070201-1.c.s.wast.wasm # memory access out of bounds
 20080502-1.c.s.wast.wasm # memory access out of bounds
 20121108-1.c.s.wast.wasm # memory access out of bounds
@@ -50,7 +44,6 @@ strncmp-1.c.s.wast.wasm # abort()
 920726-1.c.s.wast.wasm # memory access out of bounds
 930513-1.c.s.wast.wasm # memory access out of bounds
 980605-1.c.s.wast.wasm # memory access out of bounds
-bitfld-5.c.s.wast.wasm # memory access out of bounds
 complex-7.c.s.wast.wasm # memory access out of bounds
 memcpy-1.c.s.wast.wasm # memory access out of bounds
 multi-ix.c.s.wast.wasm # memory access out of bounds
@@ -63,22 +56,48 @@ struct-ret-1.c.s.wast.wasm # memory access out of bounds
 va-arg-5.c.s.wast.wasm # memory access out of bounds
 va-arg-6.c.s.wast.wasm # memory access out of bounds
 
-# The following failures go away when disabling LLVM optimizations
-20030125-1.c.s.wast.wasm # abort()
-920612-1.c.s.wast.wasm # abort()
-920711-1.c.s.wast.wasm # abort()
-991201-1.c.s.wast.wasm # memory access out of bounds
-bcp-1.c.s.wast.wasm # abort()
-builtin-constant.c.s.wast.wasm # abort()
+# The following failures go away when disabling LLVM IR optimizations only:
+20000910-2.c.s.wast.wasm # abort()
+
+# The following failures go away when disabling IR optimizations, regardless of backend
+
+# The following failures go away when disabling both IR and backend optimizations:
+
+# The following failures go away when disabling backend optimizations only:
+20040709-1.c.s.wast.wasm # memory access out of bounds
+
+# The following failures go away when disabling backend optimizations, regardless of IR
 frame-address.c.s.wast.wasm # abort()
+pr47337.c.s.wast.wasm # memory access out of bounds
+
+# The following only fail when all optimizations are enabled
+991201-1.c.s.wast.wasm # memory access out of bounds
 memcpy-2.c.s.wast.wasm # memory access out of bounds
 mode-dependent-address.c.s.wast.wasm # memory access out of bounds
-pr22493-1.c.s.wast.wasm # abort()
-pr47337.c.s.wast.wasm # memory access out of bounds
 pr48571-1.c.s.wast.wasm # memory access out of bounds
 pr51581-1.c.s.wast.wasm # memory access out of bounds
 pr51581-2.c.s.wast.wasm # memory access out of bounds
 pr56837.c.s.wast.wasm # memory access out of bounds
 strcpy-1.c.s.wast.wasm # memory access out of bounds
-# Additionally there are a bunch of unexpected failures when disabling
+
+# Additionally there are a bunch of unexpected failures when disabling IR
 # optimization, which this margin is too small to contain.
+# (a lot of them are unsupported features and missing libcalls which are
+# eliminated by IR optzns)
+
+
+# Don't care/won't fix:
+920612-1.c.s.wast.wasm # abort() # UB
+920711-1.c.s.wast.wasm # abort() # UB for 32-bit longs
+bcp-1.c.s.wast.wasm # abort() # builtin_constant_p depends on opt setting
+builtin-constant.c.s.wast.wasm # abort() # builtin_constant_p depends on opt setting
+pr22493-1.c.s.wast.wasm # abort() # UB
+20030125-1.c.s.wast.wasm # abort() # Checks math function opt, depends on opt setting
+eeprof-1.c.s.wast.wasm # tests -finstrument-functions
+
+# Low priority
+# Bitfield tests
+bitfld-3.c.s.wast.wasm # abort()
+bitfld-5.c.s.wast.wasm # memory access out of bounds
+pr32244-1.c.s.wast.wasm # abort()
+pr34971.c.s.wast.wasm # abort()
