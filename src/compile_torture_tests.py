@@ -23,6 +23,7 @@ import testing
 
 
 CFLAGS = ['--std=gnu89', '--target=wasm32-unknown-unknown', '-S', '-O2',
+          '-DSTACK_SIZE=1044480',
           '-w', '-Wno-implicit-function-declaration']
 
 

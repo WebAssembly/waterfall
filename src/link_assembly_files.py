@@ -34,7 +34,7 @@ def link(infile, outfile, extras):
   linker = extras['linker']
   basename = os.path.basename(linker)
   commands = {
-      's2wasm': [linker, '--allocate-stack', '16384', '-o', outfile, infile],
+      's2wasm': [linker, '--allocate-stack', '1048576', '-o', outfile, infile],
       'wasm-as': [linker, '-o', outfile, infile],
   }
   return commands[basename]
