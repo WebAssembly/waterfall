@@ -4,11 +4,16 @@
 # Not yet implemented.
 # See wasm.js for the list of libc functions which are missing.
 # The right place to put libc functionality would really be libc anyways.
+20020406-1.c.s.wast.wasm # printf
+20021120-3.c.s.wast.wasm # sprintf
+20070201-1.c.s.wast.wasm # sprintf
 20101011-1.c.s.wast.wasm # signal
-20020413-1.c.s.wast.wasm # __lttf2
-960215-1.c.s.wast.wasm # __addtf3
-960405-1.c.s.wast.wasm # __eqtf2
-align-2.c.s.wast.wasm # __eqtf2
+20121108-1.c.s.wast.wasm # printf
+920501-8.c.s.wast.wasm # sprintf
+920501-9.c.s.wast.wasm # sprintf
+930513-1.c.s.wast.wasm # sprintf
+920726-1.c.s.wast.wasm # sprintf
+980605-1.c.s.wast.wasm # sprintf
 builtin-bitops-1.c.s.wast.wasm # __builtin_clrsb
 complex-5.c.s.wast.wasm # __divsc3
 ipa-sra-2.c.s.wast.wasm # free
@@ -16,15 +21,26 @@ loop-2f.c.s.wast.wasm # mmap addr 2147450880
 loop-2g.c.s.wast.wasm # mmap addr 2147450880
 pr34456.c.s.wast.wasm # qsort
 pr47237.c.s.wast.wasm # __builtin_apply_args
+pr56982.c.s.wast.wasm # _setjmp
+printf-1.c.s.wast.wasm # printf
+pr39228.c.s.wast.wasm # isinfl
+struct-ret-1.c.s.wast.wasm # sprintf
+
+# These compiler-rt functions are for long doubles. Also NYI.
+20020413-1.c.s.wast.wasm # __lttf2
+20080502-1.c.s.wast.wasm # __eqtf2
+960215-1.c.s.wast.wasm # __addtf3
+960405-1.c.s.wast.wasm # __eqtf2
+align-2.c.s.wast.wasm # __eqtf2
+complex-7.c.s.wast.wasm # __netf2
 pr49218.c.s.wast.wasm # __fixsfti
 pr54471.c.s.wast.wasm # __multi3
-printf-1.c.s.wast.wasm # printf
 regstack-1.c.s.wast.wasm # __addtf3
-pr39228.c.s.wast.wasm # isinfl
+stdarg-1.c.s.wast.wasm # __netf2
+stdarg-2.c.s.wast.wasm # __floatsitf
+va-arg-5.c.s.wast.wasm # __eqtf2
+va-arg-6.c.s.wast.wasm # __eqtf2
 
-# LLVM emits a divide by zero:
-#   https://llvm.org/bugs/show_bug.cgi?id=26452
-pr60960.c.s.wast.wasm # divide by zero
 
 # Program terminated with: Terminating wasm: abort()
 # This could be a problem in any part of the toolchain (not just d8).
@@ -34,27 +50,10 @@ string-opt-5.c.s.wast.wasm # abort()
 strncmp-1.c.s.wast.wasm # abort()
 
 # Unknown exception: memory access out of bounds
-20020406-1.c.s.wast.wasm # memory access out of bounds
-20021120-3.c.s.wast.wasm # memory access out of bounds
-20070201-1.c.s.wast.wasm # memory access out of bounds
-20080502-1.c.s.wast.wasm # memory access out of bounds
-20121108-1.c.s.wast.wasm # memory access out of bounds
-920501-8.c.s.wast.wasm # memory access out of bounds
-920501-9.c.s.wast.wasm # memory access out of bounds
-920726-1.c.s.wast.wasm # memory access out of bounds
-930513-1.c.s.wast.wasm # memory access out of bounds
-980605-1.c.s.wast.wasm # memory access out of bounds
-complex-7.c.s.wast.wasm # memory access out of bounds
-memcpy-1.c.s.wast.wasm # memory access out of bounds
-multi-ix.c.s.wast.wasm # memory access out of bounds
-pr28982b.c.s.wast.wams # memory access out of bounds
-pr28982b.c.s.wast.wasm # memory access out of bounds
-pr56982.c.s.wast.wasm # memory access out of bounds
-stdarg-1.c.s.wast.wasm # memory access out of bounds
-stdarg-2.c.s.wast.wasm # memory access out of bounds
-struct-ret-1.c.s.wast.wasm # memory access out of bounds
-va-arg-5.c.s.wast.wasm # memory access out of bounds
-va-arg-6.c.s.wast.wasm # memory access out of bounds
+memcpy-1.c.s.wast.wasm # stack overflow. 1M is enough
+multi-ix.c.s.wast.wasm # stack overflow? 1M isnt enough
+pr28982b.c.s.wast.wams # stack overflow? 1M isnt enough
+
 
 # The following failures go away when disabling LLVM IR optimizations only:
 20000910-2.c.s.wast.wasm # abort()
@@ -101,3 +100,7 @@ bitfld-3.c.s.wast.wasm # abort()
 bitfld-5.c.s.wast.wasm # memory access out of bounds
 pr32244-1.c.s.wast.wasm # abort()
 pr34971.c.s.wast.wasm # abort()
+
+# LLVM emits a divide by zero:
+#   https://llvm.org/bugs/show_bug.cgi?id=26452
+pr60960.c.s.wast.wasm # divide by zero
