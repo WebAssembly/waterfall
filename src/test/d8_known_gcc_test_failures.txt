@@ -52,7 +52,7 @@ strncmp-1.c.s.wast.wasm # abort()
 # Unknown exception: memory access out of bounds
 memcpy-1.c.s.wast.wasm # stack overflow. 1M is enough
 multi-ix.c.s.wast.wasm # stack overflow? 1M isnt enough
-pr28982b.c.s.wast.wams # stack overflow? 1M isnt enough
+pr28982b.c.s.wast.wasm # stack overflow? 1M isnt enough
 
 
 # The following failures go away when disabling LLVM IR optimizations only:
