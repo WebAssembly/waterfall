@@ -854,6 +854,8 @@ pr52979-2.c.s.wast # env.abort
 pr53084.c.s.wast # env.abort
 pr53160.c.s.wast # env.abort
 pr53465.c.s.wast # env.abort
+pr53645-2.c.s.wast # env.abort
+pr53645.c.s.wast # env.abort
 pr53688.c.s.wast # env.memset
 pr54471.c.s.wast # env.__multi3
 pr54985.c.s.wast # env.abort
