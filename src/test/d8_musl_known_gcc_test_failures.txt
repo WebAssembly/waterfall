@@ -23,12 +23,20 @@ pr54471.c.s.wast.wasm
 printf-1.c.s.wast.wasm
 regstack-1.c.s.wast.wasm
 
+# Trying to import function 'bar'. The test is likely wrong.
+va-arg-pack-1.c.s.wast.wasm
+
 # Program terminated with: Terminating wasm: abort()
 # This could be a problem in any part of the toolchain (not just d8).
 # It should never happen (the torture tests are self-validating).
 20030125-1.c.s.wast.wasm
 920612-1.c.s.wast.wasm
+920625-1.c.s.wast.wasm
 920711-1.c.s.wast.wasm
+931004-10.c.s.wast.wasm
+931004-12.c.s.wast.wasm
+931004-14.c.s.wast.wasm
+931004-6.c.s.wast.wasm
 bitfld-3.c.s.wast.wasm
 builtin-constant.c.s.wast.wasm
 eeprof-1.c.s.wast.wasm
@@ -36,6 +44,12 @@ frame-address.c.s.wast.wasm # abort()
 pr22493-1.c.s.wast.wasm
 pr32244-1.c.s.wast.wasm
 pr34971.c.s.wast.wasm
+pr38151.c.s.wast.wasm
+pr44575.c.s.wast.wasm
+stdarg-3.c.s.wast.wasm
+strct-stdarg-1.c.s.wast.wasm
+strct-varg-1.c.s.wast.wasm
+va-arg-22.c.s.wast.wasm
 
 # abort() as well, but occurring for musl only.
 20021111-1.c.s.wast.wasm

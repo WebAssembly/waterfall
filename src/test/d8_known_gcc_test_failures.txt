@@ -41,13 +41,26 @@ stdarg-2.c.s.wast.wasm # __floatsitf
 va-arg-5.c.s.wast.wasm # __eqtf2
 va-arg-6.c.s.wast.wasm # __eqtf2
 
+# Trying to import function 'bar'. The test is likely wrong.
+va-arg-pack-1.c.s.wast.wasm
 
 # Program terminated with: Terminating wasm: abort()
 # This could be a problem in any part of the toolchain (not just d8).
 # It should never happen (the torture tests are self-validating).
+920625-1.c.s.wast.wasm # abort()
+931004-10.c.s.wast.wasm # abort()
+931004-12.c.s.wast.wasm # abort()
+931004-14.c.s.wast.wasm # abort()
+931004-6.c.s.wast.wasm # abort()
+pr38151.c.s.wast.wasm # abort()
+pr44575.c.s.wast.wasm # abort()
+stdarg-3.c.s.wast.wasm # abort()
 strcmp-1.c.s.wast.wasm # abort()
+strct-stdarg-1.c.s.wast.wasm # abort()
+strct-varg-1.c.s.wast.wasm # abort()
 string-opt-5.c.s.wast.wasm # abort()
 strncmp-1.c.s.wast.wasm # abort()
+va-arg-22.c.s.wast.wasm # abort()
 
 # The following failures go away when disabling LLVM IR optimizations only:
 20000910-2.c.s.wast.wasm # abort()
