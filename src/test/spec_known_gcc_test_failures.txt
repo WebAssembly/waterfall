@@ -359,6 +359,8 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 920604-1.c.s.wast # env.exit
 920612-1.c.s.wast # env.abort
 920618-1.c.s.wast # env.exit
+920625-1.c.s.wast # env.exit
+920625-1.c.s.wast # env.exit
 920710-1.c.s.wast # env.exit
 920711-1.c.s.wast # env.abort
 920721-1.c.s.wast # env.exit
@@ -370,6 +372,7 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 920810-1.c.s.wast # env.malloc
 920812-1.c.s.wast # env.exit
 920829-1.c.s.wast # env.exit
+920908-1.c.s.wast # env.abort
 920908-2.c.s.wast # env.exit
 920909-1.c.s.wast # env.exit
 920922-1.c.s.wast # env.exit
@@ -434,11 +437,18 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 930930-1.c.s.wast # env.abort
 930930-2.c.s.wast # env.exit
 931004-1.c.s.wast # env.abort
+931004-10.c.s.wast # env.abort
 931004-11.c.s.wast # env.abort
+931004-12.c.s.wast # env.abort
 931004-13.c.s.wast # env.abort
+931004-14.c.s.wast # env.abort
+931004-2.c.s.wast # env.abort
 931004-3.c.s.wast # env.abort
+931004-4.c.s.wast # env.abort
 931004-5.c.s.wast # env.abort
+931004-6.c.s.wast # env.abort
 931004-7.c.s.wast # env.abort
+931004-8.c.s.wast # env.abort
 931004-9.c.s.wast # env.abort
 931005-1.c.s.wast # env.exit
 931009-1.c.s.wast # env.exit
@@ -768,6 +778,7 @@ pr36765.c.s.wast # env.__builtin_malloc
 pr37102.c.s.wast # env.abort
 pr37125.c.s.wast # env.abort
 pr37573.c.s.wast # env.memcmp
+pr38151.c.s.wast # env.abort
 pr38212.c.s.wast # env.abort
 pr38236.c.s.wast # env.abort
 pr38533.c.s.wast # env.abort
@@ -809,6 +820,7 @@ pr43835.c.s.wast # env.abort
 pr44164.c.s.wast # env.abort
 pr44202-1.c.s.wast # env.exit
 pr44468.c.s.wast # env.abort
+pr44575.c.s.wast # env.abort
 pr44683.c.s.wast # env.abort
 pr44828.c.s.wast # env.abort
 pr44852.c.s.wast # env.strcmp
@@ -928,6 +940,7 @@ simd-2.c.s.wast # env.abort
 simd-5.c.s.wast # env.abort
 stdarg-1.c.s.wast # env.abort
 stdarg-2.c.s.wast # env.abort
+stdarg-3.c.s.wast # env.abort
 stdarg-4.c.s.wast # env.abort
 strcmp-1.c.s.wast # env.strcmp
 strcpy-1.c.s.wast # env.memset
@@ -935,6 +948,9 @@ strct-pack-1.c.s.wast # env.exit
 strct-pack-2.c.s.wast # env.exit
 strct-pack-3.c.s.wast # env.exit
 strct-pack-4.c.s.wast # env.exit
+strct-stdarg-1.c.s.wast # env.abort
+strct-stdarg-1.c.s.wast # env.abort
+strct-varg-1.c.s.wast # env.abort
 string-opt-17.c.s.wast # env.strcpy
 string-opt-18.c.s.wast # env.mempcpy
 string-opt-5.c.s.wast # env.strlen
@@ -965,6 +981,7 @@ va-arg-18.c.s.wast # env.abort
 va-arg-19.c.s.wast # env.abort
 va-arg-2.c.s.wast # env.abort
 va-arg-20.c.s.wast # env.abort
+va-arg-22.c.s.wast # env.abort
 va-arg-23.c.s.wast # env.abort
 va-arg-24.c.s.wast # env.exit
 va-arg-26.c.s.wast # env.abort
@@ -974,6 +991,7 @@ va-arg-6.c.s.wast # env.__eqtf2
 va-arg-7.c.s.wast # env.abort
 va-arg-8.c.s.wast # env.abort
 va-arg-9.c.s.wast # env.abort
+va-arg-pack-1.c.s.wast # env.memcmp
 va-arg-trap-1.c.s.wast # env.exit
 vrp-1.c.s.wast # env.exit
 vrp-2.c.s.wast # env.exit
