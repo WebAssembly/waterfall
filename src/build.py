@@ -36,6 +36,7 @@ WORK_DIR = os.path.join(SCRIPT_DIR, 'work')
 
 LLVM_SRC_DIR = os.path.join(WORK_DIR, 'llvm')
 CLANG_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'clang')
+LLVM_TEST_SUITE_SRC_DIR = os.path.join(WORK_DIR, 'llvm-test-suite')
 
 EMSCRIPTEN_SRC_DIR = os.path.join(WORK_DIR, 'emscripten')
 
@@ -328,6 +329,8 @@ ALL_SOURCES = [
            LLVM_MIRROR_BASE + 'llvm'),
     Source('clang', CLANG_SRC_DIR,
            LLVM_MIRROR_BASE + 'clang'),
+    Source('llvm-test-suite', LLVM_TEST_SUITE_SRC_DIR,
+           LLVM_MIRROR_BASE + 'test-suite'),
     Source('emscripten', EMSCRIPTEN_SRC_DIR,
            GIT_MIRROR_BASE + 'external/github.com/kripken/emscripten'),
     Source('gcc', GCC_SRC_DIR,
