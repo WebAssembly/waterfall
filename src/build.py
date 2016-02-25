@@ -261,10 +261,6 @@ class Source:
     """Clone a git repo if not already cloned, then fetch and checkout."""
     if os.path.isdir(self.src_dir):
       print '%s directory already exists' % self.name
-      if self.name == 'spec':
-        # TODO(jfb): Work around https://github.com/WebAssembly/spec/issues/248
-        proc.check_call(['git', 'checkout', '--', 'ml-proto/winmake.bat'],
-                        cwd=self.src_dir)
     else:
       clone = ['git', 'clone', self.git_repo, self.src_dir]
       if self.depth:
