@@ -37,6 +37,8 @@ WORK_DIR = os.path.join(SCRIPT_DIR, 'work')
 LLVM_SRC_DIR = os.path.join(WORK_DIR, 'llvm')
 CLANG_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'clang')
 
+EMSCRIPTEN_SRC_DIR = os.path.join(WORK_DIR, 'emscripten')
+
 GCC_SRC_DIR = os.path.join(WORK_DIR, 'gcc')
 GCC_TEST_DIR = os.path.join(GCC_SRC_DIR, 'gcc', 'testsuite')
 
@@ -325,6 +327,8 @@ ALL_SOURCES = [
            GIT_MIRROR_BASE + 'chromiumos/third_party/llvm'),
     Source('clang', CLANG_SRC_DIR,
            GIT_MIRROR_BASE + 'chromiumos/third_party/clang'),
+    Source('emscripten', EMSCRIPTEN_SRC_DIR,
+           GIT_MIRROR_BASE + 'external/github.com/kripken/emscripten'),
     Source('gcc', GCC_SRC_DIR,
            GIT_MIRROR_BASE + 'chromiumos/third_party/gcc',
            checkout=GCC_REVISION, depth=GCC_CLONE_DEPTH),
