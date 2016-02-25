@@ -91,16 +91,6 @@ GITHUB_REMOTE = 'github'
 GITHUB_SSH = 'git@github.com:'
 GIT_MIRROR_BASE = 'https://chromium.googlesource.com/'
 WASM_GIT_BASE = GIT_MIRROR_BASE + 'external/github.com/WebAssembly/'
-LLVM_GIT = GIT_MIRROR_BASE + 'chromiumos/third_party/llvm'
-CLANG_GIT = GIT_MIRROR_BASE + 'chromiumos/third_party/clang'
-PREBUILT_CLANG_GIT = GIT_MIRROR_BASE + 'chromium/src/tools/clang'
-V8_GIT = GIT_MIRROR_BASE + 'v8/v8'
-GCC_GIT = GIT_MIRROR_BASE + 'chromiumos/third_party/gcc'
-SEXPR_GIT = WASM_GIT_BASE + 'sexpr-wasm-prototype.git'
-SPEC_GIT = WASM_GIT_BASE + 'spec.git'
-BINARYEN_GIT = WASM_GIT_BASE + 'binaryen.git'
-MUSL_GIT = WASM_GIT_BASE + 'musl.git'
-MUSL_BRANCH = 'origin/wasm-prototype-1'
 
 # Sync OCaml from a cached tar file because the upstream repository is only
 # http. The file untars into a directory of the same name as the tar file.
@@ -329,16 +319,28 @@ def NoSync(*args):
 
 ALL_SOURCES = [
     Source('waterfall', SCRIPT_DIR, None, custom_sync=NoSync),
-    Source('llvm', LLVM_SRC_DIR, LLVM_GIT),
-    Source('clang', CLANG_SRC_DIR, CLANG_GIT),
-    Source('gcc', GCC_SRC_DIR, GCC_GIT, GCC_REVISION, GCC_CLONE_DEPTH),
-    Source('v8', V8_SRC_DIR, V8_GIT, custom_sync=ChromiumFetchSync),
-    Source('chromium-clang', PREBUILT_CLANG, PREBUILT_CLANG_GIT,
+    Source('llvm', LLVM_SRC_DIR,
+           GIT_MIRROR_BASE + 'chromiumos/third_party/llvm'),
+    Source('clang', CLANG_SRC_DIR,
+           GIT_MIRROR_BASE + 'chromiumos/third_party/clang'),
+    Source('gcc', GCC_SRC_DIR,
+           GIT_MIRROR_BASE + 'chromiumos/third_party/gcc',
+           checkout=GCC_REVISION, depth=GCC_CLONE_DEPTH),
+    Source('v8', V8_SRC_DIR,
+           GIT_MIRROR_BASE + 'v8/v8',
+           custom_sync=ChromiumFetchSync),
+    Source('chromium-clang', PREBUILT_CLANG,
+           GIT_MIRROR_BASE + 'chromium/src/tools/clang',
            custom_sync=SyncPrebuiltClang),
-    Source('sexpr', SEXPR_SRC_DIR, SEXPR_GIT),
-    Source('spec', SPEC_SRC_DIR, SPEC_GIT),
-    Source('binaryen', BINARYEN_SRC_DIR, BINARYEN_GIT),
-    Source('musl', MUSL_SRC_DIR, MUSL_GIT, checkout=MUSL_BRANCH)
+    Source('sexpr', SEXPR_SRC_DIR,
+           WASM_GIT_BASE + 'sexpr-wasm-prototype.git'),
+    Source('spec', SPEC_SRC_DIR,
+           WASM_GIT_BASE + 'spec.git'),
+    Source('binaryen', BINARYEN_SRC_DIR,
+           WASM_GIT_BASE + 'binaryen.git'),
+    Source('musl', MUSL_SRC_DIR,
+           WASM_GIT_BASE + 'musl.git',
+           checkout='origin/wasm-prototype-1')
 ]
 
 
