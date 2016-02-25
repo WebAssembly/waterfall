@@ -34,37 +34,20 @@ import proc
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 WORK_DIR = os.path.join(SCRIPT_DIR, 'work')
 
-IT_IS_KNOWN = 'known_gcc_test_failures.txt'
-
 LLVM_SRC_DIR = os.path.join(WORK_DIR, 'llvm')
 CLANG_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'clang')
-LLVM_KNOWN_TORTURE_FAILURES = os.path.join(LLVM_SRC_DIR, 'lib', 'Target',
-                                           'WebAssembly', IT_IS_KNOWN)
 
 GCC_SRC_DIR = os.path.join(WORK_DIR, 'gcc')
 GCC_TEST_DIR = os.path.join(GCC_SRC_DIR, 'gcc', 'testsuite')
 
 V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
-V8_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
-                                         'd8_' + IT_IS_KNOWN)
-V8_MUSL_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
-                                              'd8_musl_' + IT_IS_KNOWN)
 os.environ['GYP_GENERATORS'] = 'ninja'  # Used to build V8.
 
 SEXPR_SRC_DIR = os.path.join(WORK_DIR, 'sexpr-wasm-prototype')
-SEXPR_S2WASM_KNOWN_TORTURE_FAILURES = os.path.join(SEXPR_SRC_DIR, 's2wasm_' +
-                                                   IT_IS_KNOWN)
 
 SPEC_SRC_DIR = os.path.join(WORK_DIR, 'spec')
 ML_DIR = os.path.join(SPEC_SRC_DIR, 'ml-proto')
-SPEC_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
-                                           'spec_' + IT_IS_KNOWN)
 BINARYEN_SRC_DIR = os.path.join(WORK_DIR, 'binaryen')
-S2WASM_KNOWN_TORTURE_FAILURES = os.path.join(BINARYEN_SRC_DIR, 'test',
-                                             's2wasm_' + IT_IS_KNOWN)
-BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = (
-    os.path.join(BINARYEN_SRC_DIR, 'test',
-                 's2wasm_known_binaryen_shell_test_failures.txt'))
 MUSL_SRC_DIR = os.path.join(WORK_DIR, 'musl')
 
 PREBUILT_CLANG = os.path.join(WORK_DIR, 'chromium-clang')
@@ -102,6 +85,25 @@ OCAML_URL = OCAML_STORAGE_BASE + OCAML_TAR_NAME
 OCAML_DIR = os.path.join(WORK_DIR, OCAML_VERSION)
 OCAML_OUT_DIR = os.path.join(WORK_DIR, 'ocaml-out')
 OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
+
+# Known failures.
+IT_IS_KNOWN = 'known_gcc_test_failures.txt'
+LLVM_KNOWN_TORTURE_FAILURES = os.path.join(LLVM_SRC_DIR, 'lib', 'Target',
+                                           'WebAssembly', IT_IS_KNOWN)
+V8_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
+                                         'd8_' + IT_IS_KNOWN)
+V8_MUSL_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
+                                              'd8_musl_' + IT_IS_KNOWN)
+SEXPR_S2WASM_KNOWN_TORTURE_FAILURES = os.path.join(SEXPR_SRC_DIR, 's2wasm_' +
+                                                   IT_IS_KNOWN)
+SPEC_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
+                                           'spec_' + IT_IS_KNOWN)
+S2WASM_KNOWN_TORTURE_FAILURES = os.path.join(BINARYEN_SRC_DIR, 'test',
+                                             's2wasm_' + IT_IS_KNOWN)
+BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = (
+    os.path.join(BINARYEN_SRC_DIR, 'test',
+                 's2wasm_known_binaryen_shell_test_failures.txt'))
+
 
 NPROC = multiprocessing.cpu_count()
 
