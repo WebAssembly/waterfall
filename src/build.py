@@ -75,6 +75,7 @@ INSTALL_LIB = os.path.join(INSTALL_DIR, 'lib')
 GITHUB_REMOTE = 'github'
 GITHUB_SSH = 'git@github.com:'
 GIT_MIRROR_BASE = 'https://chromium.googlesource.com/'
+LLVM_MIRROR_BASE = GIT_MIRROR_BASE + 'external/llvm.org/'
 WASM_GIT_BASE = GIT_MIRROR_BASE + 'external/github.com/WebAssembly/'
 
 # Sync OCaml from a cached tar file because the upstream repository is only
@@ -324,9 +325,9 @@ def NoSync(*args):
 ALL_SOURCES = [
     Source('waterfall', SCRIPT_DIR, None, custom_sync=NoSync),
     Source('llvm', LLVM_SRC_DIR,
-           GIT_MIRROR_BASE + 'chromiumos/third_party/llvm'),
+           LLVM_MIRROR_BASE + 'llvm'),
     Source('clang', CLANG_SRC_DIR,
-           GIT_MIRROR_BASE + 'chromiumos/third_party/clang'),
+           LLVM_MIRROR_BASE + 'clang'),
     Source('emscripten', EMSCRIPTEN_SRC_DIR,
            GIT_MIRROR_BASE + 'external/github.com/kripken/emscripten'),
     Source('gcc', GCC_SRC_DIR,
