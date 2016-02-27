@@ -415,12 +415,51 @@ def Clobber():
       shutil.rmtree(WORK_DIR)
 
 
-def SyncRepos():
+class Filter:
+  """Filter for source or build rules, to allow including or excluding only
+     selected targets.
+  """
+  def __init__(self, include=None, exclude=None):
+    """ include:
+         if present, only items in it will be included (if empty, nothing will
+         be included).
+        exclude:
+         if present, items in it will be excluded.
+        include ane exclude cannot both be present.
+    """
+    if include and exclude:
+      raise Exception('Filter cannot include both include and exclude rules')
+
+    self.include = include
+    self.exclude = exclude
+
+  def Apply(self, targets):
+    if self.include is not None:
+      return [t for t in targets if t.name in self.include]
+    if self.exclude:
+      return [t for t in targets if t.name not in self.exclude]
+    return targets
+
+  class DummyTarget:
+    def __init__(self, name):
+      self.name = name
+
+  def Check(self, target):
+    return len(self.Apply([self.DummyTarget(target)])) > 0
+
+
+def SyncRepos(filter=None):
   buildbot.Step('Sync Repos')
-  for repo in ALL_SOURCES:
+  if not filter:
+    filter = Filter()
+  for repo in filter.Apply(ALL_SOURCES):
+    print repo.name
     repo.Sync()
-  SyncLLVMClang()
-  SyncOCaml()
+  # Special cases
+  if filter.Check('clang'):
+    SyncLLVMClang()
+  if filter.Check('ocaml'):
+    SyncOCaml()
 
 
 def GetRepoInfo():
@@ -650,23 +689,35 @@ def Summary(repos):
 
 def ParseArgs():
   import argparse
+
+  def SplitComma(arg):
+    if not arg:
+      return None
+    return arg.split(',')
+
   parser = argparse.ArgumentParser(
       description='Wasm waterfall top-level CI script')
-  parser.add_argument('--no-sync', dest='sync',
-                      default=True, action='store_false',
-                      help='Skip fetching and checking out source repos')
   parser.add_argument(
       '--no-build', dest='build', default=True, action='store_false',
       help='Skip building source repos (also skips V8 and LLVM unit tests)')
+  sync_grp = parser.add_mutually_exclusive_group()
+  sync_grp.add_argument('--no-sync', dest='sync',
+                        default=True, action='store_false',
+                        help='Skip fetching and checking out source repos')
+  sync_grp.add_argument(
+      '--sync-include', dest='sync_include', default='', type=SplitComma,
+      help='Include only the comma-separated list of sync targets')
+  sync_grp.add_argument(
+      '--sync-exclude', dest='sync_exclude', default='', type=SplitComma,
+      help='Include only the comma-separated list of sync targets')
   return parser.parse_args()
 
 
-def main(do_sync, do_build):
+def main(sync_filter, do_build):
   Clobber()
   Chdir(SCRIPT_DIR)
   Mkdir(WORK_DIR)
-  if do_sync:
-    SyncRepos()
+  SyncRepos(sync_filter)
   repos = GetRepoInfo()
   if do_build:
     Remove(INSTALL_DIR)
@@ -731,4 +782,6 @@ def main(do_sync, do_build):
 
 if __name__ == '__main__':
   options = ParseArgs()
-  sys.exit(main(options.sync, options.build))
+  sync_include = options.sync_include if options.sync else []
+  sync_filter = Filter(sync_include, options.sync_exclude)
+  sys.exit(main(sync_filter, options.build))
