@@ -434,6 +434,7 @@ class Filter:
     self.exclude = exclude
 
   def Apply(self, targets):
+    """ Return the filtered list of targets. """
     if self.include is not None:
       return [t for t in targets if t.name in self.include]
     if self.exclude:
@@ -445,15 +446,21 @@ class Filter:
       self.name = name
 
   def Check(self, target):
+    """ Return true if the specified target will be run. """
     return len(self.Apply([self.DummyTarget(target)])) > 0
+
+  def All(self):
+    """ Return true if all possible targets will be run. """
+    return self.include is None and not self.exclude
 
 
 def SyncRepos(filter=None):
   buildbot.Step('Sync Repos')
-  # TODO Remove this when sexpr-wasm-prototype/issues/35 is fixed.
-  Remove(SEXPR_SRC_DIR)
   if not filter:
     filter = Filter()
+  # TODO Remove this when sexpr-wasm-prototype/issues/35 is fixed.
+  if filter.Check('sexpr'):
+    Remove(SEXPR_SRC_DIR)
   for repo in filter.Apply(ALL_SOURCES):
     print repo.name
     repo.Sync()
@@ -670,6 +677,17 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, has_output,
   return out
 
 
+class Build:
+  def __init__(self, name_, runnable_, *args, **kwargs):
+    self.name = name_
+    self.runnable = runnable_
+    self.args = args
+    self.kwargs = kwargs
+
+  def Run(self):
+    self.runnable(*self.args, **self.kwargs)
+
+
 def Summary(repos):
   buildbot.Step('Summary')
   info = {'repositories': repos}
@@ -689,6 +707,25 @@ def Summary(repos):
     buildbot.Link('lkgr', cloud.Upload('lkgr', 'git/lkgr'))
 
 
+ALL_BUILDS = [
+    Build('llvm', LLVM),
+    Build('v8', V8),
+    Build('sexpr', Sexpr),
+    Build('ocaml', OCaml),
+    Build('spec', Spec),
+    Build('binaryen', Binaryen),
+    Build('musl', Musl),
+    Build('archive', ArchiveBinaries),
+]
+
+
+def BuildRepos(filter=None):
+  if not filter:
+    filter = Filter()
+  for rule in filter.Apply(ALL_BUILDS):
+    rule.Run()
+
+
 def ParseArgs():
   import argparse
 
@@ -699,9 +736,6 @@ def ParseArgs():
 
   parser = argparse.ArgumentParser(
       description='Wasm waterfall top-level CI script')
-  parser.add_argument(
-      '--no-build', dest='build', default=True, action='store_false',
-      help='Skip building source repos (also skips V8 and LLVM unit tests)')
   sync_grp = parser.add_mutually_exclusive_group()
   sync_grp.add_argument('--no-sync', dest='sync',
                         default=True, action='store_false',
@@ -712,28 +746,32 @@ def ParseArgs():
   sync_grp.add_argument(
       '--sync-exclude', dest='sync_exclude', default='', type=SplitComma,
       help='Include only the comma-separated list of sync targets')
+
+  build_grp = parser.add_mutually_exclusive_group()
+  build_grp.add_argument(
+      '--no-build', dest='build', default=True, action='store_false',
+      help='Skip building source repos (also skips V8 and LLVM unit tests)')
+  build_grp.add_argument(
+      '--build-include', dest='build_include', default='', type=SplitComma,
+      help='Include only the comma-separated list of build targets')
+  build_grp.add_argument(
+      '--build-exclude', dest='build_exclude', default='', type=SplitComma,
+      help='Include only the comma-separated list of build targets')
   return parser.parse_args()
 
 
-def main(sync_filter, do_build):
+def main(sync_filter, build_filter):
   Clobber()
   Chdir(SCRIPT_DIR)
   Mkdir(WORK_DIR)
   SyncRepos(sync_filter)
   repos = GetRepoInfo()
-  if do_build:
+  if build_filter.All():
     Remove(INSTALL_DIR)
     Mkdir(INSTALL_DIR)
     Mkdir(INSTALL_BIN)
     Mkdir(INSTALL_LIB)
-    LLVM()
-    V8()
-    Sexpr()
-    OCaml()
-    Spec()
-    Binaryen()
-    Musl()
-    ArchiveBinaries()
+  BuildRepos(build_filter)
   CompileLLVMTorture()
   s2wasm_out = LinkLLVMTorture(
       name='s2wasm',
@@ -786,4 +824,6 @@ if __name__ == '__main__':
   options = ParseArgs()
   sync_include = options.sync_include if options.sync else []
   sync_filter = Filter(sync_include, options.sync_exclude)
-  sys.exit(main(sync_filter, options.build))
+  build_include = options.build_include if options.build else []
+  build_filter = Filter(build_include, options.build_exclude)
+  sys.exit(main(sync_filter, build_filter))
