@@ -9,7 +9,6 @@
 20101011-1.c.s.wast.wasm
 960215-1.c.s.wast.wasm
 960405-1.c.s.wast.wasm
-960521-1.c.s.wast.wasm
 align-2.c.s.wast.wasm
 builtin-bitops-1.c.s.wast.wasm # __builtin_clrsb
 ipa-sra-2.c.s.wast.wasm
@@ -29,6 +28,7 @@ va-arg-pack-1.c.s.wast.wasm
 # Program terminated with: Terminating wasm: abort()
 # This could be a problem in any part of the toolchain (not just d8).
 # It should never happen (the torture tests are self-validating).
+20000910-2.c.s.wast.wasm
 20030125-1.c.s.wast.wasm
 920612-1.c.s.wast.wasm
 920625-1.c.s.wast.wasm
@@ -47,8 +47,11 @@ pr34971.c.s.wast.wasm
 pr38151.c.s.wast.wasm
 pr44575.c.s.wast.wasm
 stdarg-3.c.s.wast.wasm
+strcmp-1.c.s.wast.wasm
 strct-stdarg-1.c.s.wast.wasm
 strct-varg-1.c.s.wast.wasm
+string-opt-5.c.s.wast.wasm # abort()
+strncmp-1.c.s.wast.wasm # abort()
 va-arg-22.c.s.wast.wasm
 
 # abort() as well, but occurring for musl only.
@@ -65,7 +68,6 @@ pr42721.c.s.wast.wasm
 930513-1.c.s.wast.wasm
 
 # Unknown exception: memory access out of bounds
-20000914-1.c.s.wast.wasm
 20020529-1.c.s.wast.wasm
 20021120-3.c.s.wast.wasm
 20031201-1.c.s.wast.wasm
@@ -102,12 +104,7 @@ va-arg-5.c.s.wast.wasm
 va-arg-6.c.s.wast.wasm
 
 # Same out of bound error, but in the musl version only.
-20051113-1.c.s.wast.wasm
-941014-2.c.s.wast.wasm
 990628-1.c.s.wast.wasm
-pr41395-1.c.s.wast.wasm
-pr41395-2.c.s.wast.wasm
-pr41463.c.s.wast.wasm
 
 # Fails with musl only.
 pr20621-1.c.s.wast.wasm # main() returned 272
