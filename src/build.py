@@ -450,6 +450,8 @@ class Filter:
 
 def SyncRepos(filter=None):
   buildbot.Step('Sync Repos')
+  # TODO Remove this when sexpr-wasm-prototype/issues/35 is fixed.
+  Remove(SEXPR_SRC_DIR)
   if not filter:
     filter = Filter()
   for repo in filter.Apply(ALL_SOURCES):
