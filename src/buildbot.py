@@ -23,6 +23,7 @@ failed_steps = 0
 # Magic annotations:
 # https://chromium.googlesource.com/chromium/tools/build/+/master/scripts/common/annotator.py
 def Step(name):
+  sys.stdout.flush()
   sys.stdout.write('\n@@@BUILD_STEP %s@@@\n' % name)
 
 
@@ -32,6 +33,7 @@ def Link(label, url):
 
 def Fail(is_flaky=False):
   """Mark one step as failing, but keep going."""
+  sys.stdout.flush()
   if is_flaky:
     sys.stdout.write('\n@@@STEP_WARNINGS@@@\n')
     return
