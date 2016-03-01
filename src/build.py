@@ -620,8 +620,8 @@ def Emscripten():
   os.environ['EMSCRIPTEN'] = EMSCRIPTEN_SRC_DIR
   os.environ['LLVM'] = os.path.join(INSTALL_DIR, 'fastcomp', 'bin')
   os.environ['V8'] = os.path.join(INSTALL_DIR, 'bin', 'd8')
-  em_config = os.path.join(INSTALL_DIR, 'emscripten.conf')
-  shutil.copy2(os.path.join(SCRIPT_DIR, 'emscripten_config.py'),
+  em_config = os.path.join(INSTALL_DIR, 'emscripten_config')
+  shutil.copy2(os.path.join(SCRIPT_DIR, 'emscripten_config'),
                os.path.join(em_config))
   try:
     proc.check_call([
