@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
 #   Copyright 2015 WebAssembly Community Group participants
 #
@@ -39,6 +40,7 @@ CLANG_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'clang')
 LLVM_TEST_SUITE_SRC_DIR = os.path.join(WORK_DIR, 'llvm-test-suite')
 
 EMSCRIPTEN_SRC_DIR = os.path.join(WORK_DIR, 'emscripten')
+FASTCOMP_SRC_DIR = os.path.join(WORK_DIR, 'emscripten-fastcomp')
 
 GCC_SRC_DIR = os.path.join(WORK_DIR, 'gcc')
 GCC_TEST_DIR = os.path.join(GCC_SRC_DIR, 'gcc', 'testsuite')
@@ -65,6 +67,7 @@ V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out', 'Release')
 SEXPR_OUT_DIR = os.path.join(SEXPR_SRC_DIR, 'out')
 BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
 BINARYEN_BIN_DIR = os.path.join(BINARYEN_OUT_DIR, 'bin')
+FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
 MUSL_OUT_DIR = os.path.join(WORK_DIR, 'musl-out')
 TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
 
@@ -77,7 +80,9 @@ GITHUB_REMOTE = 'github'
 GITHUB_SSH = 'git@github.com:'
 GIT_MIRROR_BASE = 'https://chromium.googlesource.com/'
 LLVM_MIRROR_BASE = GIT_MIRROR_BASE + 'external/llvm.org/'
-WASM_GIT_BASE = GIT_MIRROR_BASE + 'external/github.com/WebAssembly/'
+GITHUB_MIRROR_BASE = GIT_MIRROR_BASE + 'external/github.com/'
+WASM_GIT_BASE = GITHUB_MIRROR_BASE + 'WebAssembly/'
+EMSCRIPTEN_GIT_BASE = GITHUB_MIRROR_BASE + 'kripken/'
 
 # Sync OCaml from a cached tar file because the upstream repository is only
 # http. The file untars into a directory of the same name as the tar file.
@@ -332,7 +337,12 @@ ALL_SOURCES = [
     Source('llvm-test-suite', LLVM_TEST_SUITE_SRC_DIR,
            LLVM_MIRROR_BASE + 'test-suite'),
     Source('emscripten', EMSCRIPTEN_SRC_DIR,
-           GIT_MIRROR_BASE + 'external/github.com/kripken/emscripten'),
+           EMSCRIPTEN_GIT_BASE + 'emscripten'),
+    Source('fastcomp', FASTCOMP_SRC_DIR,
+           EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp'),
+    Source('fastcomp-clang',
+           os.path.join(FASTCOMP_SRC_DIR, 'tools', 'clang'),
+           EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp-clang'),
     Source('gcc', GCC_SRC_DIR,
            GIT_MIRROR_BASE + 'chromiumos/third_party/gcc',
            checkout=GCC_REVISION, depth=GCC_CLONE_DEPTH),
@@ -462,7 +472,6 @@ def SyncRepos(filter=None):
   if filter.Check('sexpr'):
     Remove(SEXPR_SRC_DIR)
   for repo in filter.Apply(ALL_SOURCES):
-    print repo.name
     repo.Sync()
   # Special cases
   if filter.Check('clang'):
@@ -491,6 +500,8 @@ def LLVM():
        '-DCMAKE_CXX_COMPILER=' + CXX,
        '-DCMAKE_BUILD_TYPE=Release',
        '-DCMAKE_INSTALL_PREFIX=' + INSTALL_DIR,
+       '-DLLVM_INCLUDE_EXAMPLES=OFF',
+       '-DCLANG_INCLUDE_EXAMPLES=OFF',
        '-DLLVM_BUILD_LLVM_DYLIB=ON',
        '-DLLVM_LINK_LLVM_DYLIB=ON',
        '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
@@ -579,6 +590,42 @@ def Binaryen():
     if os.path.isfile(f):
       CopyBinaryToArchive(f)
 
+
+def Fastcomp():
+  buildbot.Step('fastcomp')
+  Mkdir(FASTCOMP_OUT_DIR)
+  proc.check_call(
+      ['cmake', '-G', 'Ninja', FASTCOMP_SRC_DIR,
+       '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
+       '-DCMAKE_C_COMPILER=' + CC,
+       '-DCMAKE_CXX_COMPILER=' + CXX,
+       '-DCMAKE_BUILD_TYPE=Release',
+       '-DCMAKE_INSTALL_PREFIX=' + os.path.join(INSTALL_DIR, 'fastcomp'),
+       '-DLLVM_INCLUDE_EXAMPLES=OFF',
+       '-DCLANG_INCLUDE_EXAMPLES=OFF',
+       '-DLLVM_BUILD_LLVM_DYLIB=ON',
+       '-DLLVM_LINK_LLVM_DYLIB=ON',
+       '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
+       '-DLLVM_ENABLE_ASSERTIONS=ON'], cwd=FASTCOMP_OUT_DIR)
+  proc.check_call(['ninja'], cwd=FASTCOMP_OUT_DIR)
+  try:
+    proc.check_call(['ninja', 'check'], cwd=FASTCOMP_OUT_DIR)
+  except proc.CalledProcessError:
+    print 'ಠ_ಠ'
+  proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR)
+
+
+def Emscripten():
+  buildbot.Step('emscripten')
+  os.environ['EMSCRIPTEN'] = EMSCRIPTEN_SRC_DIR
+  os.environ['LLVM'] = os.path.join(INSTALL_DIR, 'fastcomp', 'bin')
+  os.environ['V8'] = os.path.join(INSTALL_DIR, 'bin', 'd8')
+  em_config = os.path.join(INSTALL_DIR, 'emscripten.conf')
+  shutil.copy2(os.path.join(SCRIPT_DIR, 'emscripten_config.py'),
+               os.path.join(em_config))
+  proc.check_call([os.path.join(EMSCRIPTEN_SRC_DIR, 'emcc'),
+                   '--em-config', em_config,
+                   os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'hello_world.cpp')])
 
 def Musl():
   buildbot.Step('musl')
@@ -708,13 +755,18 @@ def Summary(repos):
 
 
 ALL_BUILDS = [
+    # Host tools
     Build('llvm', LLVM),
     Build('v8', V8),
     Build('sexpr', Sexpr),
     Build('ocaml', OCaml),
     Build('spec', Spec),
     Build('binaryen', Binaryen),
+    Build('fastcomp', Fastcomp),
+    Build('emscripten', Emscripten),
+    # Target libs
     Build('musl', Musl),
+    # Archive
     Build('archive', ArchiveBinaries),
 ]
 
@@ -764,14 +816,16 @@ def main(sync_filter, build_filter):
   Clobber()
   Chdir(SCRIPT_DIR)
   Mkdir(WORK_DIR)
+  if sync_filter.Check(''):
+    repos = GetRepoInfo()
   SyncRepos(sync_filter)
-  repos = GetRepoInfo()
   if build_filter.All():
     Remove(INSTALL_DIR)
     Mkdir(INSTALL_DIR)
     Mkdir(INSTALL_BIN)
     Mkdir(INSTALL_LIB)
   BuildRepos(build_filter)
+  sys.exit(0)
   CompileLLVMTorture()
   s2wasm_out = LinkLLVMTorture(
       name='s2wasm',
