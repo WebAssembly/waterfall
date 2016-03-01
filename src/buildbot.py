@@ -31,10 +31,10 @@ def Link(label, url):
   sys.stdout.write('@@@STEP_LINK@%s@%s@@@\n' % (label, url))
 
 
-def Fail(is_flaky=False):
+def Fail(warn_only=False):
   """Mark one step as failing, but keep going."""
   sys.stdout.flush()
-  if is_flaky:
+  if warn_only:
     sys.stdout.write('\n@@@STEP_WARNINGS@@@\n')
     return
   sys.stdout.write('\n@@@STEP_FAILURE@@@\n')

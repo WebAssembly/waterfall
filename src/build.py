@@ -623,9 +623,15 @@ def Emscripten():
   em_config = os.path.join(INSTALL_DIR, 'emscripten.conf')
   shutil.copy2(os.path.join(SCRIPT_DIR, 'emscripten_config.py'),
                os.path.join(em_config))
-  proc.check_call([os.path.join(EMSCRIPTEN_SRC_DIR, 'emcc'),
-                   '--em-config', em_config,
-                   os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'hello_world.cpp')])
+  try:
+    proc.check_call([
+        os.path.join(EMSCRIPTEN_SRC_DIR, 'emcc'),
+        '--em-config', em_config,
+        os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'hello_world.cpp')])
+  except proc.CalledProcessError:
+    # Don't make it fatal yet.
+    buildbot.Fail(True)
+
 
 def Musl():
   buildbot.Step('musl')
