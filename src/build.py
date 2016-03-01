@@ -834,7 +834,7 @@ def main(sync_filter, build_filter):
     Mkdir(INSTALL_BIN)
     Mkdir(INSTALL_LIB)
   BuildRepos(build_filter)
-  sys.exit(0)
+
   CompileLLVMTorture()
   s2wasm_out = LinkLLVMTorture(
       name='s2wasm',
