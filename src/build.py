@@ -822,9 +822,9 @@ def main(sync_filter, build_filter):
   Clobber()
   Chdir(SCRIPT_DIR)
   Mkdir(WORK_DIR)
+  SyncRepos(sync_filter)
   if sync_filter.Check(''):
     repos = GetRepoInfo()
-  SyncRepos(sync_filter)
   if build_filter.All():
     Remove(INSTALL_DIR)
     Mkdir(INSTALL_DIR)
