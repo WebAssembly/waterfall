@@ -70,6 +70,7 @@ BINARYEN_BIN_DIR = os.path.join(BINARYEN_OUT_DIR, 'bin')
 FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
 MUSL_OUT_DIR = os.path.join(WORK_DIR, 'musl-out')
 TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
+ASM2WASM_TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s-asm2wasm')
 
 INSTALL_DIR = os.path.join(WORK_DIR, 'wasm-install')
 INSTALL_BIN = os.path.join(INSTALL_DIR, 'bin')
@@ -99,6 +100,9 @@ OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 IT_IS_KNOWN = 'known_gcc_test_failures.txt'
 LLVM_KNOWN_TORTURE_FAILURES = os.path.join(LLVM_SRC_DIR, 'lib', 'Target',
                                            'WebAssembly', IT_IS_KNOWN)
+ASM2WASM_KNOWN_TORTURE_FAILURES = os.path.join(
+    SCRIPT_DIR, 'test',
+    'asm2wasm_compile_' + IT_IS_KNOWN)
 V8_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
                                          'd8_' + IT_IS_KNOWN)
 V8_MUSL_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
@@ -592,6 +596,7 @@ def Binaryen():
     f = os.path.join(BINARYEN_BIN_DIR, node)
     if os.path.isfile(f):
       CopyBinaryToArchive(f)
+  CopyBinaryToArchive(os.path.join(BINARYEN_SRC_DIR, 'bin', 'wasm.js'))
 
 
 def Fastcomp():
@@ -620,17 +625,27 @@ def Fastcomp():
 
 def Emscripten():
   buildbot.Step('emscripten')
-  os.environ['EMSCRIPTEN'] = EMSCRIPTEN_SRC_DIR
-  os.environ['LLVM'] = os.path.join(INSTALL_DIR, 'fastcomp', 'bin')
-  os.environ['V8'] = os.path.join(INSTALL_DIR, 'bin', 'd8')
   em_config = os.path.join(INSTALL_DIR, 'emscripten_config')
+  emscripten_dir = os.path.join(INSTALL_DIR, 'bin', 'emscripten')
+  os.environ['EM_CONFIG'] = em_config
+  Remove(emscripten_dir)
+  shutil.copytree(EMSCRIPTEN_SRC_DIR,
+                  emscripten_dir,
+                  symlinks=True,
+                  # Ignore the big git blob so it doesn't get archived.
+                  ignore=shutil.ignore_patterns('.git'))
   shutil.copy2(os.path.join(SCRIPT_DIR, 'emscripten_config'),
                os.path.join(em_config))
   try:
     proc.check_call([
-        os.path.join(EMSCRIPTEN_SRC_DIR, 'emcc'),
-        '--em-config', em_config,
+        os.path.join(emscripten_dir, 'emcc'),
         os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'hello_world.cpp')])
+    # This test depends on binaryen already being built and installed into the
+    # archive/install dir. Arguably we shouldn't do that here.
+    proc.check_call([
+        os.path.join(emscripten_dir, 'emcc'),
+        os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'hello_world.cpp'),
+        '-O2', '-s', 'BINARYEN=1'])
   except proc.CalledProcessError:
     # Don't make it fatal yet.
     buildbot.Fail(True)
@@ -675,6 +690,25 @@ def CompileLLVMTorture():
   Archive('torture-s', Tar(TORTURE_S_OUT_DIR))
   if 0 != unexpected_result_count:
     buildbot.Fail()
+
+
+def CompileLLVMTortureAsm2Wasm():
+  name = 'Compile LLVM Torture (asm2wasm)'
+  buildbot.Step(name)
+  if 'EM_CONFIG' not in os.environ:
+    print >> sys.stderr, (
+        "WARNING: not using waterfall's emscripten config file!")
+  c = os.path.join(INSTALL_DIR, 'bin', 'emscripten', 'emcc')
+  cxx = os.path.join(INSTALL_DIR, 'bin', 'emscripten', 'em++')
+  Remove(ASM2WASM_TORTURE_S_OUT_DIR)
+  Mkdir(ASM2WASM_TORTURE_S_OUT_DIR)
+  unexpected_result_count = compile_torture_tests.run(
+      c=c, cxx=cxx, testsuite=GCC_TEST_DIR,
+      fails=ASM2WASM_KNOWN_TORTURE_FAILURES,
+      out=ASM2WASM_TORTURE_S_OUT_DIR,
+      config='asmjs')
+  if 0 != unexpected_result_count:
+    buildbot.Fail(True)
 
 
 def LinkLLVMTorture(name, linker, fails):
@@ -877,6 +911,8 @@ def main(sync_filter, build_filter):
       has_output=False,
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
       extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
+
+  CompileLLVMTortureAsm2Wasm()
   # Keep the summary step last: it'll be marked as red if the return code is
   # non-zero. Individual steps are marked as red with buildbot.Fail().
   Summary(repos)

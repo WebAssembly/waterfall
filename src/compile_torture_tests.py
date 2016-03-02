@@ -22,24 +22,31 @@ import sys
 import testing
 
 
-CFLAGS = ['--std=gnu89', '--target=wasm32-unknown-unknown', '-S', '-O2',
-          '-DSTACK_SIZE=1044480',
-          '-w', '-Wno-implicit-function-declaration']
-
-
-def create_outname(outdir, infile):
-  """Create the output file's name."""
-  basename = os.path.basename(infile)
-  outname = basename + '.s'
-  return os.path.join(outdir, outname)
+CFLAGS_COMMON = ['--std=gnu89', '-O2', '-DSTACK_SIZE=1044480',
+                 '-w', '-Wno-implicit-function-declaration']
+CFLAGS_WASM = ['--target=wasm32-unknown-unknown', '-S']
 
 
 def c_compile(infile, outfile, extras):
   """Create the command-line for a C compiler invocation."""
-  return [extras['c'], infile, '-o', outfile] + CFLAGS
+  return [extras['c'], infile, '-o', outfile] + extras['cflags']
 
 
-def run(c, cxx, testsuite, fails, out):
+class Outname:
+  """Create the output file's name. A local function passed to testing.execute
+  would be simpler, but it fails to pickle when the test driver calls pool.map.
+  So we manually package the suffix in a class.
+  """
+  def __init__(self, suffix):
+    self.suffix = suffix
+
+  def __call__(self, outdir, infile):
+    basename = os.path.basename(infile)
+    outname = basename + self.suffix
+    return os.path.join(outdir, outname)
+
+
+def run(c, cxx, testsuite, fails, out, config='wasm'):
   """Compile all torture tests."""
   assert os.path.isfile(c), 'Cannot find C compiler at %s' % c
   assert os.path.isfile(cxx), 'Cannot find C++ compiler at %s' % cxx
@@ -50,12 +57,15 @@ def run(c, cxx, testsuite, fails, out):
                                     c_torture)
   assert os.path.isdir(out), 'Cannot find outdir %s' % out
   c_test_files = glob.glob(os.path.join(c_torture, '*c'))
+  cflags = CFLAGS_COMMON + (CFLAGS_WASM if config == 'wasm' else [])
+  suffix = '.s' if config == 'wasm' else '.js'
+
   return testing.execute(
       tester=testing.Tester(
           command_ctor=c_compile,
-          outname_ctor=create_outname,
+          outname_ctor=Outname(suffix),
           outdir=out,
-          extras={'c': c}),
+          extras={'c': c, 'cflags': cflags}),
       inputs=c_test_files,
       fails=fails)
 
