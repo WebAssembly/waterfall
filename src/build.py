@@ -860,6 +860,7 @@ def main(sync_filter, build_filter):
   Chdir(SCRIPT_DIR)
   Mkdir(WORK_DIR)
   SyncRepos(sync_filter)
+  repos = None
   if sync_filter.Check(''):
     repos = GetRepoInfo()
   if build_filter.All():
