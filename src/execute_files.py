@@ -34,14 +34,19 @@ def execute(infile, outfile, extras):
   runner = extras['runner']
   basename = os.path.basename(runner)
   out_opt = ['-o', outfile] if outfile else []
-  wasmjs = [extras['wasmjs']] if extras['wasmjs'] else []
   extra_files = extras['extra_files']
+  config = basename
+  wasmjs = [extras['wasmjs']] if extras['wasmjs'] else []
+  if basename == 'd8':
+    config = basename + ('-wasm' if wasmjs else '-asm2wasm')
   commands = {
       'binaryen-shell': [runner, '--entry=main', infile] + out_opt,
-      'd8': [runner, '--expose-wasm'] + wasmjs + ['--', infile] + extra_files,
+      'd8-wasm': [runner, '--expose-wasm'] + wasmjs + [
+          '--', infile] + extra_files,
+      'd8-asm2wasm': [runner, infile],
       'wasm.opt': [runner, infile]
   }
-  return commands[basename]
+  return commands[config]
 
 
 def run(runner, files, fails, out, wasmjs='', extra_files=[]):

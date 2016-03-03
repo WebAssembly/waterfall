@@ -100,9 +100,9 @@ OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 IT_IS_KNOWN = 'known_gcc_test_failures.txt'
 LLVM_KNOWN_TORTURE_FAILURES = os.path.join(LLVM_SRC_DIR, 'lib', 'Target',
                                            'WebAssembly', IT_IS_KNOWN)
-ASM2WASM_KNOWN_TORTURE_FAILURES = os.path.join(
-    SCRIPT_DIR, 'test',
-    'asm2wasm_compile_' + IT_IS_KNOWN)
+ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES = os.path.join(
+    SCRIPT_DIR, 'test', 'asm2wasm_compile_' + IT_IS_KNOWN)
+
 V8_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
                                          'd8_' + IT_IS_KNOWN)
 V8_MUSL_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
@@ -116,6 +116,9 @@ S2WASM_KNOWN_TORTURE_FAILURES = os.path.join(BINARYEN_SRC_DIR, 'test',
 BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = (
     os.path.join(BINARYEN_SRC_DIR, 'test',
                  's2wasm_known_binaryen_shell_test_failures.txt'))
+
+ASM2WASM_KNOWN_TORTURE_FAILURES = os.path.join(
+    SCRIPT_DIR, 'test', 'asm2wasm_run_' + IT_IS_KNOWN)
 
 
 NPROC = multiprocessing.cpu_count()
@@ -704,11 +707,12 @@ def CompileLLVMTortureAsm2Wasm():
   Mkdir(ASM2WASM_TORTURE_S_OUT_DIR)
   unexpected_result_count = compile_torture_tests.run(
       c=c, cxx=cxx, testsuite=GCC_TEST_DIR,
-      fails=ASM2WASM_KNOWN_TORTURE_FAILURES,
+      fails=ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES,
       out=ASM2WASM_TORTURE_S_OUT_DIR,
-      config='asmjs')
+      config='asm2wasm')
   if 0 != unexpected_result_count:
     buildbot.Fail(True)
+  return ASM2WASM_TORTURE_S_OUT_DIR
 
 
 def LinkLLVMTorture(name, linker, fails):
@@ -744,27 +748,25 @@ def AssembleLLVMTorture(name, assembler, indir, fails):
   return out
 
 
-def ExecuteLLVMTorture(name, runner, indir, fails, extension, has_output,
+def ExecuteLLVMTorture(name, runner, indir, fails, extension, outdir='',
                        wasmjs='', extra_files=[], is_flaky=False):
   buildbot.Step('Execute LLVM Torture with %s' % name)
+  if not indir:
+    print 'Step skipped: no input'
+    buildbot.Fail(True)
+    return None
   assert os.path.isfile(runner), 'Cannot find runner at %s' % runner
   files = os.path.join(indir, '*.%s' % extension)
-  out = os.path.join(WORK_DIR, 'torture-%s' % name) if has_output else ''
-  if has_output:
-    Remove(out)
-    Mkdir(out)
   unexpected_result_count = execute_files.run(
       runner=runner,
       files=files,
       fails=fails,
-      out=out,
+      out=outdir,
       wasmjs=wasmjs,
       extra_files=extra_files)
-  if has_output:
-    Archive('torture-%s' % name, Tar(out))
   if 0 != unexpected_result_count:
       buildbot.Fail(is_flaky)
-  return out
+  return outdir
 
 
 class Build:
@@ -886,22 +888,19 @@ def main(sync_filter, build_filter):
       indir=s2wasm_out,
       fails=BINARYEN_SHELL_KNOWN_TORTURE_FAILURES,
       extension='wast',
-      has_output=False,
       is_flaky=True)  # TODO binaryen-shell is flaky when running tests.
   ExecuteLLVMTorture(
       name='spec',
       runner=os.path.join(INSTALL_BIN, 'wasm.opt'),
       indir=s2wasm_out,
       fails=SPEC_KNOWN_TORTURE_FAILURES,
-      extension='wast',
-      has_output=False)
+      extension='wast')
   ExecuteLLVMTorture(
       name='d8',
       runner=os.path.join(INSTALL_BIN, 'd8'),
       indir=sexpr_wasm_out,
       fails=V8_KNOWN_TORTURE_FAILURES,
       extension='wasm',
-      has_output=False,
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
   ExecuteLLVMTorture(
       name='d8-musl',
@@ -909,11 +908,18 @@ def main(sync_filter, build_filter):
       indir=sexpr_wasm_out,
       fails=V8_MUSL_KNOWN_TORTURE_FAILURES,
       extension='wasm',
-      has_output=False,
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
       extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
 
-  CompileLLVMTortureAsm2Wasm()
+  asm2wasm_out = CompileLLVMTortureAsm2Wasm()
+  ExecuteLLVMTorture(
+      name='asm2wasm',
+      runner=os.path.join(INSTALL_BIN, 'd8'),
+      indir=asm2wasm_out,
+      fails=ASM2WASM_KNOWN_TORTURE_FAILURES,
+      extension='c.js',
+      outdir=asm2wasm_out)  # asm2wasm's wasm.js expect all files to be in cwd.
+
   # Keep the summary step last: it'll be marked as red if the return code is
   # non-zero. Individual steps are marked as red with buildbot.Fail().
   Summary(repos)
