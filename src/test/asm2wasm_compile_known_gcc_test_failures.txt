@@ -1,4 +1,4 @@
-# Fails with direct LLVM wasm backend
+# Fails with direct LLVM wasm backend (no emcc)
 	20000822-1.c
 	20010209-1.c
 	20010605-1.c
@@ -45,7 +45,7 @@
 	scal-to-vec2.c
 	scal-to-vec3.c
 
-# Works with direct LLVM wasm backend
+# Works with direct LLVM wasm backend (but fails with emcc)
 	20020107-1.c
 	20021127-1.c
 	20050107-1.c
@@ -64,3 +64,19 @@
 	pr49390.c
 	pr52286.c
 	va-arg-22.c
+
+# Additional failures with BINARYEN=1
+	20030222-1.c
+	20050604-1.c
+	20060420-1.c
+	20071220-1.c
+	20071220-2.c
+	pr38533.c
+	pr41239.c
+	pr49279.c
+	pr53645-2.c
+	pr53645.c
+	simd-1.c
+	simd-2.c
+	simd-5.c
+	simd-6.c

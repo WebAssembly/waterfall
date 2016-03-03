@@ -22,9 +22,12 @@ import sys
 import testing
 
 
-CFLAGS_COMMON = ['--std=gnu89', '-O2', '-DSTACK_SIZE=1044480',
+CFLAGS_COMMON = ['--std=gnu89', '-DSTACK_SIZE=1044480',
                  '-w', '-Wno-implicit-function-declaration']
-CFLAGS_WASM = ['--target=wasm32-unknown-unknown', '-S']
+CFLAGS_EXTRA = {
+    'wasm': ['--target=wasm32-unknown-unknown', '-S', '-O2'],
+    'asm2wasm': ['-s', 'BINARYEN=1', '-s', 'BINARYEN_METHOD="wasm-s-parser"'],
+}
 
 
 def c_compile(infile, outfile, extras):
@@ -57,7 +60,7 @@ def run(c, cxx, testsuite, fails, out, config='wasm'):
                                     c_torture)
   assert os.path.isdir(out), 'Cannot find outdir %s' % out
   c_test_files = glob.glob(os.path.join(c_torture, '*c'))
-  cflags = CFLAGS_COMMON + (CFLAGS_WASM if config == 'wasm' else [])
+  cflags = CFLAGS_COMMON + CFLAGS_EXTRA[config]
   suffix = '.s' if config == 'wasm' else '.js'
 
   return testing.execute(

@@ -66,7 +66,7 @@ class Tester(object):
 
   @staticmethod
   def setlimits():
-    # Set maximum CPU time to 1 second in child process
+    # Set maximum CPU time to 10 seconds in child process
     try:
       resource.setrlimit(resource.RLIMIT_CPU, (10, 10))
     except:
@@ -81,10 +81,8 @@ class Tester(object):
           self.command_ctor(test_file, outfile, self.extras),
           stderr=proc.STDOUT, cwd=self.outdir or os.getcwd(),
           preexec_fn=Tester.setlimits)
-      # Flush the logged command sobuildbots don't think the script is dead.
+      # Flush the logged command so buildbots don't think the script is dead.
       sys.stdout.flush()
-      if outfile:
-        assert os.path.isfile(outfile), 'Missing output file %s' % outfile
       return Result(test=basename, success=True, output=output)
     except proc.CalledProcessError as e:
       return Result(test=basename, success=False, output=e.output)
