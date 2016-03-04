@@ -44,6 +44,8 @@
 	scal-to-vec1.c
 	scal-to-vec2.c
 	scal-to-vec3.c
+        pr60960.c
+
 
 # Works with direct LLVM wasm backend (but fails with emcc)
 	20020107-1.c
@@ -59,11 +61,14 @@
 	pr23135.c
 	pr43385.c
 	pr43560.c
-	pr44575.c
 	pr45695.c
 	pr49390.c
 	pr52286.c
-	va-arg-22.c
+        simd-4.c
+        20050607-1.c
+	20050316-1.c
+	20050316-2.c
+	20050316-3.c
 
 # Additional failures with BINARYEN=1
 	20030222-1.c

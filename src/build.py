@@ -345,7 +345,8 @@ ALL_SOURCES = [
            LLVM_MIRROR_BASE + 'test-suite'),
     Source('emscripten', EMSCRIPTEN_SRC_DIR,
            EMSCRIPTEN_GIT_BASE + 'emscripten',
-           checkout='origin/incoming'),
+           # XXX FIXME TODO: switch back to incoming once vanilla is merged.
+           checkout='origin/vanilla'),
     Source('fastcomp', FASTCOMP_SRC_DIR,
            EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp',
            checkout='origin/incoming'),
@@ -600,6 +601,10 @@ def Binaryen():
     if os.path.isfile(f):
       CopyBinaryToArchive(f)
   CopyBinaryToArchive(os.path.join(BINARYEN_SRC_DIR, 'bin', 'wasm.js'))
+  Mkdir(os.path.join(INSTALL_DIR, 'src'))
+  Mkdir(os.path.join(INSTALL_DIR, 'src', 'js'))
+  shutil.copy2(os.path.join(BINARYEN_SRC_DIR, 'src', 'js', 'wasm.js-post.js'),
+               os.path.join(INSTALL_DIR, 'src', 'js'))
 
 
 def Fastcomp():

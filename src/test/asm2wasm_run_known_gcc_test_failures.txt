@@ -6,7 +6,6 @@
 	20030222-1.c.js
 	20031003-1.c.js
 	20040811-1.c.js
-	20041126-1.c.js
 	20050316-2.c.js
 	20050604-1.c.js
 	20050607-1.c.js
@@ -29,13 +28,11 @@
 	nestfunc-4.c.js
 	pr17377.c.js
 	pr32244-1.c.js
-	pr33142.c.js
 	pr34971.c.js
 	pr36765.c.js
 	pr38533.c.js
 	pr39228.c.js
 	pr41239.c.js
-	pr42614.c.js
 	pr43008.c.js
 	pr43220.c.js
 	pr47237.c.js
