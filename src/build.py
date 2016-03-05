@@ -859,10 +859,13 @@ def ParseArgs():
   build_grp.add_argument(
       '--build-exclude', dest='build_exclude', default='', type=SplitComma,
       help='Include only the comma-separated list of build targets')
+  parser.add_argument('--no-test', dest='test', default=True,
+                      action='store_false',
+                      help='Skip running tests')
   return parser.parse_args()
 
 
-def main(sync_filter, build_filter):
+def main(sync_filter, build_filter, run_tests):
   Clobber()
   Chdir(SCRIPT_DIR)
   Mkdir(WORK_DIR)
@@ -877,6 +880,8 @@ def main(sync_filter, build_filter):
     Mkdir(INSTALL_LIB)
   BuildRepos(build_filter)
 
+  if not run_tests:
+    sys.exit()
   CompileLLVMTorture()
   s2wasm_out = LinkLLVMTorture(
       name='s2wasm',
@@ -937,4 +942,4 @@ if __name__ == '__main__':
   sync_filter = Filter(sync_include, options.sync_exclude)
   build_include = options.build_include if options.build else []
   build_filter = Filter(build_include, options.build_exclude)
-  sys.exit(main(sync_filter, build_filter))
+  sys.exit(main(sync_filter, build_filter, options.test))
