@@ -345,8 +345,7 @@ ALL_SOURCES = [
            LLVM_MIRROR_BASE + 'test-suite'),
     Source('emscripten', EMSCRIPTEN_SRC_DIR,
            EMSCRIPTEN_GIT_BASE + 'emscripten',
-           # XXX FIXME TODO: switch back to incoming once vanilla is merged.
-           checkout='origin/vanilla'),
+           checkout='origin/incoming'),
     Source('fastcomp', FASTCOMP_SRC_DIR,
            EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp',
            checkout='origin/incoming'),
