@@ -41,6 +41,9 @@ stdarg-2.c.s.wast.wasm # __floatsitf
 va-arg-5.c.s.wast.wasm # __eqtf2
 va-arg-6.c.s.wast.wasm # __eqtf2
 
+# Multiple-entry loop compiles, but does not work yet.
+pr38051.c.s.wast.wasm
+
 # Trying to import function 'bar'. The test is likely wrong.
 va-arg-pack-1.c.s.wast.wasm
 

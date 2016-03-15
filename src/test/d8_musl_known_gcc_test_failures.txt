@@ -112,3 +112,6 @@ pr20621-1.c.s.wast.wasm # main() returned 272
 # Unknown exception: function signature mismatch
 # Which function?
 bcp-1.c.s.wast.wasm
+
+# Multiple-entry loop compiles, but does not work yet.
+pr38051.c.s.wast.wasm
