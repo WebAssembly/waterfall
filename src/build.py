@@ -64,7 +64,7 @@ CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
 
 LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out', 'Release')
-SEXPR_OUT_DIR = os.path.join(SEXPR_SRC_DIR, 'out')
+SEXPR_OUT_DIR = os.path.join(WORK_DIR, 'sexpr-out')
 BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
 BINARYEN_BIN_DIR = os.path.join(BINARYEN_OUT_DIR, 'bin')
 FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
@@ -551,13 +551,12 @@ def V8():
 
 def Sexpr():
   buildbot.Step('Sexpr')
-  # sexpr-wasm builds in its own in-tree out/ folder. The build is fast, so
-  # always clobber.
-  proc.check_call(['make', 'clean'], cwd=SEXPR_SRC_DIR)
-  proc.check_call(['make',
-                   'CC=%s' % CC,
-                   'CXX=%s' % CXX],
-                  cwd=SEXPR_SRC_DIR)
+  Mkdir(SEXPR_OUT_DIR),
+  proc.check_call(['cmake', '-G', 'Ninja', SEXPR_SRC_DIR,
+                   '-DCMAKE_C_COMPILER=%s' % CC,
+                   '-DCMAKE_CXX_COMPILER=%s' % CXX],
+                  cwd=SEXPR_OUT_DIR)
+  proc.check_call(['ninja'], cwd=SEXPR_OUT_DIR)
   sexpr = os.path.join(SEXPR_OUT_DIR, 'sexpr-wasm')
   CopyBinaryToArchive(sexpr)
 
