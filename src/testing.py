@@ -182,7 +182,7 @@ def similarity(results, cutoff):
 
 def execute(tester, inputs, fails):
   """Execute tests in parallel, output results, return failure count."""
-  input_expected_failures = get_expected_failures(fails)
+  input_expected_failures = get_expected_failures(fails) if fails else []
   pool = multiprocessing.Pool()
   sys.stdout.write('Executing tests.')
   results = sorted(pool.map(tester, inputs))
@@ -191,6 +191,8 @@ def execute(tester, inputs, fails):
   sys.stdout.write('\nDone.')
   successes = [r for r in results if r]
   failures = [r for r in results if not r]
+  if not fails:
+    return failures
   expected_failures = [t for t in failures
                        if t.test in input_expected_failures]
   unexpected_failures = [t for t in failures

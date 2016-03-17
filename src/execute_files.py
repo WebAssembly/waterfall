@@ -43,7 +43,7 @@ def execute(infile, outfile, extras):
       'binaryen-shell': [runner, '--entry=main', infile] + out_opt,
       'd8-wasm': [runner, '--expose-wasm'] + wasmjs + [
           '--', infile] + extra_files,
-      'd8-asm2wasm': [runner, infile],
+      'd8-asm2wasm': [runner, '--expose-wasm', infile],
       'wasm.opt': [runner, infile]
   }
   return commands[config]
