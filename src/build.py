@@ -251,21 +251,22 @@ def GitConfigRebaseMaster(cwd):
 class Source:
   """Metadata about a sync-able source repo on the waterfall"""
   def __init__(self, name, src_dir, git_repo, checkout='origin/master',
-               depth=None, custom_sync=None):
+               depth=None, submodules=None, custom_sync=None):
     self.name = name
     self.src_dir = src_dir
     self.git_repo = git_repo
     self.checkout = checkout
     self.depth = depth
+    self.submodules = submodules
     self.custom_sync = custom_sync
 
   def Sync(self):
     if self.custom_sync:
       self.custom_sync(self.name, self.src_dir, self.git_repo)
     else:
-      self.GitCloneFetchCheckout()
+      self.GitCloneFetchCheckout(self.submodules)
 
-  def GitCloneFetchCheckout(self):
+  def GitCloneFetchCheckout(self, submodules=None):
     """Clone a git repo if not already cloned, then fetch and checkout."""
     if os.path.isdir(self.src_dir):
       print '%s directory already exists' % self.name
@@ -275,11 +276,16 @@ class Source:
         clone.append('--depth')
         clone.append(str(self.depth))
       proc.check_call(clone)
+      if submodules:
+        proc.check_call(['git', 'submodule', 'init'] + submodules,
+                        cwd=self.src_dir)
     proc.check_call(['git', 'fetch'], cwd=self.src_dir)
     if not self.checkout.startswith('origin/'):
       sys.stderr.write(('WARNING: `git checkout %s` not based on origin, '
                         'checking out local branch' % self.checkout))
     proc.check_call(['git', 'checkout', self.checkout], cwd=self.src_dir)
+    if submodules:
+      proc.check_call(['git', 'submodule', 'update'], cwd=self.src_dir)
     AddGithubRemote(self.src_dir)
 
   def CurrentGitInfo(self):
@@ -363,7 +369,8 @@ ALL_SOURCES = [
            GIT_MIRROR_BASE + 'chromium/src/tools/clang',
            custom_sync=SyncPrebuiltClang),
     Source('sexpr', SEXPR_SRC_DIR,
-           WASM_GIT_BASE + 'sexpr-wasm-prototype.git'),
+           WASM_GIT_BASE + 'sexpr-wasm-prototype.git',
+           submodules=['third_party/gtest']),
     Source('spec', SPEC_SRC_DIR,
            WASM_GIT_BASE + 'spec.git'),
     Source('binaryen', BINARYEN_SRC_DIR,
@@ -478,9 +485,6 @@ def SyncRepos(filter=None):
   buildbot.Step('Sync Repos')
   if not filter:
     filter = Filter()
-  # TODO Remove this when sexpr-wasm-prototype/issues/35 is fixed.
-  if filter.Check('sexpr'):
-    Remove(SEXPR_SRC_DIR)
   for repo in filter.Apply(ALL_SOURCES):
     repo.Sync()
   # Special cases
