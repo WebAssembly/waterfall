@@ -554,7 +554,8 @@ def Sexpr():
   Mkdir(SEXPR_OUT_DIR),
   proc.check_call(['cmake', '-G', 'Ninja', SEXPR_SRC_DIR,
                    '-DCMAKE_C_COMPILER=%s' % CC,
-                   '-DCMAKE_CXX_COMPILER=%s' % CXX],
+                   '-DCMAKE_CXX_COMPILER=%s' % CXX,
+                   '-DBUILD_TESTS=OFF'],
                   cwd=SEXPR_OUT_DIR)
   proc.check_call(['ninja'], cwd=SEXPR_OUT_DIR)
   sexpr = os.path.join(SEXPR_OUT_DIR, 'sexpr-wasm')
