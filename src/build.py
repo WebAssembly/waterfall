@@ -829,14 +829,28 @@ def BuildRepos(filter=None):
 
 def ParseArgs():
   import argparse
+  import textwrap
 
   def SplitComma(arg):
     if not arg:
       return None
     return arg.split(',')
 
+  def TextWrapNameList(prefix, items):
+    width = 80  # TODO(binji): better guess?
+    names = sorted(item.name for item in items)
+    return '%s%s' % (prefix, textwrap.fill(' '.join(names), width,
+                                           initial_indent='  ',
+                                           subsequent_indent='  '))
+
+  epilog = (
+      TextWrapNameList('sync targets:\n', ALL_SOURCES) + '\n\n' +
+      TextWrapNameList('build targets:\n', ALL_BUILDS))
+
   parser = argparse.ArgumentParser(
-      description='Wasm waterfall top-level CI script')
+      description='Wasm waterfall top-level CI script',
+      formatter_class=argparse.RawDescriptionHelpFormatter,
+      epilog=epilog)
   sync_grp = parser.add_mutually_exclusive_group()
   sync_grp.add_argument('--no-sync', dest='sync',
                         default=True, action='store_false',
