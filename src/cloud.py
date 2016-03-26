@@ -29,7 +29,7 @@ def Upload(local, remote):
     return
   remote = CLOUD_STORAGE_PATH + remote
   proc.check_call(
-      ['gsutil', 'cp', '-a', 'public-read', local, 'gs://' + remote])
+      ['gsutil.py', 'cp', '-a', 'public-read', local, 'gs://' + remote])
   return CLOUD_STORAGE_BASE_URL + remote
 
 
@@ -40,6 +40,6 @@ def Copy(copy_from, copy_to):
   copy_from = CLOUD_STORAGE_PATH + copy_from
   copy_to = CLOUD_STORAGE_PATH + copy_to
   proc.check_call(
-      ['gsutil', 'cp', '-a', 'public-read',
+      ['gsutil.py', 'cp', '-a', 'public-read',
        'gs://' + copy_from, 'gs://' + copy_to])
   return CLOUD_STORAGE_BASE_URL + copy_to
