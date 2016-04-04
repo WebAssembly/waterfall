@@ -70,7 +70,8 @@ BINARYEN_BIN_DIR = os.path.join(BINARYEN_OUT_DIR, 'bin')
 FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
 MUSL_OUT_DIR = os.path.join(WORK_DIR, 'musl-out')
 TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
-ASM2WASM_TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s-asm2wasm')
+ASM2WASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'asm2wasm-torture-out')
+EMSCRIPTENWASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-torture-out')
 
 INSTALL_DIR = os.path.join(WORK_DIR, 'wasm-install')
 INSTALL_BIN = os.path.join(INSTALL_DIR, 'bin')
@@ -102,6 +103,8 @@ LLVM_KNOWN_TORTURE_FAILURES = os.path.join(LLVM_SRC_DIR, 'lib', 'Target',
                                            'WebAssembly', IT_IS_KNOWN)
 ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES = os.path.join(
     SCRIPT_DIR, 'test', 'asm2wasm_compile_' + IT_IS_KNOWN)
+EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES = os.path.join(
+    SCRIPT_DIR, 'test', 'emwasm_compile_' + IT_IS_KNOWN)
 
 V8_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
                                          'd8_' + IT_IS_KNOWN)
@@ -119,6 +122,8 @@ BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = (
 
 ASM2WASM_KNOWN_TORTURE_FAILURES = os.path.join(
     SCRIPT_DIR, 'test', 'asm2wasm_run_' + IT_IS_KNOWN)
+EMSCRIPTENWASM_KNOWN_TORTURE_FAILURES = os.path.join(
+    SCRIPT_DIR, 'test', 'emwasm_run_' + IT_IS_KNOWN)
 
 
 NPROC = multiprocessing.cpu_count()
@@ -632,27 +637,35 @@ def Fastcomp():
 
 def Emscripten():
   buildbot.Step('emscripten')
+  # Remove cached library builds (e.g. libc, libc++) to force them to be
+  # rebuilt in the step below.
+  Remove(os.path.expanduser(os.path.join('~', '.emscripten_cache')))
   em_config = os.path.join(INSTALL_DIR, 'emscripten_config')
   emscripten_dir = os.path.join(INSTALL_DIR, 'bin', 'emscripten')
-  os.environ['EM_CONFIG'] = em_config
   Remove(emscripten_dir)
   shutil.copytree(EMSCRIPTEN_SRC_DIR,
                   emscripten_dir,
                   symlinks=True,
                   # Ignore the big git blob so it doesn't get archived.
                   ignore=shutil.ignore_patterns('.git'))
-  shutil.copy2(os.path.join(SCRIPT_DIR, 'emscripten_config'),
-               os.path.join(em_config))
+  shutil.copy2(os.path.join(SCRIPT_DIR, 'emscripten_config_vanilla'),
+               em_config + '_vanilla')
+  shutil.copy2(os.path.join(SCRIPT_DIR, 'emscripten_config'), em_config)
   try:
-    proc.check_call([
-        os.path.join(emscripten_dir, 'emcc'),
-        os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'hello_world.cpp')])
-    # This test depends on binaryen already being built and installed into the
-    # archive/install dir. Arguably we shouldn't do that here.
-    proc.check_call([
-        os.path.join(emscripten_dir, 'emcc'),
-        os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'hello_world.cpp'),
-        '-O2', '-s', 'BINARYEN=1'])
+    # Build a C++ file with each active emscripten config. This causes system
+    # libs to be built and cached (so we don't have that happen when building
+    # tests in parallel). Do it with full debug output.
+    # This depends on binaryen already being built and installed into the
+    # archive/install dir.
+    os.environ['EMCC_DEBUG'] = '2'
+    for config in [em_config, em_config + '_vanilla']:
+      os.environ['EM_CONFIG'] = config
+      proc.check_call([
+          os.path.join(emscripten_dir, 'em++'),
+          os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'hello_world.cpp'),
+          '-O2', '-s', 'BINARYEN=1', '-s', 'BINARYEN_METHOD="native-wasm"'])
+
+    del os.environ['EMCC_DEBUG']
   except proc.CalledProcessError:
     # Don't make it fatal yet.
     buildbot.Fail(True)
@@ -699,24 +712,21 @@ def CompileLLVMTorture():
     buildbot.Fail()
 
 
-def CompileLLVMTortureAsm2Wasm():
-  name = 'Compile LLVM Torture (asm2wasm)'
+def CompileLLVMTortureBinaryen(name, em_config, outdir, fails):
   buildbot.Step(name)
-  if 'EM_CONFIG' not in os.environ:
-    print >> sys.stderr, (
-        "WARNING: not using waterfall's emscripten config file!")
+  os.environ['EM_CONFIG'] = em_config
   c = os.path.join(INSTALL_DIR, 'bin', 'emscripten', 'emcc')
   cxx = os.path.join(INSTALL_DIR, 'bin', 'emscripten', 'em++')
-  Remove(ASM2WASM_TORTURE_S_OUT_DIR)
-  Mkdir(ASM2WASM_TORTURE_S_OUT_DIR)
+  Remove(outdir)
+  Mkdir(outdir)
   unexpected_result_count = compile_torture_tests.run(
       c=c, cxx=cxx, testsuite=GCC_TEST_DIR,
-      fails=ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES,
-      out=ASM2WASM_TORTURE_S_OUT_DIR,
-      config='asm2wasm')
+      fails=fails,
+      out=outdir,
+      config='binaryen')
   if 0 != unexpected_result_count:
     buildbot.Fail(True)
-  return ASM2WASM_TORTURE_S_OUT_DIR
+  return outdir
 
 
 def LinkLLVMTorture(name, linker, fails):
@@ -934,14 +944,31 @@ def main(sync_filter, build_filter, run_tests):
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
       extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
 
-  asm2wasm_out = CompileLLVMTortureAsm2Wasm()
+  asm2wasm_out = CompileLLVMTortureBinaryen(
+      'Compile LLVM Torture (asm2wasm)',
+      os.path.join(INSTALL_DIR, 'emscripten_config'),
+      ASM2WASM_TORTURE_OUT_DIR,
+      ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES)
   ExecuteLLVMTorture(
       name='asm2wasm',
       runner=os.path.join(INSTALL_BIN, 'd8'),
       indir=asm2wasm_out,
       fails=ASM2WASM_KNOWN_TORTURE_FAILURES,
       extension='c.js',
-      outdir=asm2wasm_out)  # asm2wasm's wasm.js expect all files to be in cwd.
+      outdir=asm2wasm_out)  # emscripten's wasm.js expects all files in cwd.
+
+  emscripten_wasm_out = CompileLLVMTortureBinaryen(
+      'Compile LLVM Torture (emscripten+wasm backend)',
+      os.path.join(INSTALL_DIR, 'emscripten_config_vanilla'),
+      EMSCRIPTENWASM_TORTURE_OUT_DIR,
+      EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES)
+  ExecuteLLVMTorture(
+      name='emscripten-wasm',
+      runner=os.path.join(INSTALL_BIN, 'd8'),
+      indir=emscripten_wasm_out,
+      fails=EMSCRIPTENWASM_KNOWN_TORTURE_FAILURES,
+      extension='c.js',
+      outdir=emscripten_wasm_out)
 
   # Keep the summary step last: it'll be marked as red if the return code is
   # non-zero. Individual steps are marked as red with buildbot.Fail().

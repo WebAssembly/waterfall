@@ -31,7 +31,7 @@ CFLAGS_EXTRA = {
     # There is also 'wasm-binary'; it uses binaryen's binary format, which
     # may not match v8's format exactly. So we just generate the wast with
     # emcc and use sexpr-wasm to generate the binary.
-    'asm2wasm': ['-s', 'BINARYEN=1', '-s', 'BINARYEN_METHOD="native-wasm"'],
+    'binaryen': ['-s', 'BINARYEN=1', '-s', 'BINARYEN_METHOD="native-wasm"'],
 }
 
 
@@ -90,7 +90,7 @@ def run(c, cxx, testsuite, fails, out, config='wasm'):
       inputs=c_test_files,
       fails=fails)
 
-  if config != 'asm2wasm':
+  if config != 'binaryen':
     return result
 
   # Encode Binaryen's wast using sexpr-wasm (this means that v8's binary format
