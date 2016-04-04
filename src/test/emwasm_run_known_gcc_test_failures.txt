@@ -1,0 +1,87 @@
+# Expected failures from running torture tests from emcc/binaryen with wasm backend
+# and native Wasm support in v8
+
+20010122-1.c.js
+20031003-1.c.js
+20071018-1.c.js
+20071120-1.c.js
+20071220-1.c.js
+20071220-2.c.js
+20101011-1.c.js
+alloca-1.c.js
+bitfld-3.c.js
+bitfld-5.c.js
+builtin-bitops-1.c.js
+conversion.c.js
+eeprof-1.c.js
+frame-address.c.js
+pr17377.c.js
+pr32244-1.c.js
+pr34971.c.js
+pr36765.c.js
+pr39228.c.js
+pr43008.c.js
+pr47237.c.js
+pr60960.c.js
+va-arg-pack-1.c.js
+
+# Works with asm2wasm
+	20000717-5.c.js
+	20001203-2.c.js
+	20010605-2.c.js
+	20020413-1.c.js
+	20030914-1.c.js
+	20040709-1.c.js
+	20040709-2.c.js
+	20040811-1.c.js
+	20050121-1.c.js
+	20051012-1.c.js
+	20070824-1.c.js
+	20080502-1.c.js
+	920501-1.c.js
+	920501-8.c.js
+	920625-1.c.js
+	921208-2.c.js
+	930513-1.c.js
+	930622-2.c.js
+	931004-10.c.js
+	931004-12.c.js
+	931004-14.c.js
+	931004-6.c.js
+	960215-1.c.js
+	960405-1.c.js
+	960513-1.c.js
+	align-2.c.js
+	arith-rand-ll.c.js
+	arith-rand.c.js
+	call-trap-1.c.js
+	complex-6.c.js
+	complex-7.c.js
+	loop-2f.c.js
+	loop-2g.c.js
+	pr23135.c.js
+	pr23467.c.js
+	pr34415.c.js
+	pr36339.c.js
+	pr38048-2.c.js
+	pr38051.c.js
+	pr38151.c.js
+	pr42691.c.js
+	pr43220.c.js
+	pr43269.c.js
+	pr44575.c.js
+	pr44942.c.js
+	pr49218.c.js
+	pr54471.c.js
+	pr56982.c.js
+	regstack-1.c.js
+	stdarg-1.c.js
+	stdarg-2.c.js
+	stdarg-3.c.js
+	strct-stdarg-1.c.js
+	strct-varg-1.c.js
+	struct-ret-1.c.js
+	va-arg-22.c.js
+	va-arg-5.c.js
+	va-arg-6.c.js
+	vla-dealloc-1.c.js
