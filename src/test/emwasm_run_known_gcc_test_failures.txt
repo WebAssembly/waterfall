@@ -25,63 +25,68 @@ pr47237.c.js
 pr60960.c.js
 va-arg-pack-1.c.js
 
-# Works with asm2wasm
-	20000717-5.c.js
-	20001203-2.c.js
-	20010605-2.c.js
-	20020413-1.c.js
-	20030914-1.c.js
-	20040709-1.c.js
-	20040709-2.c.js
-	20040811-1.c.js
-	20050121-1.c.js
-	20051012-1.c.js
-	20070824-1.c.js
-	20080502-1.c.js
-	920501-1.c.js
-	920501-8.c.js
-	920625-1.c.js
-	921208-2.c.js
-	930513-1.c.js
-	930622-2.c.js
-	931004-10.c.js
-	931004-12.c.js
-	931004-14.c.js
-	931004-6.c.js
-	960215-1.c.js
-	960405-1.c.js
-	960513-1.c.js
-	align-2.c.js
-	arith-rand-ll.c.js
-	arith-rand.c.js
-	call-trap-1.c.js
-	complex-6.c.js
-	complex-7.c.js
-	loop-2f.c.js
-	loop-2g.c.js
-	pr23135.c.js
-	pr23467.c.js
-	pr34415.c.js
-	pr36339.c.js
-	pr38048-2.c.js
-	pr38051.c.js
-	pr38151.c.js
-	pr42691.c.js
-	pr43220.c.js
-	pr43269.c.js
-	pr44575.c.js
-	pr44942.c.js
-	pr49218.c.js
-	pr54471.c.js
-	pr56982.c.js
-	regstack-1.c.js
-	stdarg-1.c.js
-	stdarg-2.c.js
-	stdarg-3.c.js
-	strct-stdarg-1.c.js
-	strct-varg-1.c.js
-	struct-ret-1.c.js
-	va-arg-22.c.js
-	va-arg-5.c.js
-	va-arg-6.c.js
-	vla-dealloc-1.c.js
+# All of the following work with asm2wasm
+## Missing long double compiler-rt functions
+	20010605-2.c.js # missing __netf2
+	20020413-1.c.js # missing __lttf2
+	20030914-1.c.js # missing __floatsitf
+	20040709-1.c.js # missing __netf2
+	20040709-2.c.js # missing __netf2
+	20050121-1.c.js # missing __floatsitf
+	20080502-1.c.js # missing __eqtf2
+	920501-8.c.js # missing __extenddftf2
+	930513-1.c.js # missing __extenddftf2
+	930622-2.c.js # missing __floatditf
+	960215-1.c.js # missing __addtf3
+	960405-1.c.js # missing __eqtf2
+	960513-1.c.js # missing __subtf3
+	align-2.c.js # missing __eqtf2
+	complex-6.c.js # missing __subtf3
+	complex-7.c.js # missing __netf2
+	pr49218.c.js # missing __fixsfti
+	pr54471.c.js # missing __multi3
+	regstack-1.c.js # missing __addtf3
+	stdarg-1.c.js # missing __netf2
+	stdarg-2.c.js # missing __floatsitf
+	va-arg-5.c.js # missing __eqtf2
+	va-arg-6.c.js # missing __eqtf2
+	struct-ret-1.c.js # missing __extenddftf2
+
+## The following work using wasm-clang without emcc
+	20000717-5.c.js # abort() (also works without emcc)
+	20001203-2.c.js # assert fail (works without emcc)
+	20040811-1.c.js # OOB trap
+	20070824-1.c.js # abort() (also works without emcc)
+	arith-rand-ll.c.js # abort() (works without emcc)
+	arith-rand.c.js # abort() (works without emcc)
+	pr23135.c.js # OOB trap (works without emcc)
+	pr23467.c.js # abort() (works without emcc)
+	pr34415.c.js # (empty output?)
+	pr36339.c.js # abort() (works without emcc)
+	pr38048-2.c.js # abort() (works without emcc)
+	pr42691.c.js # abort() (works without emcc)
+	pr43220.c.js # OOB trap (works without emcc)
+	pr43269.c.js # abort() (works without emcc)
+	vla-dealloc-1.c.js # OOB trap (works without emcc)
+	20051012-1.c.js # error reading binary
+	921208-2.c.js # error reading binary
+	920501-1.c.js # error reading binary
+	call-trap-1.c.js # error reading binary
+	pr44942.c.js # error reading binary
+
+## The following fail using wasm-clang without emcc
+	920625-1.c.js # abort() (also fails without emcc)
+	931004-10.c.js # abort() (also fails without emcc)
+	931004-12.c.js # abort() (also fails without emcc)
+	931004-14.c.js # abort() (also fails without emcc)
+	931004-6.c.js # abort() (also fails without emcc)
+	pr38051.c.js # (empty output?) (fails without emcc)
+	pr38151.c.js # abort() (fails without emcc)
+	pr44575.c.js # abort() (fails without emcc)
+	strct-stdarg-1.c.js # abort() (fails without emcc)
+	strct-varg-1.c.js # abort() (fails without emcc)
+	va-arg-22.c.js # abort() (fails without emcc)
+	stdarg-3.c.js # abort() (fails without emcc)
+	pr56982.c.js # missing setjmp (wasm.js check did not catch)
+	loop-2f.c.js # missing __vm_unlock
+	loop-2g.c.js # missing __vm_unlock
