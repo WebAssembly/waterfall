@@ -55,6 +55,7 @@ strncmp-1.c.s.wast.wasm # abort()
 va-arg-22.c.s.wast.wasm
 
 # abort() as well, but occurring for musl only.
+20001111-1.c.s.wast.wasm
 20021111-1.c.s.wast.wasm
 20050604-1.c.s.wast.wasm
 20080424-1.c.s.wast.wasm
@@ -70,7 +71,6 @@ pr42721.c.s.wast.wasm
 # Unknown exception: memory access out of bounds
 20020529-1.c.s.wast.wasm
 20021120-3.c.s.wast.wasm
-20031201-1.c.s.wast.wasm
 20040709-1.c.s.wast.wasm
 20070201-1.c.s.wast.wasm
 20080502-1.c.s.wast.wasm
