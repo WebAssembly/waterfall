@@ -60,7 +60,6 @@ va-arg-pack-1.c.js
 	arith-rand-ll.c.js # abort() (works without emcc)
 	arith-rand.c.js # abort() (works without emcc)
 	pr23135.c.js # OOB trap (works without emcc)
-	pr23467.c.js # abort() (works without emcc)
 	pr34415.c.js # (empty output?)
 	pr36339.c.js # abort() (works without emcc)
 	pr38048-2.c.js # abort() (works without emcc)
@@ -88,5 +87,3 @@ va-arg-pack-1.c.js
 	va-arg-22.c.js # abort() (fails without emcc)
 	stdarg-3.c.js # abort() (fails without emcc)
 	pr56982.c.js # missing setjmp (wasm.js check did not catch)
-	loop-2f.c.js # missing __vm_unlock
-	loop-2g.c.js # missing __vm_unlock

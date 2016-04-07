@@ -57,7 +57,6 @@ va-arg-22.c.s.wast.wasm
 # abort() as well, but occurring for musl only.
 20001111-1.c.s.wast.wasm
 20021111-1.c.s.wast.wasm
-20050604-1.c.s.wast.wasm
 20080424-1.c.s.wast.wasm
 930513-2.c.s.wast.wasm
 980602-2.c.s.wast.wasm
