@@ -66,9 +66,9 @@ class Tester(object):
 
   @staticmethod
   def setlimits():
-    # Set maximum CPU time to 10 seconds in child process
+    # Set maximum CPU time to 90 seconds in child process
     try:
-      resource.setrlimit(resource.RLIMIT_CPU, (10, 10))
+      resource.setrlimit(resource.RLIMIT_CPU, (90, 90))
     except:
       pass
 
