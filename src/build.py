@@ -724,6 +724,7 @@ def CompileLLVMTortureBinaryen(name, em_config, outdir, fails):
       fails=fails,
       out=outdir,
       config='binaryen')
+  Archive('torture-' + em_config, Tar(outdir))
   if 0 != unexpected_result_count:
     buildbot.Fail(True)
   return outdir
