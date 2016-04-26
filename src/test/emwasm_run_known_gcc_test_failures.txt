@@ -65,7 +65,6 @@ va-arg-pack-1.c.js
 	pr38048-2.c.js # abort() (works without emcc)
 	pr42691.c.js # abort() (works without emcc)
 	pr43220.c.js # OOB trap (works without emcc)
-	pr43269.c.js # abort() (works without emcc)
 	vla-dealloc-1.c.js # OOB trap (works without emcc)
 	20051012-1.c.js # error reading binary
 	921208-2.c.js # error reading binary
@@ -79,7 +78,6 @@ va-arg-pack-1.c.js
 	931004-12.c.js # abort() (also fails without emcc)
 	931004-14.c.js # abort() (also fails without emcc)
 	931004-6.c.js # abort() (also fails without emcc)
-	pr38051.c.js # (empty output?) (fails without emcc)
 	pr38151.c.js # abort() (fails without emcc)
 	pr44575.c.js # abort() (fails without emcc)
 	strct-stdarg-1.c.js # abort() (fails without emcc)
