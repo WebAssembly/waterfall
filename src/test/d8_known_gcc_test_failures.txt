@@ -62,7 +62,6 @@ strncmp-1.c.s.wast.wasm # abort()
 20040709-1.c.s.wast.wasm # memory access out of bounds
 
 # The following failures go away when disabling backend optimizations, regardless of IR
-frame-address.c.s.wast.wasm # abort()
 pr47337.c.s.wast.wasm # memory access out of bounds
 
 # The following only fail when all optimizations are enabled

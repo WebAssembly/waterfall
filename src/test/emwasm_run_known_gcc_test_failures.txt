@@ -20,7 +20,6 @@ bitfld-5.c.js
 builtin-bitops-1.c.js
 conversion.c.js
 eeprof-1.c.js
-frame-address.c.js
 pr17377.c.js
 pr32244-1.c.js
 pr34971.c.js
@@ -59,17 +58,12 @@ va-arg-pack-1.c.js
 	struct-ret-1.c.js # missing __extenddftf2
 
 ## The following work using wasm-clang without emcc
-	20000717-5.c.js # abort() (also works without emcc)
 	20001203-2.c.js # assert fail (works without emcc)
 	20040811-1.c.js # OOB trap
 	20070824-1.c.js # abort() (also works without emcc)
 	arith-rand-ll.c.js # abort() (works without emcc)
 	arith-rand.c.js # abort() (works without emcc)
 	pr23135.c.js # OOB trap (works without emcc)
-	pr34415.c.js # (empty output?)
-	pr36339.c.js # abort() (works without emcc)
-	pr38048-2.c.js # abort() (works without emcc)
-	pr42691.c.js # abort() (works without emcc)
 	pr43220.c.js # OOB trap (works without emcc)
 	vla-dealloc-1.c.js # OOB trap (works without emcc)
 	20051012-1.c.js # error reading binary
