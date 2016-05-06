@@ -1,11 +1,6 @@
 # Expected failures from running torture tests from emcc/binaryen with wasm backend
 # and native Wasm support in v8
 
-# Failures in d8 due to https://codereview.chromium.org/1948453002/
-	20010129-1.c.js
-	990326-1.c.js
-	pr46309.c.js
-
 # Untriaged.
 20010122-1.c.js
 20031003-1.c.js
