@@ -348,8 +348,8 @@ ALL_SOURCES = [
            LLVM_MIRROR_BASE + 'clang'),
     # TODO(dschuff): re-enable this when we switch back to external/llvm.org
     # as the git mirror base, or when we actually begin to use it.
-    #Source('llvm-test-suite', LLVM_TEST_SUITE_SRC_DIR,
-    #       LLVM_MIRROR_BASE + 'test-suite'),
+    # Source('llvm-test-suite', LLVM_TEST_SUITE_SRC_DIR,
+    #        LLVM_MIRROR_BASE + 'test-suite'),
     Source('emscripten', EMSCRIPTEN_SRC_DIR,
            EMSCRIPTEN_GIT_BASE + 'emscripten',
            checkout='origin/incoming'),
