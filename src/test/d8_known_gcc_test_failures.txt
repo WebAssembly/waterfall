@@ -86,7 +86,6 @@ strcpy-1.c.s.wast.wasm # memory access out of bounds
 bcp-1.c.s.wast.wasm # abort() # builtin_constant_p depends on opt setting
 builtin-constant.c.s.wast.wasm # abort() # builtin_constant_p depends on opt setting
 pr22493-1.c.s.wast.wasm # abort() # UB
-20030125-1.c.s.wast.wasm # abort() # Checks math function opt, depends on opt setting
 eeprof-1.c.s.wast.wasm # tests -finstrument-functions
 
 # Low priority

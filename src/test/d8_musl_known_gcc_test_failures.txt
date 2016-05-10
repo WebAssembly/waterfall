@@ -29,7 +29,6 @@ va-arg-pack-1.c.s.wast.wasm
 # This could be a problem in any part of the toolchain (not just d8).
 # It should never happen (the torture tests are self-validating).
 20000910-2.c.s.wast.wasm
-20030125-1.c.s.wast.wasm
 920612-1.c.s.wast.wasm
 920625-1.c.s.wast.wasm
 920711-1.c.s.wast.wasm
