@@ -637,7 +637,7 @@ def Fastcomp():
   proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR)
 
 
-def Emscripten():
+def Emscripten(use_asm=True):
   buildbot.Step('emscripten')
   # Remove cached library builds (e.g. libc, libc++) to force them to be
   # rebuilt in the step below.
@@ -660,17 +660,19 @@ def Emscripten():
     # This depends on binaryen already being built and installed into the
     # archive/install dir.
     os.environ['EMCC_DEBUG'] = '2'
-    for config in [em_config, em_config + '_vanilla']:
+    configs = [em_config + '_vanilla'] + ([em_config] if use_asm else [])
+    for config in configs:
       os.environ['EM_CONFIG'] = config
       proc.check_call([
           os.path.join(emscripten_dir, 'em++'),
           os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'hello_world.cpp'),
           '-O2', '-s', 'BINARYEN=1', '-s', 'BINARYEN_METHOD="native-wasm"'])
 
-    del os.environ['EMCC_DEBUG']
   except proc.CalledProcessError:
     # Don't make it fatal yet.
     buildbot.Fail(True)
+  finally:
+    del os.environ['EMCC_DEBUG']
 
 
 def Musl():
@@ -816,27 +818,29 @@ def Summary(repos):
     buildbot.Link('lkgr', cloud.Upload('lkgr', 'git/lkgr'))
 
 
-ALL_BUILDS = [
-    # Host tools
-    Build('llvm', LLVM),
-    Build('v8', V8),
-    Build('sexpr', Sexpr),
-    Build('ocaml', OCaml),
-    Build('spec', Spec),
-    Build('binaryen', Binaryen),
-    Build('fastcomp', Fastcomp),
-    Build('emscripten', Emscripten),
-    # Target libs
-    Build('musl', Musl),
-    # Archive
-    Build('archive', ArchiveBinaries),
-]
+def AllBuilds(options=None):
+  use_asm = options.use_asm if options else False
+  return [
+      # Host tools
+      Build('llvm', LLVM),
+      Build('v8', V8),
+      Build('sexpr', Sexpr),
+      Build('ocaml', OCaml),
+      Build('spec', Spec),
+      Build('binaryen', Binaryen),
+      Build('fastcomp', Fastcomp),
+      Build('emscripten', Emscripten, use_asm),
+      # Target libs
+      Build('musl', Musl),
+      # Archive
+      Build('archive', ArchiveBinaries),
+  ]
 
 
-def BuildRepos(filter=None):
+def BuildRepos(filter=None, options={}):
   if not filter:
     filter = Filter()
-  for rule in filter.Apply(ALL_BUILDS):
+  for rule in filter.Apply(AllBuilds(options)):
     rule.Run()
 
 
@@ -858,7 +862,7 @@ def ParseArgs():
 
   epilog = (
       TextWrapNameList('sync targets:\n', ALL_SOURCES) + '\n\n' +
-      TextWrapNameList('build targets:\n', ALL_BUILDS))
+      TextWrapNameList('build targets:\n', AllBuilds()))
 
   parser = argparse.ArgumentParser(
       description='Wasm waterfall top-level CI script',
@@ -885,13 +889,15 @@ def ParseArgs():
   build_grp.add_argument(
       '--build-exclude', dest='build_exclude', default='', type=SplitComma,
       help='Include only the comma-separated list of build targets')
-  parser.add_argument('--no-test', dest='test', default=True,
+  parser.add_argument('--no-test', dest='run_tests', default=True,
                       action='store_false',
                       help='Skip running tests')
+  parser.add_argument('--no-asm', dest='use_asm', default=True,
+                      action='store_false', help='Run asm2wasm tests')
   return parser.parse_args()
 
 
-def main(sync_filter, build_filter, run_tests):
+def main(sync_filter, build_filter, options):
   Clobber()
   Chdir(SCRIPT_DIR)
   Mkdir(WORK_DIR)
@@ -904,9 +910,9 @@ def main(sync_filter, build_filter, run_tests):
     Mkdir(INSTALL_DIR)
     Mkdir(INSTALL_BIN)
     Mkdir(INSTALL_LIB)
-  BuildRepos(build_filter)
+  BuildRepos(build_filter, options)
 
-  if not run_tests:
+  if not options.run_tests:
     sys.exit()
   CompileLLVMTorture()
   s2wasm_out = LinkLLVMTorture(
@@ -947,18 +953,19 @@ def main(sync_filter, build_filter, run_tests):
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
       extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
 
-  asm2wasm_out = CompileLLVMTortureBinaryen(
-      'Compile LLVM Torture (asm2wasm)',
-      os.path.join(INSTALL_DIR, 'emscripten_config'),
-      ASM2WASM_TORTURE_OUT_DIR,
-      ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES)
-  ExecuteLLVMTorture(
-      name='asm2wasm',
-      runner=os.path.join(INSTALL_BIN, 'd8'),
-      indir=asm2wasm_out,
-      fails=ASM2WASM_KNOWN_TORTURE_FAILURES,
-      extension='c.js',
-      outdir=asm2wasm_out)  # emscripten's wasm.js expects all files in cwd.
+  if options.use_asm:
+    asm2wasm_out = CompileLLVMTortureBinaryen(
+        'Compile LLVM Torture (asm2wasm)',
+        os.path.join(INSTALL_DIR, 'emscripten_config'),
+        ASM2WASM_TORTURE_OUT_DIR,
+        ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES)
+    ExecuteLLVMTorture(
+        name='asm2wasm',
+        runner=os.path.join(INSTALL_BIN, 'd8'),
+        indir=asm2wasm_out,
+        fails=ASM2WASM_KNOWN_TORTURE_FAILURES,
+        extension='c.js',
+        outdir=asm2wasm_out)  # emscripten's wasm.js expects all files in cwd.
 
   emscripten_wasm_out = CompileLLVMTortureBinaryen(
       'Compile LLVM Torture (emscripten+wasm backend)',
@@ -985,4 +992,4 @@ if __name__ == '__main__':
   sync_filter = Filter(sync_include, options.sync_exclude)
   build_include = options.build_include if options.build else []
   build_filter = Filter(build_include, options.build_exclude)
-  sys.exit(main(sync_filter, build_filter, options.test))
+  sys.exit(main(sync_filter, build_filter, options))
