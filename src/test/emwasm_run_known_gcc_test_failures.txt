@@ -13,7 +13,6 @@ alloca-1.c.js
 bitfld-3.c.js
 bitfld-5.c.js
 builtin-bitops-1.c.js
-conversion.c.js
 eeprof-1.c.js
 pr17377.c.js
 pr32244-1.c.js
@@ -24,33 +23,6 @@ pr43008.c.js
 pr47237.c.js
 pr60960.c.js
 va-arg-pack-1.c.js
-
-# All of the following work with asm2wasm
-## Missing long double compiler-rt functions
-	20010605-2.c.js # missing __netf2
-	20020413-1.c.js # missing __lttf2
-	20030914-1.c.js # missing __floatsitf
-	20040709-1.c.js # missing __netf2
-	20040709-2.c.js # missing __netf2
-	20050121-1.c.js # missing __floatsitf
-	20080502-1.c.js # missing __eqtf2
-	920501-8.c.js # missing __extenddftf2
-	930513-1.c.js # missing __extenddftf2
-	930622-2.c.js # missing __floatditf
-	960215-1.c.js # missing __addtf3
-	960405-1.c.js # missing __eqtf2
-	960513-1.c.js # missing __subtf3
-	align-2.c.js # missing __eqtf2
-	complex-6.c.js # missing __subtf3
-	complex-7.c.js # missing __netf2
-	pr49218.c.js # missing __fixsfti
-	pr54471.c.js # missing __multi3
-	regstack-1.c.js # missing __addtf3
-	stdarg-1.c.js # missing __netf2
-	stdarg-2.c.js # missing __floatsitf
-	va-arg-5.c.js # missing __eqtf2
-	va-arg-6.c.js # missing __eqtf2
-	struct-ret-1.c.js # missing __extenddftf2
 
 ## The following work using wasm-clang without emcc
 	20001203-2.c.js # assert fail (works without emcc)
@@ -75,8 +47,11 @@ va-arg-pack-1.c.js
 	931004-6.c.js # abort() (also fails without emcc)
 	pr38151.c.js # abort() (fails without emcc)
 	pr44575.c.js # abort() (fails without emcc)
+	stdarg-1.c.js # abort() (missing __netf2)
+	stdarg-2.c.js # abort() (missing __floatsitf)
 	strct-stdarg-1.c.js # abort() (fails without emcc)
 	strct-varg-1.c.js # abort() (fails without emcc)
 	va-arg-22.c.js # abort() (fails without emcc)
+	va-arg-6.c.js # abort() (missing __eqtf2)
 	stdarg-3.c.js # abort() (fails without emcc)
 	pr56982.c.js # missing setjmp (wasm.js check did not catch)
