@@ -52,6 +52,9 @@ string-opt-5.c.s.wast.wasm # abort()
 strncmp-1.c.s.wast.wasm # abort()
 va-arg-22.c.s.wast.wasm
 
+# Untriaged (this one broke at rev e5b9c73, r269252)
+20030125-1.c.s.wast.wasm # abort()
+
 # abort() as well, but occurring for musl only.
 20001111-1.c.s.wast.wasm
 20021111-1.c.s.wast.wasm

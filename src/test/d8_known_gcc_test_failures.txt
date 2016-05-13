@@ -79,6 +79,9 @@ strcpy-1.c.s.wast.wasm # memory access out of bounds
 # (a lot of them are unsupported features and missing libcalls which are
 # eliminated by IR optzns)
 
+# Untriaged (this one broke at rev e5b9c73, r269252)
+20030125-1.c.s.wast.wasm # abort()
+
 
 # Don't care/won't fix:
 920612-1.c.s.wast.wasm # abort() # UB
