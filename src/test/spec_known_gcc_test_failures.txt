@@ -144,3 +144,9 @@ va-arg-5.c.s.wast # env.__eqtf2
 va-arg-6.c.s.wast # env.__eqtf2
 va-arg-9.c.s.wast # env.strlen
 va-arg-pack-1.c.s.wast # env.memcmp
+980707-1.c.s.wast # env.strcmp
+980709-1.c.s.wast # env.pow
+printf-chk-1.c.s.wast # vprintf
+va-arg-21.c.s.wast # env.vprintf
+vprintf-1.c.s.wast # vprintf
+vprintf-chk-1.c.s.wast # vprintf

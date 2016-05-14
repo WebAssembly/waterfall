@@ -23,8 +23,12 @@ pr34456.c.s.wast.wasm # qsort
 pr47237.c.s.wast.wasm # __builtin_apply_args
 pr56982.c.s.wast.wasm # _setjmp
 printf-1.c.s.wast.wasm # printf
+printf-chk-1.c.s.wast.wasm # vprintf
 pr39228.c.s.wast.wasm # isinfl
 struct-ret-1.c.s.wast.wasm # sprintf
+va-arg-21.c.s.wast.wasm # vprintf
+vprintf-1.c.s.wast.wasm # vprintf
+vprintf-chk-1.c.s.wast.wasm # vprintf
 
 # These compiler-rt functions are for long doubles. Also NYI.
 20020413-1.c.s.wast.wasm # __lttf2

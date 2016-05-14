@@ -76,6 +76,7 @@ EMSCRIPTENWASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-torture-out')
 INSTALL_DIR = os.path.join(WORK_DIR, 'wasm-install')
 INSTALL_BIN = os.path.join(INSTALL_DIR, 'bin')
 INSTALL_LIB = os.path.join(INSTALL_DIR, 'lib')
+INSTALL_SYSROOT = os.path.join(INSTALL_DIR, 'sysroot')
 
 # Avoid flakes: use cached repositories to avoid relying on external network.
 GITHUB_REMOTE = 'github'
@@ -173,6 +174,36 @@ def Remove(path):
       shutil.rmtree(path)
     else:
       os.remove(path)
+
+
+def CopyTree(src, dst):
+  """Recursively copy the items in the src directory to the dst directory.
+
+  Unlike shutil.copytree, the destination directory and any subdirectories and
+  files may exist. Existing directories are left untouched, and existing files
+  are removed and copied from the source using shutil.copy2. It is also not
+  symlink-aware.
+
+  Args:
+    src: Source. Must be an existing directory.
+    dst: Destination directory. If it exists, must be a directory. Otherwise it
+         will be created, along with parent directories.
+  """
+  print 'Copying directory %s to %s' % (src, dst)
+  if not os.path.isdir(dst):
+    os.makedirs(dst)
+  for root, dirs, files in os.walk(src):
+    relroot = os.path.relpath(root, src)
+    dstroot = os.path.join(dst, relroot)
+    for d in dirs:
+      dstdir = os.path.join(dstroot, d)
+      if not os.path.isdir(dstdir):
+        os.mkdir(dstdir)
+    for f in files:
+      dstfile = os.path.join(dstroot, f)
+      if os.path.isfile(dstfile):
+        os.remove(dstfile)
+      shutil.copy2(os.path.join(root, f), dstfile)
 
 
 def CopyBinaryToArchive(binary):
@@ -689,6 +720,10 @@ def Musl():
       CopyLibraryToArchive(os.path.join(MUSL_OUT_DIR, f))
     CopyLibraryToArchive(os.path.join(MUSL_SRC_DIR,
                                       'arch', 'wasm32', 'wasm.js'))
+    CopyTree(os.path.join(MUSL_SRC_DIR, 'include'),
+             os.path.join(INSTALL_SYSROOT, 'include'))
+    CopyTree(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32'),
+             os.path.join(INSTALL_SYSROOT, 'include'))
   except proc.CalledProcessError:
     buildbot.Fail()
 

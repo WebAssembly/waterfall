@@ -20,7 +20,11 @@ pr47237.c.s.wast.wasm
 pr49218.c.s.wast.wasm
 pr54471.c.s.wast.wasm
 printf-1.c.s.wast.wasm
+printf-chk-1.c.s.wast.wasm
 regstack-1.c.s.wast.wasm
+va-arg-21.c.s.wast.wasm # vprintf
+vprintf-1.c.s.wast.wasm # vprintf
+vprintf-chk-1.c.s.wast.wasm # vprintf
 
 # Trying to import function 'bar'. The test is likely wrong.
 va-arg-pack-1.c.s.wast.wasm

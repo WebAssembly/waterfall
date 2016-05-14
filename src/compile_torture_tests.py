@@ -21,11 +21,14 @@ import sys
 
 import testing
 
+# TODO: Pass this in from build.py
+INSTALL_DIR = os.path.join(os.getcwd(), 'src', 'work', 'wasm-install', 'sysroot')
 
 CFLAGS_COMMON = ['--std=gnu89', '-DSTACK_SIZE=1044480',
                  '-w', '-Wno-implicit-function-declaration']
 CFLAGS_EXTRA = {
-    'wasm': ['--target=wasm32-unknown-unknown', '-S', '-O2'],
+    'wasm': ['--target=wasm32-unknown-unknown', '-S', '-O2',
+             '--sysroot=%s' % INSTALL_DIR],
     # Binaryen's native-wasm method uses the JS engine's native support for
     # wasm rather than interpreting the wasm with wasm.js.
     # There is also 'wasm-binary'; it uses binaryen's binary format, which
