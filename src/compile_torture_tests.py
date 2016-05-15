@@ -22,7 +22,8 @@ import sys
 import testing
 
 # TODO: Pass this in from build.py
-INSTALL_DIR = os.path.join(os.getcwd(), 'src', 'work', 'wasm-install', 'sysroot')
+INSTALL_DIR = os.path.join(os.getcwd(),
+                           'src', 'work', 'wasm-install', 'sysroot')
 
 CFLAGS_COMMON = ['--std=gnu89', '-DSTACK_SIZE=1044480',
                  '-w', '-Wno-implicit-function-declaration']
