@@ -516,9 +516,6 @@ def SyncRepos(filter=None):
   buildbot.Step('Sync Repos')
   if not filter:
     filter = Filter()
-  # TODO Remove this when sexpr-wasm-prototype/issues/35 is fixed.
-  if filter.Check('sexpr'):
-    Remove(SEXPR_SRC_DIR)
   for repo in filter.Apply(ALL_SOURCES):
     repo.Sync()
   # Special cases
@@ -661,10 +658,6 @@ def Fastcomp():
        '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
        '-DLLVM_ENABLE_ASSERTIONS=ON'], cwd=FASTCOMP_OUT_DIR)
   proc.check_call(['ninja'], cwd=FASTCOMP_OUT_DIR)
-  try:
-    proc.check_call(['ninja', 'check'], cwd=FASTCOMP_OUT_DIR)
-  except proc.CalledProcessError:
-    print 'ಠ_ಠ'
   proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR)
 
 
