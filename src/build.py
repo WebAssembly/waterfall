@@ -853,8 +853,7 @@ def Summary(repos):
     buildbot.Link('lkgr', cloud.Upload('lkgr', 'git/lkgr'))
 
 
-def AllBuilds(options=None):
-  use_asm = options.use_asm if options else False
+def AllBuilds(use_asm=False):
   return [
       # Host tools
       Build('llvm', LLVM),
@@ -872,10 +871,10 @@ def AllBuilds(options=None):
   ]
 
 
-def BuildRepos(filter=None, options={}):
+def BuildRepos(filter=None, use_asm=False):
   if not filter:
     filter = Filter()
-  for rule in filter.Apply(AllBuilds(options)):
+  for rule in filter.Apply(AllBuilds(use_asm)):
     rule.Run()
 
 
@@ -924,15 +923,22 @@ def ParseArgs():
   build_grp.add_argument(
       '--build-exclude', dest='build_exclude', default='', type=SplitComma,
       help='Include only the comma-separated list of build targets')
-  parser.add_argument('--no-test', dest='run_tests', default=True,
-                      action='store_false',
-                      help='Skip running tests')
-  parser.add_argument('--no-asm', dest='use_asm', default=True,
-                      action='store_false', help='Run asm2wasm tests')
+
+  test_grp = parser.add_mutually_exclusive_group()
+  test_grp.add_argument(
+      '--no-test', dest='test', default=True, action='store_false',
+      help='Skip running tests')
+  test_grp.add_argument(
+      '--test-include', dest='test_include', default='', type=SplitComma,
+      help='Include only the comma-separated list of test targets')
+  test_grp.add_argument(
+      '--test-exclude', dest='test_exclude', default='', type=SplitComma,
+      help='Include only the comma-separated list of test targets')
+
   return parser.parse_args()
 
 
-def main(sync_filter, build_filter, options):
+def main(sync_filter, build_filter, test_filter, options):
   Clobber()
   Chdir(SCRIPT_DIR)
   Mkdir(WORK_DIR)
@@ -945,50 +951,49 @@ def main(sync_filter, build_filter, options):
     Mkdir(INSTALL_DIR)
     Mkdir(INSTALL_BIN)
     Mkdir(INSTALL_LIB)
-  BuildRepos(build_filter, options)
+  BuildRepos(build_filter, test_filter.Check('asm'))
 
-  if not options.run_tests:
-    sys.exit()
-  CompileLLVMTorture()
-  s2wasm_out = LinkLLVMTorture(
-      name='s2wasm',
-      linker=os.path.join(INSTALL_BIN, 's2wasm'),
-      fails=S2WASM_KNOWN_TORTURE_FAILURES)
-  sexpr_wasm_out = AssembleLLVMTorture(
-      name='s2wasm-sexpr-wasm',
-      assembler=os.path.join(INSTALL_BIN, 'sexpr-wasm'),
-      indir=s2wasm_out,
-      fails=SEXPR_S2WASM_KNOWN_TORTURE_FAILURES)
-  ExecuteLLVMTorture(
-      name='binaryen-shell',
-      runner=os.path.join(INSTALL_BIN, 'binaryen-shell'),
-      indir=s2wasm_out,
-      fails=BINARYEN_SHELL_KNOWN_TORTURE_FAILURES,
-      extension='wast',
-      is_flaky=True)  # TODO binaryen-shell is flaky when running tests.
-  ExecuteLLVMTorture(
-      name='spec',
-      runner=os.path.join(INSTALL_BIN, 'wasm.opt'),
-      indir=s2wasm_out,
-      fails=SPEC_KNOWN_TORTURE_FAILURES,
-      extension='wast')
-  ExecuteLLVMTorture(
-      name='d8',
-      runner=os.path.join(INSTALL_BIN, 'd8'),
-      indir=sexpr_wasm_out,
-      fails=V8_KNOWN_TORTURE_FAILURES,
-      extension='wasm',
-      wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
-  ExecuteLLVMTorture(
-      name='d8-musl',
-      runner=os.path.join(INSTALL_BIN, 'd8'),
-      indir=sexpr_wasm_out,
-      fails=V8_MUSL_KNOWN_TORTURE_FAILURES,
-      extension='wasm',
-      wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
-      extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
+  if test_filter.Check('bare'):
+    CompileLLVMTorture()
+    s2wasm_out = LinkLLVMTorture(
+        name='s2wasm',
+        linker=os.path.join(INSTALL_BIN, 's2wasm'),
+        fails=S2WASM_KNOWN_TORTURE_FAILURES)
+    sexpr_wasm_out = AssembleLLVMTorture(
+        name='s2wasm-sexpr-wasm',
+        assembler=os.path.join(INSTALL_BIN, 'sexpr-wasm'),
+        indir=s2wasm_out,
+        fails=SEXPR_S2WASM_KNOWN_TORTURE_FAILURES)
+    ExecuteLLVMTorture(
+        name='binaryen-shell',
+        runner=os.path.join(INSTALL_BIN, 'binaryen-shell'),
+        indir=s2wasm_out,
+        fails=BINARYEN_SHELL_KNOWN_TORTURE_FAILURES,
+        extension='wast',
+        is_flaky=True)  # TODO binaryen-shell is flaky when running tests.
+    ExecuteLLVMTorture(
+        name='spec',
+        runner=os.path.join(INSTALL_BIN, 'wasm.opt'),
+        indir=s2wasm_out,
+        fails=SPEC_KNOWN_TORTURE_FAILURES,
+        extension='wast')
+    ExecuteLLVMTorture(
+        name='d8',
+        runner=os.path.join(INSTALL_BIN, 'd8'),
+        indir=sexpr_wasm_out,
+        fails=V8_KNOWN_TORTURE_FAILURES,
+        extension='wasm',
+        wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
+    ExecuteLLVMTorture(
+        name='d8-musl',
+        runner=os.path.join(INSTALL_BIN, 'd8'),
+        indir=sexpr_wasm_out,
+        fails=V8_MUSL_KNOWN_TORTURE_FAILURES,
+        extension='wasm',
+        wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
+        extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
 
-  if options.use_asm:
+  if test_filter.Check('asm'):
     asm2wasm_out = CompileLLVMTortureBinaryen(
         'Compile LLVM Torture (asm2wasm)',
         os.path.join(INSTALL_DIR, 'emscripten_config'),
@@ -1002,18 +1007,19 @@ def main(sync_filter, build_filter, options):
         extension='c.js',
         outdir=asm2wasm_out)  # emscripten's wasm.js expects all files in cwd.
 
-  emscripten_wasm_out = CompileLLVMTortureBinaryen(
-      'Compile LLVM Torture (emscripten+wasm backend)',
-      os.path.join(INSTALL_DIR, 'emscripten_config_vanilla'),
-      EMSCRIPTENWASM_TORTURE_OUT_DIR,
-      EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES)
-  ExecuteLLVMTorture(
-      name='emscripten-wasm',
-      runner=os.path.join(INSTALL_BIN, 'd8'),
-      indir=emscripten_wasm_out,
-      fails=EMSCRIPTENWASM_KNOWN_TORTURE_FAILURES,
-      extension='c.js',
-      outdir=emscripten_wasm_out)
+  if test_filter.Check('emwasm'):
+    emscripten_wasm_out = CompileLLVMTortureBinaryen(
+        'Compile LLVM Torture (emscripten+wasm backend)',
+        os.path.join(INSTALL_DIR, 'emscripten_config_vanilla'),
+        EMSCRIPTENWASM_TORTURE_OUT_DIR,
+        EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES)
+    ExecuteLLVMTorture(
+        name='emscripten-wasm',
+        runner=os.path.join(INSTALL_BIN, 'd8'),
+        indir=emscripten_wasm_out,
+        fails=EMSCRIPTENWASM_KNOWN_TORTURE_FAILURES,
+        extension='c.js',
+        outdir=emscripten_wasm_out)
 
   # Keep the summary step last: it'll be marked as red if the return code is
   # non-zero. Individual steps are marked as red with buildbot.Fail().
@@ -1027,4 +1033,6 @@ if __name__ == '__main__':
   sync_filter = Filter(sync_include, options.sync_exclude)
   build_include = options.build_include if options.build else []
   build_filter = Filter(build_include, options.build_exclude)
-  sys.exit(main(sync_filter, build_filter, options))
+  test_include = options.test_include if options.test else []
+  test_filter = Filter(test_include, options.test_exclude)
+  sys.exit(main(sync_filter, build_filter, test_filter, options))
