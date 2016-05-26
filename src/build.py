@@ -21,6 +21,8 @@ import multiprocessing
 import os
 import shutil
 import sys
+import tarfile
+import tempfile
 import urllib2
 
 import assemble_files
@@ -61,6 +63,13 @@ PREBUILT_CLANG_BIN = os.path.join(
     PREBUILT_CLANG, 'third_party', 'llvm-build', 'Release+Asserts', 'bin')
 CC = os.path.join(PREBUILT_CLANG_BIN, 'clang')
 CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
+
+# The archive itself contains the 'cmake343' directory.
+PREBUILT_CMAKE_DIR = os.path.join(WORK_DIR, 'cmake343')
+PREBUILT_CMAKE_ARCHIVE = 'cmake343_%s.tgz'
+PREBUILT_CMAKE_URL = ('https://commondatastorage.googleapis.com/' +
+                      'chromium-browser-clang/tools/')
+PREBUILT_CMAKE_BIN = os.path.join(PREBUILT_CMAKE_DIR, 'bin', 'cmake')
 
 LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out', 'Release')
@@ -368,6 +377,32 @@ def SyncPrebuiltClang(name, src_dir, git_repo):
   return ('chromium-clang', tools_clang)
 
 
+def SyncPrebuiltCMake(name, src_dir, git_repo):
+  if os.path.isdir(PREBUILT_CMAKE_DIR):
+    print 'Prebuilt CMake directory already exists'
+  else:
+    platform = 'Darwin' if sys.platform == 'darwin' else 'Linux'
+    filename = PREBUILT_CMAKE_ARCHIVE % platform
+    url = PREBUILT_CMAKE_URL + filename
+    Mkdir(PREBUILT_CMAKE_DIR)
+    try:
+      response = urllib2.urlopen(url)
+      data = response.read()
+      print 'Downloaded %s' % url
+      with tempfile.TemporaryFile() as f:
+        f.write(data)
+        f.seek(0)
+        # The tar file itself includes the 'cmake343' directory, so set the
+        # extract path to WORK_DIR to get the right path
+        tarfile.open(mode='r:gz', fileobj=f).extractall(path=WORK_DIR)
+        assert(os.path.isfile(PREBUILT_CMAKE_BIN),
+               'Exptected cmake binary at %s' % PREBUILT_CMAKE_BIN)
+      print 'Extracted CMake to %s' % PREBUILT_CMAKE_DIR
+    except urllib2.URLError as e:
+      print 'Error downloading %s: %s' % (url, e)
+      raise
+
+
 def NoSync(*args):
   pass
 
@@ -400,6 +435,8 @@ ALL_SOURCES = [
     Source('chromium-clang', PREBUILT_CLANG,
            GIT_MIRROR_BASE + 'chromium/src/tools/clang',
            custom_sync=SyncPrebuiltClang),
+    Source('cmake', '', '',  # The source and git args are ignored.
+           custom_sync=SyncPrebuiltCMake),
     Source('sexpr', SEXPR_SRC_DIR,
            WASM_GIT_BASE + 'sexpr-wasm-prototype.git'),
     Source('spec', SPEC_SRC_DIR,
@@ -538,7 +575,7 @@ def LLVM():
   buildbot.Step('LLVM')
   Mkdir(LLVM_OUT_DIR)
   proc.check_call(
-      ['cmake', '-G', 'Ninja', LLVM_SRC_DIR,
+      [PREBUILT_CMAKE_BIN, '-G', 'Ninja', LLVM_SRC_DIR,
        '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
        '-DLLVM_BUILD_TESTS=ON',
        '-DCMAKE_C_COMPILER=' + CC,
@@ -689,7 +726,7 @@ def Emscripten(use_asm=True):
       os.environ['EM_CONFIG'] = config
       proc.check_call([
           os.path.join(emscripten_dir, 'em++'),
-          os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'hello_world.cpp'),
+          os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'hello_libcxx.cpp'),
           '-O2', '-s', 'BINARYEN=1', '-s', 'BINARYEN_METHOD="native-wasm"'])
 
   except proc.CalledProcessError:
