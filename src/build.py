@@ -328,6 +328,9 @@ class Source:
     AddGithubRemote(self.src_dir)
 
   def CurrentGitInfo(self):
+    if not self.src_dir:
+      return None
+
     def pretty(fmt):
       return proc.check_output(
           ['git', 'log', '-n1', '--pretty=format:%s' % fmt],
