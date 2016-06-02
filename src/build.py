@@ -39,6 +39,7 @@ WORK_DIR = os.path.join(SCRIPT_DIR, 'work')
 
 LLVM_SRC_DIR = os.path.join(WORK_DIR, 'llvm')
 CLANG_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'clang')
+COMPILER_RT_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'projects', 'compiler-rt')
 LLVM_TEST_SUITE_SRC_DIR = os.path.join(WORK_DIR, 'llvm-test-suite')
 
 EMSCRIPTEN_SRC_DIR = os.path.join(WORK_DIR, 'emscripten')
@@ -398,8 +399,7 @@ def SyncPrebuiltCMake(name, src_dir, git_repo):
         # The tar file itself includes the 'cmake343' directory, so set the
         # extract path to WORK_DIR to get the right path
         tarfile.open(mode='r:gz', fileobj=f).extractall(path=WORK_DIR)
-        assert(os.path.isfile(PREBUILT_CMAKE_BIN),
-               'Exptected cmake binary at %s' % PREBUILT_CMAKE_BIN)
+        assert os.path.isfile(PREBUILT_CMAKE_BIN)
       print 'Extracted CMake to %s' % PREBUILT_CMAKE_DIR
     except urllib2.URLError as e:
       print 'Error downloading %s: %s' % (url, e)
@@ -415,6 +415,8 @@ ALL_SOURCES = [
            LLVM_MIRROR_BASE + 'llvm'),
     Source('clang', CLANG_SRC_DIR,
            LLVM_MIRROR_BASE + 'clang'),
+    Source('compiler-rt', COMPILER_RT_SRC_DIR,
+           LLVM_MIRROR_BASE + 'compiler-rt'),
     # TODO(dschuff): re-enable this when we switch back to external/llvm.org
     # as the git mirror base, or when we actually begin to use it.
     # Source('llvm-test-suite', LLVM_TEST_SUITE_SRC_DIR,
