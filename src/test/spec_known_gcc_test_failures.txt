@@ -39,7 +39,7 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 20050502-2.c.s.wast # env.memcmp
 20050826-1.c.s.wast # env.memset
 20051113-1.c.s.wast # env.malloc
-20060412-1.c.s.wast # env.memset
+20060412-1.c.s.wast # env.memsets
 20070201-1.c.s.wast # env.sprintf
 20071018-1.c.s.wast # env.__builtin_malloc
 20071029-1.c.s.wast # env.memset
@@ -59,6 +59,7 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 920501-9.c.s.wast # env.sprintf
 920726-1.c.s.wast # env.sprintf
 920810-1.c.s.wast # env.malloc
+921110-1.c.s.wast # abort() is declared with the wrong type (returning i32)
 921117-1.c.s.wast # env.strcmp
 930513-1.c.s.wast # env.sprintf
 930622-2.c.s.wast # env.__floatditf
