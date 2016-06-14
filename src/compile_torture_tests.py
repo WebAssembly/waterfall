@@ -32,9 +32,6 @@ CFLAGS_EXTRA = {
              '--sysroot=%s' % INSTALL_DIR],
     # Binaryen's native-wasm method uses the JS engine's native support for
     # wasm rather than interpreting the wasm with wasm.js.
-    # There is also 'wasm-binary'; it uses binaryen's binary format, which
-    # may not match v8's format exactly. So we just generate the wast with
-    # emcc and use sexpr-wasm to generate the binary.
     'binaryen': ['-s', 'BINARYEN=1', '-s', 'BINARYEN_METHOD="native-wasm"'],
 }
 
@@ -44,29 +41,16 @@ def c_compile(infile, outfile, extras):
   return [extras['c'], infile, '-o', outfile] + extras['cflags']
 
 
-def sexpr(infile, outfile, extras):
-  """Create the command line for a sexpr-wasm invocation."""
-  return [extras['sexpr'], infile, '-o', outfile]
-
-
-def mv(infile, outfile, extras):
-  return ['mv', infile, outfile]
-
-
 class Outname:
   """Create the output file's name. A local function passed to testing.execute
   would be simpler, but it fails to pickle when the test driver calls pool.map.
   So we manually package the suffix in a class.
   """
-  def __init__(self, suffix, strip_suffix=None):
+  def __init__(self, suffix):
     self.suffix = suffix
-    self.strip_suffix = strip_suffix
 
   def __call__(self, outdir, infile):
     basename = os.path.basename(infile)
-    if self.strip_suffix:
-      assert basename.endswith(self.strip_suffix)
-      basename = basename[:-len(self.strip_suffix)]
     outname = basename + self.suffix
     return os.path.join(outdir, outname)
 
@@ -94,34 +78,6 @@ def run(c, cxx, testsuite, fails, out, config='wasm'):
       inputs=c_test_files,
       fails=fails)
 
-  if config != 'binaryen':
-    return result
-
-  # Encode Binaryen's wast using sexpr-wasm (this means that v8's binary format
-  # doesn't have to exactly match SM/Binaryen)
-  testing.execute(
-      tester=testing.Tester(
-          command_ctor=sexpr,
-          outname_ctor=Outname('.wasm', strip_suffix='.wast'),
-          outdir=out,
-          extras={'sexpr': os.path.join(
-              os.path.dirname(os.path.dirname(c)), 'sexpr-wasm')}),
-      inputs=[Outname('.wast')(out, f) for f in c_test_files],
-      fails=None)
-
-  # If emcc doesn't generate a foo.wasm binary, it assumes the browser will
-  # consume the wast file and names the globals file accordingly. We manually
-  # encode the wasm file, so rename <test>.wast.mappedGlobals to
-  # <test>.wasm.mappedGlobals so the emscripten JS glue can find it.
-  testing.execute(
-      tester=testing.Tester(
-          command_ctor=mv,
-          outname_ctor=Outname('.wasm.mappedGlobals',
-                               strip_suffix='.wast.mappedGlobals'),
-          outdir=out,
-          extras=None),
-      inputs=[Outname('.wast.mappedGlobals')(out, f) for f in c_test_files],
-      fails=None)
   return result
 
 
