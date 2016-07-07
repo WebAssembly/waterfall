@@ -72,4 +72,10 @@
 	941014-1.c # Function addresses with offsets not supported
         960218-1.c # glob multiply defined in wasm but not asm2wasm
 	pr17377.c # __builtin_return_address
-	pr54937.c # Some kind of problem with taking the address of exit()?
+
+# wasm-validation errors
+        call-trap-1.c # call param number must match
+        pr44942.c # call param number must match
+        921208-2.c # call param number must match
+        920501-1.c # call param number must match
+        20051012-1.c # call param number must match

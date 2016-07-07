@@ -24,6 +24,8 @@ pr47237.c.js
 pr60960.c.js
 va-arg-pack-1.c.js
 
+complex-5.c.js # missing fmaxf, presumably needed by compiler-rt
+
 ## The following work using wasm-clang without emcc
 	20001203-2.c.js # assert fail (works without emcc)
 	20040811-1.c.js # OOB trap
