@@ -606,9 +606,10 @@ def LLVM():
              '-DLLVM_TARGETS_TO_BUILD=X86']
   ccache = Which('ccache')
   if ccache:
-      command.extend(
-          ['-DCMAKE_%s_COMPILER_LAUNCHER=%s' %
-           (c, ccache) for c in ['C', 'CXX']])
+      command.extend(['-DCMAKE_%s_COMPILER_LAUNCHER=%s' %
+                      (c, ccache) for c in ['C', 'CXX']])
+      command.extend(['-DCMAKE_%s_FLAGS=-Qunused-arguments' %
+                      c for c in ['C', 'CXX']])
 
   proc.check_call(command, cwd=LLVM_OUT_DIR)
   proc.check_call(['ninja', '-v'], cwd=LLVM_OUT_DIR)
