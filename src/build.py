@@ -576,26 +576,42 @@ def GetRepoInfo():
   return info
 
 
+def Which(name):
+  """Find an executable on the system by name. If not found return ''."""
+  # If we want to run this on Windows, we'll have to be smarter.
+  try:
+    o = proc.check_output(['which', name])
+    return o.strip()
+  except proc.CalledProcessError:
+    return ''
+
+
 def LLVM():
   buildbot.Step('LLVM')
   Mkdir(LLVM_OUT_DIR)
-  proc.check_call(
-      [PREBUILT_CMAKE_BIN, '-G', 'Ninja', LLVM_SRC_DIR,
-       '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
-       '-DLLVM_BUILD_TESTS=ON',
-       '-DCMAKE_C_COMPILER=' + CC,
-       '-DCMAKE_CXX_COMPILER=' + CXX,
-       '-DCMAKE_BUILD_TYPE=Release',
-       '-DCMAKE_INSTALL_PREFIX=' + INSTALL_DIR,
-       '-DLLVM_INCLUDE_EXAMPLES=OFF',
-       '-DCLANG_INCLUDE_EXAMPLES=OFF',
-       '-DLLVM_BUILD_LLVM_DYLIB=ON',
-       '-DLLVM_LINK_LLVM_DYLIB=ON',
-       '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
-       '-DLLVM_ENABLE_ASSERTIONS=ON',
-       '-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=WebAssembly',
-       '-DLLVM_TARGETS_TO_BUILD=X86'], cwd=LLVM_OUT_DIR)
-  proc.check_call(['ninja'], cwd=LLVM_OUT_DIR)
+  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', LLVM_SRC_DIR,
+             '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
+             '-DLLVM_BUILD_TESTS=ON',
+             '-DCMAKE_C_COMPILER=' + CC,
+             '-DCMAKE_CXX_COMPILER=' + CXX,
+             '-DCMAKE_BUILD_TYPE=Release',
+             '-DCMAKE_INSTALL_PREFIX=' + INSTALL_DIR,
+             '-DLLVM_INCLUDE_EXAMPLES=OFF',
+             '-DCLANG_INCLUDE_EXAMPLES=OFF',
+             '-DLLVM_BUILD_LLVM_DYLIB=ON',
+             '-DLLVM_LINK_LLVM_DYLIB=ON',
+             '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
+             '-DLLVM_ENABLE_ASSERTIONS=ON',
+             '-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=WebAssembly',
+             '-DLLVM_TARGETS_TO_BUILD=X86']
+  ccache = Which('ccache')
+  if ccache:
+      command.extend(
+          ['-DCMAKE_%s_COMPILER_LAUNCHER=%s' %
+           (c, ccache) for c in ['C', 'CXX']])
+
+  proc.check_call(command, cwd=LLVM_OUT_DIR)
+  proc.check_call(['ninja', '-v'], cwd=LLVM_OUT_DIR)
   proc.check_call(['ninja', 'check-all'], cwd=LLVM_OUT_DIR)
   proc.check_call(['ninja', 'install'], cwd=LLVM_OUT_DIR)
   # The following isn't useful for now, and takes up space.
