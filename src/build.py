@@ -1017,12 +1017,12 @@ def main(sync_filter, build_filter, test_filter, options):
         indir=s2wasm_out,
         fails=SEXPR_S2WASM_KNOWN_TORTURE_FAILURES)
     ExecuteLLVMTorture(
-        name='binaryen-shell',
-        runner=os.path.join(INSTALL_BIN, 'binaryen-shell'),
+        name='wasm-shell',
+        runner=os.path.join(INSTALL_BIN, 'wasm-shell'),
         indir=s2wasm_out,
         fails=BINARYEN_SHELL_KNOWN_TORTURE_FAILURES,
         extension='wast',
-        is_flaky=True)  # TODO binaryen-shell is flaky when running tests.
+        is_flaky=True)  # TODO wasm-shell is flaky when running tests.
     ExecuteLLVMTorture(
         name='spec',
         runner=os.path.join(INSTALL_BIN, 'wasm.opt'),
