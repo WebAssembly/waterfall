@@ -40,7 +40,7 @@ def execute(infile, outfile, extras):
   if basename == 'd8':
     config = basename + ('-wasm' if wasmjs else '-asm2wasm')
   commands = {
-      'binaryen-shell': [runner, '--entry=main', infile] + out_opt,
+      'wasm-shell': [runner, '--entry=main', infile] + out_opt,
       'd8-wasm': [runner, '--expose-wasm'] + wasmjs + [
           '--', infile] + extra_files,
       'd8-asm2wasm': [runner, '--expose-wasm', infile],
