@@ -79,3 +79,6 @@
         921208-2.c # call param number must match
         920501-1.c # call param number must match
         20051012-1.c # call param number must match
+
+# Crash (untriaged)
+        vla-dealloc-1.c

@@ -752,8 +752,7 @@ def Emscripten(use_asm=True):
           '-O2', '-s', 'BINARYEN=1', '-s', 'BINARYEN_METHOD="native-wasm"'])
 
   except proc.CalledProcessError:
-    # Don't make it fatal yet.
-    buildbot.Fail(True)
+    buildbot.Fail()
   finally:
     del os.environ['EMCC_DEBUG']
 
@@ -817,7 +816,7 @@ def CompileLLVMTortureBinaryen(name, em_config, outdir, fails):
       config='binaryen')
   Archive('torture-' + em_config, Tar(outdir))
   if 0 != unexpected_result_count:
-    buildbot.Fail(True)
+    buildbot.Fail()
   return outdir
 
 
@@ -855,7 +854,7 @@ def AssembleLLVMTorture(name, assembler, indir, fails):
 
 
 def ExecuteLLVMTorture(name, runner, indir, fails, extension, outdir='',
-                       wasmjs='', extra_files=[], is_flaky=False):
+                       wasmjs='', extra_files=[], warn_only=False):
   buildbot.Step('Execute LLVM Torture with %s' % name)
   if not indir:
     print 'Step skipped: no input'
@@ -871,7 +870,7 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, outdir='',
       wasmjs=wasmjs,
       extra_files=extra_files)
   if 0 != unexpected_result_count:
-      buildbot.Fail(is_flaky)
+      buildbot.Fail(warn_only)
   return outdir
 
 
@@ -1022,7 +1021,7 @@ def main(sync_filter, build_filter, test_filter, options):
         indir=s2wasm_out,
         fails=BINARYEN_SHELL_KNOWN_TORTURE_FAILURES,
         extension='wast',
-        is_flaky=True)  # TODO wasm-shell is flaky when running tests.
+        warn_only=True)  # TODO wasm-shell is flaky when running tests.
     ExecuteLLVMTorture(
         name='spec',
         runner=os.path.join(INSTALL_BIN, 'wasm.opt'),
@@ -1035,6 +1034,7 @@ def main(sync_filter, build_filter, test_filter, options):
         indir=sexpr_wasm_out,
         fails=V8_KNOWN_TORTURE_FAILURES,
         extension='wasm',
+        warn_only=True,
         wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
     ExecuteLLVMTorture(
         name='d8-musl',
@@ -1042,6 +1042,7 @@ def main(sync_filter, build_filter, test_filter, options):
         indir=sexpr_wasm_out,
         fails=V8_MUSL_KNOWN_TORTURE_FAILURES,
         extension='wasm',
+        warn_only=True,
         wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
         extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
 
