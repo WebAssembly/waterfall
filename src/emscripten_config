@@ -5,13 +5,7 @@
 
 import os
 
-# This file is loaded from emscripten/tools/shared.py. There seems to be no
-# reasonable way to get a hermetic relocatable setup, other than some kind of
-# hack like this.
-WASM_INSTALL = os.path.dirname(
-                 os.path.dirname(
-                   os.path.dirname(
-                     os.path.dirname(__file__))))
+WASM_INSTALL = '{{WASM_INSTALL}}'
 
 # this helps projects using emscripten find it
 EMSCRIPTEN_ROOT = os.path.join(WASM_INSTALL, 'bin', 'emscripten') # directory
@@ -61,4 +55,4 @@ COMPILER_ENGINE = V8_ENGINE
 #                 run all the tests due to node issue 1669). v8 is currently not recommended
 #                 here because of v8 issue 1822.
 
-JS_ENGINES = [V8_ENGINE] # add this if you have spidermonkey installed too, SPIDERMONKEY_ENGINE]
+JS_ENGINES = [NODE_JS] # add this if you have spidermonkey installed too, SPIDERMONKEY_ENGINE]
