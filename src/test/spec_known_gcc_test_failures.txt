@@ -27,7 +27,6 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 20030221-1.c.s.wast # env.strlen
 20030715-1.c.s.wast # env.strcmp
 20030914-1.c.s.wast # env.__floatsitf
-20030914-2.c.s.wast # env.memcpy
 20031012-1.c.s.wast # env.memset
 20031204-1.c.s.wast # env.strcpy
 20041126-1.c.s.wast # env.memcpy
