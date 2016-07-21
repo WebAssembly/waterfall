@@ -915,8 +915,8 @@ def Summary(repos):
   info = {'repositories': repos}
   info['build'] = BUILDBOT_BUILDNUMBER
   info['scheduler'] = SCHEDULER
-  info_json = json.dumps(info)
-  print info
+  info_json = json.dumps(info, indent=2)
+  print info_json
   print 'Failed steps: %s.' % buildbot.Failed()
   with open('latest', 'w+') as f:
     f.write(info_json)
@@ -1027,7 +1027,15 @@ def main(sync_filter, build_filter, test_filter, options):
     Mkdir(INSTALL_DIR)
     Mkdir(INSTALL_BIN)
     Mkdir(INSTALL_LIB)
-  BuildRepos(build_filter, test_filter.Check('asm'))
+
+  try:
+    BuildRepos(build_filter, test_filter.Check('asm'))
+  except:
+    # If any exception reaches here, do not attempt to run the tests; just
+    # log the error for buildbot and exit
+    buildbot.Fail()
+    Summary(repos)
+    return 1
 
   if test_filter.Check('bare'):
     CompileLLVMTorture()
