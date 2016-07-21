@@ -82,11 +82,15 @@ MUSL_OUT_DIR = os.path.join(WORK_DIR, 'musl-out')
 TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
 ASM2WASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'asm2wasm-torture-out')
 EMSCRIPTENWASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-torture-out')
+EMSCRIPTEN_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-out')
 
 INSTALL_DIR = os.path.join(WORK_DIR, 'wasm-install')
 INSTALL_BIN = os.path.join(INSTALL_DIR, 'bin')
 INSTALL_LIB = os.path.join(INSTALL_DIR, 'lib')
 INSTALL_SYSROOT = os.path.join(INSTALL_DIR, 'sysroot')
+
+EMSCRIPTEN_CONFIG_ASMJS = os.path.join(INSTALL_DIR, 'emscripten_config')
+EMSCRIPTEN_CONFIG_WASM = os.path.join(INSTALL_DIR, 'emscripten_config_vanilla')
 
 # Avoid flakes: use cached repositories to avoid relying on external network.
 GITHUB_REMOTE = 'github'
@@ -725,7 +729,6 @@ def Emscripten(use_asm=True):
   # Remove cached library builds (e.g. libc, libc++) to force them to be
   # rebuilt in the step below.
   Remove(os.path.expanduser(os.path.join('~', '.emscripten_cache')))
-  em_config = os.path.join(INSTALL_DIR, 'emscripten_config')
   emscripten_dir = os.path.join(INSTALL_DIR, 'bin', 'emscripten')
   Remove(emscripten_dir)
   shutil.copytree(EMSCRIPTEN_SRC_DIR,
@@ -733,9 +736,17 @@ def Emscripten(use_asm=True):
                   symlinks=True,
                   # Ignore the big git blob so it doesn't get archived.
                   ignore=shutil.ignore_patterns('.git'))
-  shutil.copy2(os.path.join(SCRIPT_DIR, 'emscripten_config_vanilla'),
-               em_config + '_vanilla')
-  shutil.copy2(os.path.join(SCRIPT_DIR, 'emscripten_config'), em_config)
+
+  def WriteEmscriptenConfig(infile, outfile):
+    with open(infile) as config:
+      text = config.read().replace('{{WASM_INSTALL}}', INSTALL_DIR)
+    with open(outfile, 'w') as config:
+      config.write(text)
+
+  WriteEmscriptenConfig(os.path.join(SCRIPT_DIR, 'emscripten_config'),
+                        EMSCRIPTEN_CONFIG_ASMJS)
+  WriteEmscriptenConfig(os.path.join(SCRIPT_DIR, 'emscripten_config_vanilla'),
+                        EMSCRIPTEN_CONFIG_WASM)
   try:
     # Build a C++ file with each active emscripten config. This causes system
     # libs to be built and cached (so we don't have that happen when building
@@ -743,7 +754,8 @@ def Emscripten(use_asm=True):
     # This depends on binaryen already being built and installed into the
     # archive/install dir.
     os.environ['EMCC_DEBUG'] = '2'
-    configs = [em_config + '_vanilla'] + ([em_config] if use_asm else [])
+    configs = [EMSCRIPTEN_CONFIG_WASM] + (
+        [EMSCRIPTEN_CONFIG_ASMJS] if use_asm else [])
     for config in configs:
       os.environ['EM_CONFIG'] = config
       proc.check_call([
@@ -872,6 +884,15 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, outdir='',
   if 0 != unexpected_result_count:
       buildbot.Fail(warn_only)
   return outdir
+
+
+def ExecuteEmscriptenTestSuite(name, outdir):
+  Mkdir(EMSCRIPTEN_TEST_OUT_DIR)
+  proc.check_call(
+      [sys.executable,
+       os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'runner.py'), 'binaryen2',
+       '--em-config', EMSCRIPTEN_CONFIG_WASM],
+      cwd=outdir)
 
 
 class Build:
@@ -1073,6 +1094,11 @@ def main(sync_filter, build_filter, test_filter, options):
         fails=EMSCRIPTENWASM_KNOWN_TORTURE_FAILURES,
         extension='c.js',
         outdir=emscripten_wasm_out)
+
+  if test_filter.Check('emtest'):
+    ExecuteEmscriptenTestSuite(
+        'Emscripten test suite (wasm backend)',
+        outdir=EMSCRIPTEN_TEST_OUT_DIR)
 
   # Keep the summary step last: it'll be marked as red if the return code is
   # non-zero. Individual steps are marked as red with buildbot.Fail().
