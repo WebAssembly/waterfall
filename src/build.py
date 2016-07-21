@@ -754,7 +754,8 @@ def Emscripten(use_asm=True):
     # This depends on binaryen already being built and installed into the
     # archive/install dir.
     os.environ['EMCC_DEBUG'] = '2'
-    configs = [EMSCRIPTEN_CONFIG_WASM] + ([EMSCRIPTEN_CONFIG_ASMJS] if use_asm else [])
+    configs = [EMSCRIPTEN_CONFIG_WASM] + (
+        [EMSCRIPTEN_CONFIG_ASMJS] if use_asm else [])
     for config in configs:
       os.environ['EM_CONFIG'] = config
       proc.check_call([
@@ -887,7 +888,6 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, outdir='',
 
 def ExecuteEmscriptenTestSuite(name, outdir):
   Mkdir(EMSCRIPTEN_TEST_OUT_DIR)
-  #os.environ['EM_CONFIG'] = EMSCRIPTEN_CONFIG_WASM
   proc.check_call(
       [sys.executable,
        os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'runner.py'), 'binaryen2',
@@ -1099,7 +1099,6 @@ def main(sync_filter, build_filter, test_filter, options):
     ExecuteEmscriptenTestSuite(
         'Emscripten test suite (wasm backend)',
         outdir=EMSCRIPTEN_TEST_OUT_DIR)
-
 
   # Keep the summary step last: it'll be marked as red if the return code is
   # non-zero. Individual steps are marked as red with buildbot.Fail().
