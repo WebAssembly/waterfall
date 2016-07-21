@@ -887,12 +887,16 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, outdir='',
 
 
 def ExecuteEmscriptenTestSuite(name, outdir):
+  buildbot.Step('Execute emscripten testsuite (emwasm)')
   Mkdir(EMSCRIPTEN_TEST_OUT_DIR)
-  proc.check_call(
-      [sys.executable,
-       os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'runner.py'), 'binaryen2',
-       '--em-config', EMSCRIPTEN_CONFIG_WASM],
-      cwd=outdir)
+  try:
+    proc.check_call(
+        [sys.executable,
+         os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'runner.py'), 'binaryen2',
+         '--em-config', EMSCRIPTEN_CONFIG_WASM],
+        cwd=outdir)
+  except proc.CalledProcessError:
+    buildbot.Fail(True)
 
 
 class Build:
