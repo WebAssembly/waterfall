@@ -764,6 +764,7 @@ def Emscripten(use_asm=True):
           '-O2', '-s', 'BINARYEN=1', '-s', 'BINARYEN_METHOD="native-wasm"'])
 
   except proc.CalledProcessError:
+    # Note the failure but allow the build to continue.
     buildbot.Fail()
   finally:
     del os.environ['EMCC_DEBUG']
@@ -788,6 +789,7 @@ def Musl():
     CopyTree(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32'),
              os.path.join(INSTALL_SYSROOT, 'include'))
   except proc.CalledProcessError:
+    # Note the failure but allow the build to continue.
     buildbot.Fail()
 
 
@@ -892,8 +894,8 @@ def ExecuteEmscriptenTestSuite(name, outdir):
   try:
     proc.check_call(
         [sys.executable,
-         os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'runner.py'), 'binaryen2',
-         '--em-config', EMSCRIPTEN_CONFIG_WASM],
+         os.path.join(INSTALL_BIN, 'emscripten', 'tests', 'runner.py'),
+         'binaryen2', '--em-config', EMSCRIPTEN_CONFIG_WASM],
         cwd=outdir)
   except proc.CalledProcessError:
     buildbot.Fail(True)
