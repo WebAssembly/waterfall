@@ -134,7 +134,6 @@ string-opt-18.c.s.wast # env.mempcpy
 string-opt-5.c.s.wast # env.strlen
 strlen-1.c.s.wast # env.memset
 strncmp-1.c.s.wast # env.strncmp
-struct-cpy-1.c.s.wast # env.memset
 struct-ret-1.c.s.wast # env.sprintf
 va-arg-10.c.s.wast # env.strlen
 va-arg-2.c.s.wast # env.strlen
