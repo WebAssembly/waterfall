@@ -130,7 +130,6 @@ stdarg-2.c.s.wast # env.__floatsitf
 strcmp-1.c.s.wast # env.strcmp
 strcpy-1.c.s.wast # env.memset
 string-opt-17.c.s.wast # env.strcpy
-string-opt-18.c.s.wast # env.mempcpy
 string-opt-5.c.s.wast # env.strlen
 strlen-1.c.s.wast # env.memset
 strncmp-1.c.s.wast # env.strncmp
