@@ -30,8 +30,6 @@ complex-5.c.js # missing fmaxf, presumably needed by compiler-rt
 	20001203-2.c.js # assert fail (works without emcc)
 	20040811-1.c.js # OOB trap
 	20070824-1.c.js # abort() (also works without emcc)
-	arith-rand-ll.c.js # abort() (works without emcc)
-	arith-rand.c.js # abort() (works without emcc)
 	pr23135.c.js # OOB trap (works without emcc)
 	pr43220.c.js # OOB trap (works without emcc)
 	vla-dealloc-1.c.js # OOB trap (works without emcc)
