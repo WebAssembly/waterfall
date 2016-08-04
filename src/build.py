@@ -901,7 +901,7 @@ def ExecuteEmscriptenTestSuite(name, outdir):
   Mkdir(EMSCRIPTEN_TEST_OUT_DIR)
   try:
     proc.check_call(
-        [sys.executable, '-vv',
+        [sys.executable,
          os.path.join(INSTALL_BIN, 'emscripten', 'tests', 'runner.py'),
          'binaryen2', '--em-config', EMSCRIPTEN_CONFIG_WASM],
         cwd=outdir)
