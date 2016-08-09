@@ -989,9 +989,9 @@ def ParseArgs():
       formatter_class=argparse.RawDescriptionHelpFormatter,
       epilog=epilog)
   sync_grp = parser.add_mutually_exclusive_group()
-  sync_grp.add_argument('--no-sync', dest='sync',
-                        default=True, action='store_false',
-                        help='Skip fetching and checking out source repos')
+  sync_grp.add_argument(
+      '--no-sync', dest='sync', default=True, action='store_false',
+      help='Skip fetching and checking out source repos')
   sync_grp.add_argument(
       '--sync-include', dest='sync_include', default='', type=SplitComma,
       help='Include only the comma-separated list of sync targets')
