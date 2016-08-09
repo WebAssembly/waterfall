@@ -611,6 +611,7 @@ def LLVM():
              '-DLLVM_INCLUDE_EXAMPLES=OFF',
              '-DCLANG_INCLUDE_EXAMPLES=OFF',
              '-DCOMPILER_RT_BUILD_XRAY=OFF',
+             '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
              '-DLLVM_BUILD_LLVM_DYLIB=ON',
              '-DLLVM_LINK_LLVM_DYLIB=ON',
              '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
