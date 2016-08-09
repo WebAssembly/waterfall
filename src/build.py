@@ -610,6 +610,7 @@ def LLVM():
              '-DCMAKE_INSTALL_PREFIX=' + INSTALL_DIR,
              '-DLLVM_INCLUDE_EXAMPLES=OFF',
              '-DCLANG_INCLUDE_EXAMPLES=OFF',
+             '-DCOMPILER_RT_BUILD_XRAY=OFF',
              '-DLLVM_BUILD_LLVM_DYLIB=ON',
              '-DLLVM_LINK_LLVM_DYLIB=ON',
              '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
