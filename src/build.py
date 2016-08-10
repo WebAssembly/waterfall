@@ -660,7 +660,7 @@ def V8():
 def Sexpr():
   buildbot.Step('Sexpr')
   Mkdir(SEXPR_OUT_DIR),
-  proc.check_call(['cmake', '-G', 'Ninja', SEXPR_SRC_DIR,
+  proc.check_call([PREBUILT_CMAKE_BIN, '-G', 'Ninja', SEXPR_SRC_DIR,
                    '-DCMAKE_C_COMPILER=%s' % CC,
                    '-DCMAKE_CXX_COMPILER=%s' % CXX,
                    '-DBUILD_TESTS=OFF'],
@@ -697,7 +697,7 @@ def Binaryen():
   buildbot.Step('binaryen')
   Mkdir(BINARYEN_OUT_DIR)
   proc.check_call(
-      ['cmake', '-G', 'Ninja', BINARYEN_SRC_DIR,
+      [PREBUILT_CMAKE_BIN, '-G', 'Ninja', BINARYEN_SRC_DIR,
        '-DCMAKE_C_COMPILER=' + CC,
        '-DCMAKE_CXX_COMPILER=' + CXX],
       cwd=BINARYEN_OUT_DIR)
@@ -718,7 +718,7 @@ def Fastcomp():
   buildbot.Step('fastcomp')
   Mkdir(FASTCOMP_OUT_DIR)
   proc.check_call(
-      ['cmake', '-G', 'Ninja', FASTCOMP_SRC_DIR,
+      [PREBUILT_CMAKE_BIN, '-G', 'Ninja', FASTCOMP_SRC_DIR,
        '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
        '-DCMAKE_C_COMPILER=' + CC,
        '-DCMAKE_CXX_COMPILER=' + CXX,
@@ -991,9 +991,9 @@ def ParseArgs():
       formatter_class=argparse.RawDescriptionHelpFormatter,
       epilog=epilog)
   sync_grp = parser.add_mutually_exclusive_group()
-  sync_grp.add_argument('--no-sync', dest='sync',
-                        default=True, action='store_false',
-                        help='Skip fetching and checking out source repos')
+  sync_grp.add_argument(
+      '--no-sync', dest='sync', default=True, action='store_false',
+      help='Skip fetching and checking out source repos')
   sync_grp.add_argument(
       '--sync-include', dest='sync_include', default='', type=SplitComma,
       help='Include only the comma-separated list of sync targets')
