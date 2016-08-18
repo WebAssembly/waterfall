@@ -478,6 +478,9 @@ ALL_SOURCES = [
            WASM_GIT_BASE + 'binaryen.git'),
     Source('binaryen-0xb', BINARYEN_0xB_SRC_DIR,
            WASM_GIT_BASE + 'binaryen.git',
+           # This is the commit hash for the last 0xb-compatible binaryen
+           # version. This is hardcoded because we shouldn't keep this after
+           # the rest of the toolchain is 0xc-compatible.
            checkout='79029eb346b721eacdaa28326fe8e7b50042611c'),
     Source('musl', MUSL_SRC_DIR,
            WASM_GIT_BASE + 'musl.git',
