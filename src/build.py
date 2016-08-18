@@ -77,7 +77,6 @@ LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out', 'Release')
 SEXPR_OUT_DIR = os.path.join(WORK_DIR, 'sexpr-out')
 BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
-BINARYEN_BIN_DIR = os.path.join(BINARYEN_OUT_DIR, 'bin')
 FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
 MUSL_OUT_DIR = os.path.join(WORK_DIR, 'musl-out')
 TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
@@ -714,9 +713,10 @@ def Binaryen():
        '-DCMAKE_CXX_COMPILER=' + CXX],
       cwd=BINARYEN_OUT_DIR)
   proc.check_call(['ninja'], cwd=BINARYEN_OUT_DIR)
-  assert os.path.isdir(BINARYEN_BIN_DIR), 'Expected %s' % BINARYEN_BIN_DIR
-  for node in os.listdir(BINARYEN_BIN_DIR):
-    f = os.path.join(BINARYEN_BIN_DIR, node)
+  bin_dir = os.path.join(BINARYEN_OUT_DIR, 'bin')
+  assert os.path.isdir(bin_dir), 'Expected %s' % bin_dir
+  for node in os.listdir(bin_dir):
+    f = os.path.join(bin_dir, node)
     if os.path.isfile(f):
       CopyBinaryToArchive(f)
   CopyBinaryToArchive(os.path.join(BINARYEN_SRC_DIR, 'bin', 'wasm.js'))
