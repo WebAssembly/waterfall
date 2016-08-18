@@ -181,12 +181,21 @@ def Chdir(path):
 
 
 def Mkdir(path):
-  if os.path.exists(path):
+  """Create a directory at a specified path.
+
+  Creates all intermediate directories along the way.
+  e.g.: Mkdir('a/b/c') when 'a/' is an empty directory will
+        cause the creation of directories 'a/b/' and 'a/b/c/'.
+
+  If the path already exists (and is already a directory), this does nothing.
+  """
+  try:
+    os.makedirs(path)
+  except OSError as e:
     if not os.path.isdir(path):
       raise Exception('Path %s is not a directory!' % path)
-    print 'Directory %s already exists' % path
-  else:
-    os.mkdir(path)
+    if not e.errno == errno.EEXIST:
+      raise e
 
 
 def Remove(path):
@@ -229,34 +238,17 @@ def CopyTree(src, dst):
       shutil.copy2(os.path.join(root, f), dstfile)
 
 
-def CreateDirectoryAtPath(path):
-  """Create a directory at a specified path.
-
-  Creates all intermediate directories along the way.
-  e.g.: CreateDirectoryAtPath('a/b/c') when 'a/' is an empty directory will
-        cause the creation of directories 'a/b/' and 'a/b/c/'.
-
-  If the path already exists (and is already a directory), this does nothing.
-  """
-  try:
-    os.makedirs(path)
-  except OSError as e:
-    dir_exists = e.errno == errno.EEXIST and os.path.isdir(path)
-    if not dir_exists:
-      raise e
-
-
 def CopyBinaryToArchive(binary):
   """All binaries are archived in the same tar file."""
   print 'Copying binary %s to archive %s' % (binary, INSTALL_BIN)
-  CreateDirectoryAtPath(INSTALL_BIN)
+  Mkdir(INSTALL_BIN)
   shutil.copy2(binary, INSTALL_BIN)
 
 
 def CopyLibraryToArchive(library):
   """All libraries are archived in the same tar file."""
   print 'Copying library %s to archive %s' % (library, INSTALL_LIB)
-  CreateDirectoryAtPath(INSTALL_LIB)
+  Mkdir(INSTALL_LIB)
   shutil.copy2(library, INSTALL_LIB)
 
 
