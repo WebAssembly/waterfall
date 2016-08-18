@@ -15,6 +15,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import errno
 import glob
 import json
 import multiprocessing
@@ -56,6 +57,7 @@ SEXPR_SRC_DIR = os.path.join(WORK_DIR, 'sexpr-wasm-prototype')
 SPEC_SRC_DIR = os.path.join(WORK_DIR, 'spec')
 ML_DIR = os.path.join(SPEC_SRC_DIR, 'ml-proto')
 BINARYEN_SRC_DIR = os.path.join(WORK_DIR, 'binaryen')
+BINARYEN_0xB_SRC_DIR = os.path.join(WORK_DIR, 'binaryen-0xb')
 MUSL_SRC_DIR = os.path.join(WORK_DIR, 'musl')
 
 PREBUILT_CLANG = os.path.join(WORK_DIR, 'chromium-clang')
@@ -76,7 +78,7 @@ LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out', 'Release')
 SEXPR_OUT_DIR = os.path.join(WORK_DIR, 'sexpr-out')
 BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
-BINARYEN_BIN_DIR = os.path.join(BINARYEN_OUT_DIR, 'bin')
+BINARYEN_0xB_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out-0xb')
 FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
 MUSL_OUT_DIR = os.path.join(WORK_DIR, 'musl-out')
 TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
@@ -180,12 +182,21 @@ def Chdir(path):
 
 
 def Mkdir(path):
-  if os.path.exists(path):
+  """Create a directory at a specified path.
+
+  Creates all intermediate directories along the way.
+  e.g.: Mkdir('a/b/c') when 'a/' is an empty directory will
+        cause the creation of directories 'a/b/' and 'a/b/c/'.
+
+  If the path already exists (and is already a directory), this does nothing.
+  """
+  try:
+    os.makedirs(path)
+  except OSError as e:
     if not os.path.isdir(path):
       raise Exception('Path %s is not a directory!' % path)
-    print 'Directory %s already exists' % path
-  else:
-    os.mkdir(path)
+    if not e.errno == errno.EEXIST:
+      raise e
 
 
 def Remove(path):
@@ -228,15 +239,20 @@ def CopyTree(src, dst):
       shutil.copy2(os.path.join(root, f), dstfile)
 
 
-def CopyBinaryToArchive(binary):
+def CopyBinaryToArchive(binary, extra_dir=None):
   """All binaries are archived in the same tar file."""
-  print 'Copying binary %s to archive %s' % (binary, INSTALL_BIN)
-  shutil.copy2(binary, INSTALL_BIN)
+  install_bin = INSTALL_BIN
+  if extra_dir is not None:
+    install_bin = os.path.join(INSTALL_BIN, extra_dir)
+  print 'Copying binary %s to archive %s' % (binary, install_bin)
+  Mkdir(install_bin)
+  shutil.copy2(binary, install_bin)
 
 
 def CopyLibraryToArchive(library):
   """All libraries are archived in the same tar file."""
   print 'Copying library %s to archive %s' % (library, INSTALL_LIB)
+  Mkdir(INSTALL_LIB)
   shutil.copy2(library, INSTALL_LIB)
 
 
@@ -460,6 +476,12 @@ ALL_SOURCES = [
            WASM_GIT_BASE + 'spec.git'),
     Source('binaryen', BINARYEN_SRC_DIR,
            WASM_GIT_BASE + 'binaryen.git'),
+    Source('binaryen-0xb', BINARYEN_0xB_SRC_DIR,
+           WASM_GIT_BASE + 'binaryen.git',
+           # This is the commit hash for the last 0xb-compatible binaryen
+           # version. This is hardcoded because we shouldn't keep this after
+           # the rest of the toolchain is 0xc-compatible.
+           checkout='79029eb346b721eacdaa28326fe8e7b50042611c'),
     Source('musl', MUSL_SRC_DIR,
            WASM_GIT_BASE + 'musl.git',
            checkout='origin/wasm-prototype-1')
@@ -693,25 +715,35 @@ def Spec():
   CopyBinaryToArchive(wasm)
 
 
-def Binaryen():
-  buildbot.Step('binaryen')
-  Mkdir(BINARYEN_OUT_DIR)
+def BinaryenBase(step_name, src_dir, out_dir, archive_dir=None):
+  buildbot.Step(step_name)
+  Mkdir(out_dir)
   proc.check_call(
-      [PREBUILT_CMAKE_BIN, '-G', 'Ninja', BINARYEN_SRC_DIR,
+      [PREBUILT_CMAKE_BIN, '-G', 'Ninja', src_dir,
        '-DCMAKE_C_COMPILER=' + CC,
        '-DCMAKE_CXX_COMPILER=' + CXX],
-      cwd=BINARYEN_OUT_DIR)
-  proc.check_call(['ninja'], cwd=BINARYEN_OUT_DIR)
-  assert os.path.isdir(BINARYEN_BIN_DIR), 'Expected %s' % BINARYEN_BIN_DIR
-  for node in os.listdir(BINARYEN_BIN_DIR):
-    f = os.path.join(BINARYEN_BIN_DIR, node)
+      cwd=out_dir)
+  proc.check_call(['ninja'], cwd=out_dir)
+  bin_dir = os.path.join(out_dir, 'bin')
+  assert os.path.isdir(bin_dir), 'Expected %s' % bin_dir
+  for node in os.listdir(bin_dir):
+    f = os.path.join(bin_dir, node)
     if os.path.isfile(f):
-      CopyBinaryToArchive(f)
-  CopyBinaryToArchive(os.path.join(BINARYEN_SRC_DIR, 'bin', 'wasm.js'))
+      CopyBinaryToArchive(f, archive_dir)
+  CopyBinaryToArchive(os.path.join(src_dir, 'bin', 'wasm.js'), archive_dir)
   Mkdir(os.path.join(INSTALL_DIR, 'src'))
   Mkdir(os.path.join(INSTALL_DIR, 'src', 'js'))
-  shutil.copy2(os.path.join(BINARYEN_SRC_DIR, 'src', 'js', 'wasm.js-post.js'),
+  shutil.copy2(os.path.join(src_dir, 'src', 'js', 'wasm.js-post.js'),
                os.path.join(INSTALL_DIR, 'src', 'js'))
+
+
+def Binaryen():
+  BinaryenBase('binaryen', BINARYEN_SRC_DIR, BINARYEN_OUT_DIR)
+
+
+def Binaryen0xb():
+  BinaryenBase('binaryen-0xb', BINARYEN_0xB_SRC_DIR, BINARYEN_0xB_OUT_DIR,
+               archive_dir='0xb')
 
 
 def Fastcomp():
@@ -787,7 +819,7 @@ def Musl():
     proc.check_call([
         os.path.join(MUSL_SRC_DIR, 'libc.py'),
         '--clang_dir', INSTALL_BIN,
-        '--binaryen_dir', INSTALL_BIN,
+        '--binaryen_dir', os.path.join(INSTALL_BIN, '0xb'),
         '--sexpr_wasm', os.path.join(INSTALL_BIN, 'sexpr-wasm'),
         '--musl', MUSL_SRC_DIR], cwd=MUSL_OUT_DIR)
     for f in ['musl.wast', 'musl.wasm']:
@@ -950,6 +982,7 @@ def AllBuilds(use_asm=False):
       Build('ocaml', OCaml),
       Build('spec', Spec),
       Build('binaryen', Binaryen),
+      Build('binaryen-0xb', Binaryen0xb),
       Build('fastcomp', Fastcomp),
       Build('emscripten', Emscripten, use_asm),
       # Target libs
@@ -1042,9 +1075,10 @@ def main(sync_filter, build_filter, test_filter, options):
 
   try:
     BuildRepos(build_filter, test_filter.Check('asm'))
-  except:
+  except Exception as e:
     # If any exception reaches here, do not attempt to run the tests; just
     # log the error for buildbot and exit
+    print "Exception thrown: {}".format(e)
     buildbot.Fail()
     Summary(repos)
     return 1
@@ -1053,7 +1087,7 @@ def main(sync_filter, build_filter, test_filter, options):
     CompileLLVMTorture()
     s2wasm_out = LinkLLVMTorture(
         name='s2wasm',
-        linker=os.path.join(INSTALL_BIN, 's2wasm'),
+        linker=os.path.join(INSTALL_BIN, '0xb', 's2wasm'),
         fails=S2WASM_KNOWN_TORTURE_FAILURES)
     sexpr_wasm_out = AssembleLLVMTorture(
         name='s2wasm-sexpr-wasm',
