@@ -239,11 +239,14 @@ def CopyTree(src, dst):
       shutil.copy2(os.path.join(root, f), dstfile)
 
 
-def CopyBinaryToArchive(binary):
+def CopyBinaryToArchive(binary, extra_dir=None):
   """All binaries are archived in the same tar file."""
-  print 'Copying binary %s to archive %s' % (binary, INSTALL_BIN)
-  Mkdir(INSTALL_BIN)
-  shutil.copy2(binary, INSTALL_BIN)
+  install_bin = INSTALL_BIN
+  if extra_dir is not None:
+    install_bin = os.path.join(INSTALL_BIN, extra_dir)
+  print 'Copying binary %s to archive %s' % (binary, install_bin)
+  Mkdir(install_bin)
+  shutil.copy2(binary, install_bin)
 
 
 def CopyLibraryToArchive(library):
@@ -724,7 +727,7 @@ def BinaryenBase(step_name, src_dir, out_dir, archive_dir=None):
     f = os.path.join(bin_dir, node)
     if os.path.isfile(f):
       CopyBinaryToArchive(f, archive_dir)
-  CopyBinaryToArchive(os.path.join(src_dir, 'bin', 'wasm.js'))
+  CopyBinaryToArchive(os.path.join(src_dir, 'bin', 'wasm.js'), archive_dir)
   Mkdir(os.path.join(INSTALL_DIR, 'src'))
   Mkdir(os.path.join(INSTALL_DIR, 'src', 'js'))
   shutil.copy2(os.path.join(src_dir, 'src', 'js', 'wasm.js-post.js'),
