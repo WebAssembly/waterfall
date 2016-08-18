@@ -15,6 +15,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import errno
 import glob
 import json
 import multiprocessing
@@ -228,15 +229,34 @@ def CopyTree(src, dst):
       shutil.copy2(os.path.join(root, f), dstfile)
 
 
+def CreateDirectoryAtPath(path):
+  """Create a directory at a specified path.
+
+  Creates all intermediate directories along the way.
+  e.g.: CreateDirectoryAtPath('a/b/c') when 'a/' is an empty directory will
+        cause the creation of directories 'a/b/' and 'a/b/c/'.
+
+  If the path already exists (and is already a directory), this does nothing.
+  """
+  try:
+    os.makedirs(path)
+  except OSError as e:
+    dir_exists = e.errno == errno.EEXIST and os.path.isdir(path)
+    if not dir_exists:
+      raise e
+
+
 def CopyBinaryToArchive(binary):
   """All binaries are archived in the same tar file."""
   print 'Copying binary %s to archive %s' % (binary, INSTALL_BIN)
+  CreateDirectoryAtPath(INSTALL_BIN)
   shutil.copy2(binary, INSTALL_BIN)
 
 
 def CopyLibraryToArchive(library):
   """All libraries are archived in the same tar file."""
   print 'Copying library %s to archive %s' % (library, INSTALL_LIB)
+  CreateDirectoryAtPath(INSTALL_LIB)
   shutil.copy2(library, INSTALL_LIB)
 
 
