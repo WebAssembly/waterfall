@@ -344,6 +344,8 @@ class Source:
     """Clone a git repo if not already cloned, then fetch and checkout."""
     if os.path.isdir(self.src_dir):
       print '%s directory already exists' % self.name
+      proc.check_call(['git', 'remote', 'set-url', 'origin', self.git_repo],
+                      cwd=self.src_dir)
     else:
       clone = ['git', 'clone', self.git_repo, self.src_dir]
       if self.depth:
