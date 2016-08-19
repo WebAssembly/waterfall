@@ -1096,7 +1096,7 @@ def main(sync_filter, build_filter, test_filter, options):
         fails=SEXPR_S2WASM_KNOWN_TORTURE_FAILURES)
     ExecuteLLVMTorture(
         name='wasm-shell',
-        runner=os.path.join(INSTALL_BIN, 'wasm-shell'),
+        runner=os.path.join(INSTALL_BIN, '0xb', 'wasm-shell'),
         indir=s2wasm_out,
         fails=BINARYEN_SHELL_KNOWN_TORTURE_FAILURES,
         extension='wast',
