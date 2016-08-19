@@ -913,7 +913,9 @@ def AssembleLLVMTorture(name, assembler, indir, fails):
 
 
 def ExecuteLLVMTorture(name, runner, indir, fails, extension, outdir='',
-                       wasmjs='', extra_files=[], warn_only=False):
+                       wasmjs='', extra_files=None, warn_only=False):
+  extra_files = [] if extra_files is None else extra_files
+
   buildbot.Step('Execute LLVM Torture with %s' % name)
   if not indir:
     print 'Step skipped: no input'
