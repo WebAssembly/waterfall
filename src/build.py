@@ -332,6 +332,17 @@ def RemoteBranch(branch):
   return WATERFALL_REMOTE + '/' + branch
 
 
+def GitUpdateRemote(src_dir, git_repo, remote_name):
+  try:
+    proc.check_call(['git', 'remote', 'set-url', remote_name, git_repo],
+                    cwd=src_dir)
+  except proc.CalledProcessError:
+    # If proc.check_call fails it throws an exception. 'git remote set-url'
+    # fails when the remote doesn't exist, so we should try to add it.
+    proc.check_call(['git', 'remote', 'add', remote_name, git_repo],
+                    cwd=src_dir)
+
+
 class Source:
   """Metadata about a sync-able source repo on the waterfall"""
   def __init__(self, name, src_dir, git_repo,
@@ -361,7 +372,7 @@ class Source:
         clone.append(str(self.depth))
       proc.check_call(clone)
 
-    self.GitUpdateRemote(WATERFALL_REMOTE)
+    GitUpdateRemote(self.src_dir, self.git_repo, WATERFALL_REMOTE)
     proc.check_call(['git', 'fetch', WATERFALL_REMOTE], cwd=self.src_dir)
     if not self.checkout.startswith(WATERFALL_REMOTE + '/'):
       sys.stderr.write(('WARNING: `git checkout %s` not based on waterfall '
@@ -369,16 +380,6 @@ class Source:
                         % (self.checkout, WATERFALL_REMOTE)))
     proc.check_call(['git', 'checkout', self.checkout], cwd=self.src_dir)
     AddGithubRemote(self.src_dir)
-
-  def GitUpdateRemote(self, remote_name):
-    try:
-      proc.check_call(['git', 'remote', 'set-url', remote_name, self.git_repo],
-                      cwd=self.src_dir)
-    except proc.CalledProcessError:
-      # If proc.check_call fails it throws an exception. 'git remote set-url'
-      # fails when the remote doesn't exist, so we should try to add it.
-      proc.check_call(['git', 'remote', 'add', remote_name, self.git_repo],
-                      cwd=self.src_dir)
 
   def CurrentGitInfo(self):
     if not self.src_dir:
@@ -388,9 +389,13 @@ class Source:
       return proc.check_output(
           ['git', 'log', '-n1', '--pretty=format:%s' % fmt],
           cwd=self.src_dir).strip()
-    remote_name = 'remote.%s.url' % WATERFALL_REMOTE
-    remote = proc.check_output(['git', 'config', '--get', remote_name],
-                               cwd=self.src_dir).strip()
+    try:
+      remote = GitRemoteUrl(self.src_dir, WATERFALL_REMOTE)
+    except proc.CalledProcessError:
+      # Not all checkouts have the '_waterfall' remote (e.g. the waterfall
+      # itself) so fall back to origin on failure
+      remote = GitRemoteUrl(self.src_dir, 'origin')
+
     return {
         'hash': pretty('%H'),
         'name': pretty('%aN'),
@@ -411,7 +416,9 @@ def ChromiumFetchSync(name, work_dir, git_repo,
     Mkdir(parent)
     proc.check_call(['gclient', 'config', git_repo], cwd=parent)
     proc.check_call(['git', 'clone', git_repo], cwd=parent)
-  proc.check_call(['git', 'fetch'], cwd=work_dir)
+
+  GitUpdateRemote(work_dir, git_repo, WATERFALL_REMOTE)
+  proc.check_call(['git', 'fetch', WATERFALL_REMOTE], cwd=work_dir)
   proc.check_call(['git', 'checkout', checkout], cwd=work_dir)
   proc.check_call(['gclient', 'sync'], cwd=work_dir)
   return (name, work_dir)
