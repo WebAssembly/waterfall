@@ -104,6 +104,10 @@ LLVM_GITHUB_MIRROR_BASE = GITHUB_MIRROR_BASE + 'llvm-mirror/'
 WASM_GIT_BASE = GITHUB_MIRROR_BASE + 'WebAssembly/'
 EMSCRIPTEN_GIT_BASE = GITHUB_MIRROR_BASE + 'kripken/'
 
+# Name of remote for build script to use. Don't touch origin to avoid
+# clobbering any local development.
+WATERFALL_REMOTE = '_waterfall'
+
 # Sync OCaml from a cached tar file because the upstream repository is only
 # http. The file untars into a directory of the same name as the tar file.
 OCAML_STORAGE_BASE = 'https://wasm.storage.googleapis.com/'
@@ -299,15 +303,15 @@ def HasRemote(cwd, remote):
 def AddGithubRemote(cwd):
   """When using the cloned repository for development, it's useful to have a
   remote to github because origin points at a cache which is read-only."""
-  origin_url = GitRemoteUrl(cwd, 'origin')
-  if WASM_GIT_BASE not in origin_url:
+  remote_url = GitRemoteUrl(cwd, WATERFALL_REMOTE)
+  if WASM_GIT_BASE not in remote_url:
     print '%s not a github mirror' % cwd
     return
   if HasRemote(cwd, GITHUB_REMOTE):
     print '%s has %s as its "%s" remote' % (
         cwd, GitRemoteUrl(cwd, GITHUB_REMOTE), GITHUB_REMOTE)
     return
-  remote = GITHUB_SSH + '/'.join(GitRemoteUrl(cwd, 'origin').split('/')[-2:])
+  remote = GITHUB_SSH + '/'.join(remote_url.split('/')[-2:])
   print '%s has no github remote, adding %s' % (cwd, remote)
   proc.check_call(['git', 'remote', 'add', GITHUB_REMOTE, remote],
                   cwd=cwd)
@@ -323,10 +327,16 @@ def GitConfigRebaseMaster(cwd):
       ['git', 'config', 'branch.master.rebase', 'true'], cwd=cwd)
 
 
+def RemoteBranch(branch):
+  """Get the remote-qualified branch name to use for waterfall"""
+  return WATERFALL_REMOTE + '/' + branch
+
+
 class Source:
   """Metadata about a sync-able source repo on the waterfall"""
-  def __init__(self, name, src_dir, git_repo, checkout='origin/master',
-               depth=None, custom_sync=None):
+  def __init__(self, name, src_dir, git_repo,
+               checkout=RemoteBranch('master'), depth=None,
+               custom_sync=None):
     self.name = name
     self.src_dir = src_dir
     self.git_repo = git_repo
@@ -344,20 +354,31 @@ class Source:
     """Clone a git repo if not already cloned, then fetch and checkout."""
     if os.path.isdir(self.src_dir):
       print '%s directory already exists' % self.name
-      proc.check_call(['git', 'remote', 'set-url', 'origin', self.git_repo],
-                      cwd=self.src_dir)
     else:
       clone = ['git', 'clone', self.git_repo, self.src_dir]
       if self.depth:
         clone.append('--depth')
         clone.append(str(self.depth))
       proc.check_call(clone)
-    proc.check_call(['git', 'fetch'], cwd=self.src_dir)
-    if not self.checkout.startswith('origin/'):
-      sys.stderr.write(('WARNING: `git checkout %s` not based on origin, '
-                        'checking out local branch' % self.checkout))
+
+    self.GitUpdateRemote(WATERFALL_REMOTE)
+    proc.check_call(['git', 'fetch', WATERFALL_REMOTE], cwd=self.src_dir)
+    if not self.checkout.startswith(WATERFALL_REMOTE + '/'):
+      sys.stderr.write(('WARNING: `git checkout %s` not based on waterfall '
+                        'remote (%s), checking out local branch'
+                        % (self.checkout, WATERFALL_REMOTE)))
     proc.check_call(['git', 'checkout', self.checkout], cwd=self.src_dir)
     AddGithubRemote(self.src_dir)
+
+  def GitUpdateRemote(self, remote_name):
+    try:
+      proc.check_call(['git', 'remote', 'set-url', remote_name, self.git_repo],
+                      cwd=self.src_dir)
+    except proc.CalledProcessError:
+      # If proc.check_call fails it throws an exception. 'git remote set-url'
+      # fails when the remote doesn't exist, so we should try to add it.
+      proc.check_call(['git', 'remote', 'add', remote_name, self.git_repo],
+                      cwd=self.src_dir)
 
   def CurrentGitInfo(self):
     if not self.src_dir:
@@ -367,7 +388,8 @@ class Source:
       return proc.check_output(
           ['git', 'log', '-n1', '--pretty=format:%s' % fmt],
           cwd=self.src_dir).strip()
-    remote = proc.check_output(['git', 'config', '--get', 'remote.origin.url'],
+    remote_name = 'remote.%s.url' % WATERFALL_REMOTE
+    remote = proc.check_output(['git', 'config', '--get', remote_name],
                                cwd=self.src_dir).strip()
     return {
         'hash': pretty('%H'),
@@ -378,7 +400,8 @@ class Source:
     }
 
 
-def ChromiumFetchSync(name, work_dir, git_repo, checkout='origin/master'):
+def ChromiumFetchSync(name, work_dir, git_repo,
+                      checkout=RemoteBranch('master')):
   """Some Chromium projects want to use gclient for clone and dependencies."""
   if os.path.isdir(work_dir):
     print '%s directory already exists' % name
@@ -454,14 +477,14 @@ ALL_SOURCES = [
     #        LLVM_MIRROR_BASE + 'test-suite'),
     Source('emscripten', EMSCRIPTEN_SRC_DIR,
            EMSCRIPTEN_GIT_BASE + 'emscripten',
-           checkout='origin/incoming'),
+           checkout=RemoteBranch('incoming')),
     Source('fastcomp', FASTCOMP_SRC_DIR,
            EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp',
-           checkout='origin/incoming'),
+           checkout=RemoteBranch('incoming')),
     Source('fastcomp-clang',
            os.path.join(FASTCOMP_SRC_DIR, 'tools', 'clang'),
            EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp-clang',
-           checkout='origin/incoming'),
+           checkout=RemoteBranch('incoming')),
     Source('gcc', GCC_SRC_DIR,
            GIT_MIRROR_BASE + 'chromiumos/third_party/gcc',
            checkout=GCC_REVISION, depth=GCC_CLONE_DEPTH),
@@ -487,7 +510,7 @@ ALL_SOURCES = [
            checkout='79029eb346b721eacdaa28326fe8e7b50042611c'),
     Source('musl', MUSL_SRC_DIR,
            WASM_GIT_BASE + 'musl.git',
-           checkout='origin/wasm-prototype-1')
+           checkout=RemoteBranch('wasm-prototype-1'))
 ]
 
 
@@ -498,7 +521,7 @@ def CurrentSvnRev(path):
 
 def FindPriorSvnRev(path, goal):
   revs = proc.check_output(
-      ['git', 'rev-list', 'origin/master'], cwd=path).splitlines()
+      ['git', 'rev-list', RemoteBranch('master')], cwd=path).splitlines()
   for rev in revs:
     num = proc.check_output(
         ['git', 'svn', 'find-rev', rev], cwd=path).strip()
@@ -518,8 +541,12 @@ def SyncToSameSvnRev(primary, secondary):
 
 
 def SyncLLVMClang():
-  llvm_rev = BUILDBOT_REVISION if SCHEDULER == 'llvm' else 'origin/master'
-  clang_rev = BUILDBOT_REVISION if SCHEDULER == 'clang' else 'origin/master'
+  llvm_rev = (BUILDBOT_REVISION
+              if SCHEDULER == 'llvm'
+              else RemoteBranch('master'))
+  clang_rev = (BUILDBOT_REVISION
+               if SCHEDULER == 'clang'
+               else RemoteBranch('master'))
   proc.check_call(['git', 'checkout', llvm_rev], cwd=LLVM_SRC_DIR)
   proc.check_call(['git', 'checkout', clang_rev], cwd=CLANG_SRC_DIR)
   # If LLVM didn't trigger the new build then sync LLVM to the corresponding
