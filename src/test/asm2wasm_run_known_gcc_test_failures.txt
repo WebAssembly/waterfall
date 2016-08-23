@@ -39,3 +39,4 @@ simd-4.c.js
 simd-5.c.js
 simd-6.c.js
 va-arg-pack-1.c.js
+nestfunc-4.c.js
