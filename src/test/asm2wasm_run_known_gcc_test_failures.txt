@@ -1,5 +1,5 @@
 # Expected failures from running torture tests from emcc/binaryen with asm2wasm
-# and native Wasm support in v8
+# and binaryen interpret-binary mode
 
 20010122-1.c.js
 20030222-1.c.js
