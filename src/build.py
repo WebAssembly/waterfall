@@ -1001,6 +1001,9 @@ def Summary(repos):
   info_json = json.dumps(info, indent=2)
   print info_json
   print 'Failed steps: %s.' % buildbot.Failed()
+  for step in buildbot.FailedList():
+    print '    %s' % step
+
   with open('latest', 'w+') as f:
     f.write(info_json)
   buildbot.Link('latest', cloud.Upload('latest', 'git/latest'))
