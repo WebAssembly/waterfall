@@ -1,5 +1,5 @@
 # Expected failures from running torture tests from emcc/binaryen with wasm backend
-# and native Wasm support in v8
+# and binaryen interpret-binary mode
 
 # Untriaged.
 20010122-1.c.js
@@ -57,4 +57,3 @@ complex-5.c.js # missing fmaxf, presumably needed by compiler-rt
 	va-arg-22.c.js # abort() (fails without emcc)
 	va-arg-6.c.js # abort() (missing __eqtf2)
 	stdarg-3.c.js # abort() (fails without emcc)
-	pr56982.c.js # missing setjmp (wasm.js check did not catch)
