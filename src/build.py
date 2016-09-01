@@ -466,6 +466,10 @@ def SyncPrebuiltCMake(name, src_dir, git_repo):
       print 'Error downloading %s: %s' % (url, e)
       raise
 
+  # Add prebuilt cmake to PATH so any subprocesses use a consistent cmake.
+  os.environ['PATH'] = (os.path.join(PREBUILT_CMAKE_DIR, 'bin') +
+                        ':' + os.environ['PATH'])
+
 
 def NoSync(*args):
   pass
