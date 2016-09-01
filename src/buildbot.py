@@ -17,12 +17,15 @@
 import sys
 
 
-failed_steps = 0
+failed_steps = []
+current_step = None
 
 
 # Magic annotations:
 # https://chromium.googlesource.com/chromium/tools/build/+/master/scripts/common/annotator.py
 def Step(name):
+  global current_step
+  current_step = name
   sys.stdout.flush()
   sys.stdout.write('\n@@@BUILD_STEP %s@@@\n' % name)
 
@@ -39,8 +42,12 @@ def Fail(warn_only=False):
     return
   sys.stdout.write('\n@@@STEP_FAILURE@@@\n')
   global failed_steps
-  failed_steps += 1
+  failed_steps.append(current_step)
 
 
 def Failed():
-  return failed_steps
+  return len(failed_steps)
+
+
+def FailedList():
+  return list(failed_steps)
