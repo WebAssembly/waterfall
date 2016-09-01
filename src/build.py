@@ -466,10 +466,6 @@ def SyncPrebuiltCMake(name, src_dir, git_repo):
       print 'Error downloading %s: %s' % (url, e)
       raise
 
-  # Add prebuilt cmake to PATH so any subprocesses use a consistent cmake.
-  os.environ['PATH'] = (os.path.join(PREBUILT_CMAKE_DIR, 'bin') +
-                        ':' + os.environ['PATH'])
-
 
 def NoSync(*args):
   pass
@@ -1115,6 +1111,10 @@ def main(sync_filter, build_filter, test_filter, options):
     Mkdir(INSTALL_DIR)
     Mkdir(INSTALL_BIN)
     Mkdir(INSTALL_LIB)
+
+  # Add prebuilt cmake to PATH so any subprocesses use a consistent cmake.
+  os.environ['PATH'] = (os.path.join(PREBUILT_CMAKE_DIR, 'bin') +
+                        os.pathsep + os.environ['PATH'])
 
   try:
     BuildRepos(build_filter, test_filter.Check('asm'))
