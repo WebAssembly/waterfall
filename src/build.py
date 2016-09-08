@@ -1230,6 +1230,9 @@ def main(sync_filter, build_filter, test_filter, options):
 
 
 if __name__ == '__main__':
+  import time
+  start = time.time()
+
   options = ParseArgs()
   sync_include = options.sync_include if options.sync else []
   sync_filter = Filter(sync_include, options.sync_exclude)
@@ -1237,4 +1240,7 @@ if __name__ == '__main__':
   build_filter = Filter(build_include, options.build_exclude)
   test_include = options.test_include if options.test else []
   test_filter = Filter(test_include, options.test_exclude)
-  sys.exit(main(sync_filter, build_filter, test_filter, options))
+  ret = main(sync_filter, build_filter, test_filter, options)
+
+  print 'Completed in {}s'.format(time.time() - start)
+  sys.exit(ret)
