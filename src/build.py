@@ -355,7 +355,9 @@ class Source:
     self.depth = depth
     self.custom_sync = custom_sync
 
-  def Sync(self):
+  def Sync(self, good_hashes=None):
+    if good_hashes and good_hashes.get(self.name):
+      self.checkout = good_hashes[self.name]
     if self.custom_sync:
       self.custom_sync(self.name, self.src_dir, self.git_repo)
     else:
@@ -547,15 +549,17 @@ def SyncToSameSvnRev(primary, secondary):
     proc.check_call(['git', 'checkout', prior_rev], cwd=secondary)
 
 
-def SyncLLVMClang():
-  llvm_rev = (BUILDBOT_REVISION
-              if SCHEDULER == 'llvm'
-              else RemoteBranch('master'))
-  clang_rev = (BUILDBOT_REVISION
-               if SCHEDULER == 'clang'
-               else RemoteBranch('master'))
-  proc.check_call(['git', 'checkout', llvm_rev], cwd=LLVM_SRC_DIR)
-  proc.check_call(['git', 'checkout', clang_rev], cwd=CLANG_SRC_DIR)
+def SyncLLVMClang(good_hashes=None):
+  def get_rev(rev_name):
+    if good_hashes and good_hashes.get(rev_name):
+      return good_hashes[rev_name]
+    elif SCHEDULER == rev_name:
+      return BUILDBOT_REVISION
+    else:
+      return RemoteBranch('master')
+
+  proc.check_call(['git', 'checkout', get_rev('llvm')], cwd=LLVM_SRC_DIR)
+  proc.check_call(['git', 'checkout', get_rev('clang')], cwd=CLANG_SRC_DIR)
   # If LLVM didn't trigger the new build then sync LLVM to the corresponding
   # clang revision, even if clang may not have triggered the build: usually
   # LLVM provides APIs which clang uses, which means that most synchronized
@@ -625,15 +629,25 @@ class Filter:
     return self.include is None and not self.exclude
 
 
-def SyncRepos(filter=None):
+def SyncRepos(filter=None, sync_lkgr=False):
   buildbot.Step('Sync Repos')
+
+  good_hashes = None
+  if options.sync_lkgr:
+    lkgr_file = 'work/lkgr'
+    cloud.Download('git/lkgr', lkgr_file)
+    lkgr = json.loads(open(lkgr_file).read())
+    good_hashes = {}
+    for k, v in lkgr['repositories'].iteritems():
+      good_hashes[k] = v.get('hash') if v else None
+
   if not filter:
     filter = Filter()
   for repo in filter.Apply(ALL_SOURCES):
-    repo.Sync()
+    repo.Sync(good_hashes)
   # Special cases
   if filter.Check('clang'):
-    SyncLLVMClang()
+    SyncLLVMClang(good_hashes)
   if filter.Check('ocaml'):
     SyncOCaml()
 
@@ -1076,6 +1090,11 @@ def ParseArgs():
       '--sync-exclude', dest='sync_exclude', default='', type=SplitComma,
       help='Include only the comma-separated list of sync targets')
 
+  parser.add_argument(
+      '--sync-lkgr', dest='sync_lkgr', default=False, action='store_true',
+      help='When syncing, only sync up to the Last Known Good Revision '
+           'for each sync target')
+
   build_grp = parser.add_mutually_exclusive_group()
   build_grp.add_argument(
       '--no-build', dest='build', default=True, action='store_false',
@@ -1105,7 +1124,7 @@ def main(sync_filter, build_filter, test_filter, options):
   Clobber()
   Chdir(SCRIPT_DIR)
   Mkdir(WORK_DIR)
-  SyncRepos(sync_filter)
+  SyncRepos(sync_filter, options.sync_lkgr)
   repos = None
   if sync_filter.Check(''):
     repos = GetRepoInfo()

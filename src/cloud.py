@@ -43,3 +43,9 @@ def Copy(copy_from, copy_to):
       ['gsutil.py', 'cp', '-a', 'public-read',
        'gs://' + copy_from, 'gs://' + copy_to])
   return CLOUD_STORAGE_BASE_URL + copy_to
+
+
+def Download(remote, local):
+  remote = CLOUD_STORAGE_PATH + remote
+  proc.check_call(
+      ['gsutil.py', 'cp', 'gs://' + remote, local])
