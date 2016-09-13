@@ -75,7 +75,7 @@ PREBUILT_CMAKE_URL = ('https://commondatastorage.googleapis.com/' +
 PREBUILT_CMAKE_BIN = os.path.join(PREBUILT_CMAKE_DIR, 'bin', 'cmake')
 
 LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
-V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out', 'Release')
+V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out.gn', 'x64.release')
 SEXPR_OUT_DIR = os.path.join(WORK_DIR, 'sexpr-out')
 BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
 BINARYEN_0xB_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out-0xb')
@@ -720,6 +720,10 @@ def LLVM():
 
 def V8():
   buildbot.Step('V8')
+  proc.check_call([sys.executable,
+                   os.path.join(V8_SRC_DIR, 'tools', 'dev', 'v8gen.py'),
+                   'x64.release'],
+                  cwd=V8_SRC_DIR)
   proc.check_call(['ninja', '-C', V8_OUT_DIR, 'd8', 'unittests'],
                   cwd=V8_SRC_DIR)
   proc.check_call(['tools/run-tests.py', 'unittests', '--no-presubmit',
