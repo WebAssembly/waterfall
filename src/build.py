@@ -24,6 +24,7 @@ import shutil
 import sys
 import tarfile
 import tempfile
+import traceback
 import urllib2
 
 import assemble_files
@@ -633,7 +634,7 @@ def SyncRepos(filter=None, sync_lkgr=False):
   buildbot.Step('Sync Repos')
 
   good_hashes = None
-  if options.sync_lkgr:
+  if sync_lkgr:
     lkgr_file = 'work/lkgr'
     cloud.Download('git/lkgr', lkgr_file)
     lkgr = json.loads(open(lkgr_file).read())
@@ -1122,7 +1123,7 @@ def ParseArgs():
   return parser.parse_args()
 
 
-def main(sync_filter, build_filter, test_filter, options):
+def run(sync_filter, build_filter, test_filter, options):
   Clobber()
   Chdir(SCRIPT_DIR)
   Mkdir(WORK_DIR)
@@ -1231,10 +1232,9 @@ def main(sync_filter, build_filter, test_filter, options):
   return buildbot.Failed()
 
 
-if __name__ == '__main__':
+def main():
   import time
   start = time.time()
-
   options = ParseArgs()
   sync_include = options.sync_include if options.sync else []
   sync_filter = Filter(sync_include, options.sync_exclude)
@@ -1242,7 +1242,21 @@ if __name__ == '__main__':
   build_filter = Filter(build_include, options.build_exclude)
   test_include = options.test_include if options.test else []
   test_filter = Filter(test_include, options.test_exclude)
-  ret = main(sync_filter, build_filter, test_filter, options)
 
-  print 'Completed in {}s'.format(time.time() - start)
-  sys.exit(ret)
+  try:
+    ret = run(sync_filter, build_filter, test_filter, options)
+    print 'Completed in {}s'.format(time.time() - start)
+    return ret
+  except:
+    traceback.print_exc()
+    # If an except is raised during one of the steps we still need to
+    # print the @@@STEP_FAILURE@@@ annotation otherwise the annotator
+    # makes the failed stap as green:
+    # TODO(sbc): Remove this if the annotator is fixed: http://crbug.com/647357
+    if buildbot.current_step:
+      buildbot.Fail()
+    return 1
+
+
+if __name__ == '__main__':
+  sys.exit(main())
