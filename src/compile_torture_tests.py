@@ -102,5 +102,9 @@ def getargs():
 
 if __name__ == '__main__':
   args = getargs()
-  sys.exit(run(args.c, args.cxx, args.testsuite,
-               args.sysroot, args.fails, args.out))
+  sys.exit(run(c=args.c,
+               cxx=args.cxx,
+               testsuite=args.testsuite,
+               sysroot_dir=args.sysroot,
+               fails=args.fails,
+               out=args.out))
