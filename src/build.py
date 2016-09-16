@@ -913,8 +913,8 @@ def CompileLLVMTorture():
   Remove(TORTURE_S_OUT_DIR)
   Mkdir(TORTURE_S_OUT_DIR)
   unexpected_result_count = compile_torture_tests.run(
-      script_dir=SCRIPT_DIR,
       c=c, cxx=cxx, testsuite=GCC_TEST_DIR,
+      sysroot_dir=INSTALL_SYSROOT,
       fails=LLVM_KNOWN_TORTURE_FAILURES,
       out=TORTURE_S_OUT_DIR)
   Archive('torture-c', Tar(GCC_TEST_DIR))
@@ -931,8 +931,8 @@ def CompileLLVMTortureBinaryen(name, em_config, outdir, fails):
   Remove(outdir)
   Mkdir(outdir)
   unexpected_result_count = compile_torture_tests.run(
-      script_dir=SCRIPT_DIR,
       c=c, cxx=cxx, testsuite=GCC_TEST_DIR,
+      sysroot_dir=INSTALL_SYSROOT,
       fails=fails,
       out=outdir,
       config='binaryen-interpret')

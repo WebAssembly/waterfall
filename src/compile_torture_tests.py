@@ -41,10 +41,8 @@ class Outname:
     return os.path.join(outdir, outname)
 
 
-def run(script_dir, c, cxx, testsuite, fails, out, config='wasm'):
+def run(c, cxx, testsuite, sysroot_dir, fails, out, config='wasm'):
   """Compile all torture tests."""
-  sysroot_dir = os.path.join(script_dir,
-                             'work', 'wasm-install', 'sysroot')
   cflags_common = ['--std=gnu89', '-DSTACK_SIZE=1044480',
                    '-w', '-Wno-implicit-function-declaration']
   cflags_extra = {
@@ -93,6 +91,8 @@ def getargs():
                       help='C++ compiler path')
   parser.add_argument('--testsuite', type=str, required=True,
                       help='GCC testsuite tests path')
+  parser.add_argument('--sysroot', type=str, required=True,
+                      help='Sysroot directory')
   parser.add_argument('--fails', type=str, required=True,
                       help='Expected failures')
   parser.add_argument('--out', type=str, required=True,
@@ -102,6 +102,5 @@ def getargs():
 
 if __name__ == '__main__':
   args = getargs()
-  script_dir = os.path.dirname(os.path.abspath(__file__))
-  sys.exit(run(script_dir, args.c, args.cxx,
-               args.testsuite, args.fails, args.out))
+  sys.exit(run(args.c, args.cxx, args.testsuite,
+               args.sysroot, args.fails, args.out))
