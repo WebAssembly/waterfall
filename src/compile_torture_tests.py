@@ -21,24 +21,6 @@ import sys
 
 import testing
 
-# TODO: Pass this in from build.py
-INSTALL_DIR = os.path.join(os.getcwd(),
-                           'src', 'work', 'wasm-install', 'sysroot')
-
-CFLAGS_COMMON = ['--std=gnu89', '-DSTACK_SIZE=1044480',
-                 '-w', '-Wno-implicit-function-declaration']
-CFLAGS_EXTRA = {
-    'wasm': ['--target=wasm32-unknown-unknown', '-S', '-O2',
-             '--sysroot=%s' % INSTALL_DIR],
-    # Binaryen's native-wasm method uses the JS engine's native support for
-    # wasm rather than interpreting the wasm with wasm.js.
-    'binaryen-native': ['-s', 'BINARYEN=1', '-s',
-                        'BINARYEN_METHOD="native-wasm"'],
-    # The interpret-binary method runs the wasm in an asmjs-compiled wasm-shell
-    'binaryen-interpret': ['-s', 'BINARYEN=1', '-s',
-                           'BINARYEN_METHOD="interpret-binary"'],
-}
-
 
 def c_compile(infile, outfile, extras):
   """Create the command-line for a C compiler invocation."""
@@ -59,8 +41,23 @@ class Outname:
     return os.path.join(outdir, outname)
 
 
-def run(c, cxx, testsuite, fails, out, config='wasm'):
+def run(c, cxx, testsuite, sysroot_dir, fails, out, config='wasm'):
   """Compile all torture tests."""
+  cflags_common = ['--std=gnu89', '-DSTACK_SIZE=1044480',
+                   '-w', '-Wno-implicit-function-declaration']
+  cflags_extra = {
+      'wasm': ['--target=wasm32-unknown-unknown', '-S', '-O2',
+               '--sysroot=%s' % sysroot_dir],
+      # Binaryen's native-wasm method uses the JS engine's native support for
+      # wasm rather than interpreting the wasm with wasm.js.
+      'binaryen-native': ['-s', 'BINARYEN=1', '-s',
+                          'BINARYEN_METHOD="native-wasm"'],
+      # The interpret-binary method runs the wasm in an asmjs-compiled
+      # wasm-shell
+      'binaryen-interpret': ['-s', 'BINARYEN=1', '-s',
+                             'BINARYEN_METHOD="interpret-binary"'],
+  }
+
   assert os.path.isfile(c), 'Cannot find C compiler at %s' % c
   assert os.path.isfile(cxx), 'Cannot find C++ compiler at %s' % cxx
   assert os.path.isdir(testsuite), 'Cannot find testsuite at %s' % testsuite
@@ -70,7 +67,7 @@ def run(c, cxx, testsuite, fails, out, config='wasm'):
                                     c_torture)
   assert os.path.isdir(out), 'Cannot find outdir %s' % out
   c_test_files = glob.glob(os.path.join(c_torture, '*c'))
-  cflags = CFLAGS_COMMON + CFLAGS_EXTRA[config]
+  cflags = cflags_common + cflags_extra[config]
   suffix = '.s' if config == 'wasm' else '.js'
 
   result = testing.execute(
@@ -94,6 +91,8 @@ def getargs():
                       help='C++ compiler path')
   parser.add_argument('--testsuite', type=str, required=True,
                       help='GCC testsuite tests path')
+  parser.add_argument('--sysroot', type=str, required=True,
+                      help='Sysroot directory')
   parser.add_argument('--fails', type=str, required=True,
                       help='Expected failures')
   parser.add_argument('--out', type=str, required=True,
@@ -103,4 +102,9 @@ def getargs():
 
 if __name__ == '__main__':
   args = getargs()
-  sys.exit(run(args.c, args.cxx, args.testsuite, args.fails, args.out))
+  sys.exit(run(c=args.c,
+               cxx=args.cxx,
+               testsuite=args.testsuite,
+               sysroot_dir=args.sysroot,
+               fails=args.fails,
+               out=args.out))
