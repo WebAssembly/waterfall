@@ -691,17 +691,27 @@ def LLVM():
              '-DLLVM_ENABLE_ASSERTIONS=ON',
              '-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=WebAssembly',
              '-DLLVM_TARGETS_TO_BUILD=X86']
-  ccache = Which('ccache')
-  if ccache:
-      command.extend(['-DCMAKE_%s_COMPILER_LAUNCHER=%s' %
-                      (c, ccache) for c in ['C', 'CXX']])
+
+  compiler_launcher = None
+  jobs = []
+  if 'GOMA_DIR' in os.environ:
+    compiler_launcher = os.path.join(os.environ['GOMA_DIR'], 'gomacc')
+    jobs = ['-j', '50']
+  else:
+    ccache = Which('ccache')
+    if ccache:
+      compiler_launcher = ccache
       command.extend(['-DCMAKE_%s_FLAGS=-Qunused-arguments' %
                       c for c in ['C', 'CXX']])
 
+  if compiler_launcher:
+    command.extend(['-DCMAKE_%s_COMPILER_LAUNCHER=%s' %
+                    (c, compiler_launcher) for c in ['C', 'CXX']])
+
   proc.check_call(command, cwd=LLVM_OUT_DIR)
-  proc.check_call(['ninja', '-v'], cwd=LLVM_OUT_DIR)
+  proc.check_call(['ninja', '-v'] + jobs, cwd=LLVM_OUT_DIR)
   proc.check_call(['ninja', 'check-all'], cwd=LLVM_OUT_DIR)
-  proc.check_call(['ninja', 'install'], cwd=LLVM_OUT_DIR)
+  proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR)
   # The following isn't useful for now, and takes up space.
   Remove(os.path.join(INSTALL_BIN, 'clang-check'))
   # The following are useful, LLVM_INSTALL_TOOLCHAIN_ONLY did away with them.
