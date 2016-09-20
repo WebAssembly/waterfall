@@ -635,7 +635,7 @@ def SyncRepos(filter=None, sync_lkgr=False):
 
   good_hashes = None
   if sync_lkgr:
-    lkgr_file = 'work/lkgr'
+    lkgr_file = os.path.join(WORK_DIR, 'lkgr')
     cloud.Download('git/lkgr', lkgr_file)
     lkgr = json.loads(open(lkgr_file).read())
     good_hashes = {}
@@ -1033,15 +1033,17 @@ def Summary(repos):
   for step in buildbot.FailedList():
     print '    %s' % step
 
-  with open('latest', 'w+') as f:
+  latest_file = os.path.join(WORK_DIR, 'latest')
+  with open(latest_file, 'w+') as f:
     f.write(info_json)
-  buildbot.Link('latest', cloud.Upload('latest', 'git/latest'))
+  buildbot.Link('latest', cloud.Upload(latest_file, 'git/latest'))
   if buildbot.Failed():
     buildbot.Fail()
   else:
-    with open('lkgr', 'w+') as f:
+    lkgr_file = os.path.join(WORK_DIR, 'lkgr')
+    with open(lkgr_file, 'w+') as f:
       f.write(info_json)
-    buildbot.Link('lkgr', cloud.Upload('lkgr', 'git/lkgr'))
+    buildbot.Link('lkgr', cloud.Upload(lkgr_file, 'git/lkgr'))
 
 
 def AllBuilds(use_asm=False):
