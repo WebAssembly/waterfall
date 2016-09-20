@@ -830,8 +830,8 @@ def Fastcomp():
   proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR)
 
 
-def Emscripten(use_asm=True):
-  buildbot.Step('emscripten')
+def EmscriptenLibs(use_asm=True):
+  buildbot.Step('emscripten libs')
   # Remove cached library builds (e.g. libc, libc++) to force them to be
   # rebuilt in the step below.
   Remove(os.path.expanduser(os.path.join('~', '.emscripten_cache')))
@@ -1057,7 +1057,7 @@ def AllBuilds(use_asm=False):
       Build('binaryen', Binaryen),
       Build('binaryen-0xb', Binaryen0xb),
       Build('fastcomp', Fastcomp),
-      Build('emscripten', Emscripten, use_asm),
+      Build('emscripten', EmscriptenLibs, use_asm),
       # Target libs
       Build('musl', Musl),
       # Archive
