@@ -871,7 +871,7 @@ def Emscripten(use_asm=True):
           os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'hello_libcxx.cpp'),
           '-O2', '-s', 'BINARYEN=1', '-s', 'BINARYEN_METHOD="native-wasm"'])
 
-    except:
+    except proc.CalledProcessError:
       # Note the failure but allow the build to continue.
       buildbot.Fail()
     finally:
