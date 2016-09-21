@@ -853,27 +853,30 @@ def Emscripten(use_asm=True):
                         EMSCRIPTEN_CONFIG_ASMJS)
   WriteEmscriptenConfig(os.path.join(SCRIPT_DIR, 'emscripten_config_vanilla'),
                         EMSCRIPTEN_CONFIG_WASM)
-  try:
-    # Build a C++ file with each active emscripten config. This causes system
-    # libs to be built and cached (so we don't have that happen when building
-    # tests in parallel). Do it with full debug output.
-    # This depends on binaryen already being built and installed into the
-    # archive/install dir.
-    os.environ['EMCC_DEBUG'] = '2'
-    configs = [EMSCRIPTEN_CONFIG_WASM] + (
-        [EMSCRIPTEN_CONFIG_ASMJS] if use_asm else [])
-    for config in configs:
+
+  configs = [EMSCRIPTEN_CONFIG_WASM] + (
+      [EMSCRIPTEN_CONFIG_ASMJS] if use_asm else [])
+  for config in configs:
+    print 'Config file: ', config
+    try:
+      # Build a C++ file with each active emscripten config. This causes system
+      # libs to be built and cached (so we don't have that happen when building
+      # tests in parallel). Do it with full debug output.
+      # This depends on binaryen already being built and installed into the
+      # archive/install dir.
+      os.environ['EMCC_DEBUG'] = '2'
       os.environ['EM_CONFIG'] = config
       proc.check_call([
           os.path.join(emscripten_dir, 'em++'),
           os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'hello_libcxx.cpp'),
           '-O2', '-s', 'BINARYEN=1', '-s', 'BINARYEN_METHOD="native-wasm"'])
 
-  except proc.CalledProcessError:
-    # Note the failure but allow the build to continue.
-    buildbot.Fail()
-  finally:
-    del os.environ['EMCC_DEBUG']
+    except:
+      # Note the failure but allow the build to continue.
+      buildbot.Fail()
+    finally:
+      del os.environ['EMCC_DEBUG']
+      del os.environ['EM_CONFIG']
 
 
 def Musl():
