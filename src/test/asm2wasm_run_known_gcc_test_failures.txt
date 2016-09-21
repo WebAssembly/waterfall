@@ -19,6 +19,7 @@ bitfld-5.c.js
 builtin-bitops-1.c.js
 conversion.c.js
 eeprof-1.c.js
+floatunsisf-1.c.js
 frame-address.c.js
 pr17377.c.js
 pr32244-1.c.js
