@@ -796,7 +796,7 @@ def BinaryenBase(step_name, src_dir, out_dir, archive_dir=None):
     if os.path.isfile(f):
       CopyBinaryToArchive(f, archive_dir)
   CopyBinaryToArchive(os.path.join(src_dir, 'bin', 'wasm.js'), archive_dir)
-  if archive_dir is None: # Only do this for the 'master' Binaryen
+  if archive_dir is None:  # Only do this for the 'master' Binaryen
     js_src_dir = os.path.join(src_dir, 'src', 'js')
     js_dest_dir = os.path.join(INSTALL_DIR, 'src', 'js')
     print 'copying directory', js_src_dir, 'to', js_dest_dir
