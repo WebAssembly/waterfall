@@ -611,6 +611,11 @@ class Filter:
 
   def Apply(self, targets):
     """ Return the filtered list of targets. """
+    all_names = [t.name for t in targets]
+    specified_names = self.include or self.exclude or []
+    missing_names = [i for i in specified_names if i not in all_names]
+    if missing_names:
+      raise Exception('Invalid step name(s): ' + str(missing_names))
     if self.include is not None:
       return [t for t in targets if t.name in self.include]
     if self.exclude:
