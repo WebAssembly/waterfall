@@ -61,6 +61,8 @@ BINARYEN_SRC_DIR = os.path.join(WORK_DIR, 'binaryen')
 BINARYEN_0xB_SRC_DIR = os.path.join(WORK_DIR, 'binaryen-0xb')
 MUSL_SRC_DIR = os.path.join(WORK_DIR, 'musl')
 
+FIND_SVN_REV = os.path.join(SCRIPT_DIR, 'find_svn_rev.py')
+
 PREBUILT_CLANG = os.path.join(WORK_DIR, 'chromium-clang')
 PREBUILT_CLANG_TOOLS_CLANG = os.path.join(PREBUILT_CLANG, 'tools', 'clang')
 PREBUILT_CLANG_BIN = os.path.join(
@@ -525,16 +527,14 @@ ALL_SOURCES = [
 
 
 def CurrentSvnRev(path):
-  return int(proc.check_output(
-      ['git', 'svn', 'find-rev', 'HEAD'], cwd=path).strip())
+  return int(proc.check_output([FIND_SVN_REV, 'HEAD'], cwd=path).strip())
 
 
 def FindPriorSvnRev(path, goal):
   revs = proc.check_output(
       ['git', 'rev-list', RemoteBranch('master')], cwd=path).splitlines()
   for rev in revs:
-    num = proc.check_output(
-        ['git', 'svn', 'find-rev', rev], cwd=path).strip()
+    num = proc.check_output([FIND_SVN_REV, rev], cwd=path).strip()
     if int(num) <= goal:
       return rev
   raise Exception('Cannot find svn rev at or before %d' % goal)
