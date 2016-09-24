@@ -280,12 +280,19 @@ def Tar(directory, print_content=False):
   return tar
 
 
+def UploadFile(local_name, remote_name):
+  """Archive the file with the given name, and with the LLVM git hash."""
+  if not BUILDBOT_BUILDNUMBER:
+    return
+  buildbot.Link('download', cloud.Upload(local_name, '%s/%s/%s' % (
+      BUILDBOT_BUILDERNAME, BUILDBOT_BUILDNUMBER, remote_name)))
+
+
 def Archive(name, tar):
   """Archive the tar file with the given name, and with the LLVM git hash."""
-  if not BUILDBOT_BUILDERNAME:
+  if not BUILDBOT_BUILDNUMBER:
     return
-  git_gs = 'git/wasm-%s-%s.tbz2' % (name, BUILDBOT_BUILDNUMBER)
-  buildbot.Link('download', cloud.Upload(tar, git_gs))
+  UploadFile(tar, 'wasm-%s-%s.tbz2' % (name, BUILDBOT_BUILDNUMBER))
 
 
 # Repo and subproject utilities
@@ -636,7 +643,7 @@ def SyncRepos(filter=None, sync_lkgr=False):
   good_hashes = None
   if sync_lkgr:
     lkgr_file = os.path.join(WORK_DIR, 'lkgr')
-    cloud.Download('git/lkgr', lkgr_file)
+    cloud.Download('lkgr', lkgr_file)
     lkgr = json.loads(open(lkgr_file).read())
     good_hashes = {}
     for k, v in lkgr['repositories'].iteritems():
@@ -1040,14 +1047,14 @@ def Summary(repos):
   latest_file = os.path.join(WORK_DIR, 'latest')
   with open(latest_file, 'w+') as f:
     f.write(info_json)
-  buildbot.Link('latest', cloud.Upload(latest_file, 'git/latest'))
+  buildbot.Link('latest', cloud.Upload(latest_file, 'latest'))
   if buildbot.Failed():
     buildbot.Fail()
   else:
     lkgr_file = os.path.join(WORK_DIR, 'lkgr')
     with open(lkgr_file, 'w+') as f:
       f.write(info_json)
-    buildbot.Link('lkgr', cloud.Upload(lkgr_file, 'git/lkgr'))
+    buildbot.Link('lkgr', cloud.Upload(lkgr_file, 'lkgr'))
 
 
 def AllBuilds(use_asm=False):
