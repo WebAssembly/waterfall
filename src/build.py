@@ -168,12 +168,7 @@ SCHEDULER = SCHEDULERS[BUILDBOT_SCHEDULER]
 BUILDBOT_REVISION = os.environ.get('BUILDBOT_REVISION', None)
 BUILDBOT_BUILDNUMBER = os.environ.get('BUILDBOT_BUILDNUMBER', None)
 BUILDBOT_BUILDERNAME = os.environ.get('BUILDBOT_BUILDERNAME', None)
-if BUILDBOT_BUILDERNAME:
-  # Chrome's buildbot infra includes in its paths a module called 'tools' which
-  # conflicts with emscripten's own 'tools' module and overrides the emscripten
-  # test runner's import. We don't need that infra in this script, so we just
-  # scrub it from the environment.
-  del os.environ['PYTHONPATH']
+IS_BUILDBOT = BUILDBOT_BUILDERNAME != None
 
 
 # Pin the GCC revision so that new torture tests don't break the bot. This
@@ -266,7 +261,7 @@ def CopyLibraryToArchive(library):
 
 def Tar(directory, print_content=False):
   """Create a tar file from directory."""
-  if not BUILDBOT_BUILDERNAME:
+  if not IsBuildBot():
     return
   assert os.path.isdir(directory), 'Must tar a directory to avoid tarbombs'
   (up_directory, basename) = os.path.split(directory)
@@ -282,7 +277,7 @@ def Tar(directory, print_content=False):
 
 def UploadFile(local_name, remote_name):
   """Archive the file with the given name, and with the LLVM git hash."""
-  if not BUILDBOT_BUILDNUMBER:
+  if not IsBuildBot():
     return
   buildbot.Link('download', cloud.Upload(local_name, '%s/%s/%s' % (
       BUILDBOT_BUILDERNAME, BUILDBOT_BUILDNUMBER, remote_name)))
@@ -290,7 +285,7 @@ def UploadFile(local_name, remote_name):
 
 def Archive(name, tar):
   """Archive the tar file with the given name, and with the LLVM git hash."""
-  if not BUILDBOT_BUILDNUMBER:
+  if not IsBuildBot():
     return
   UploadFile(tar, 'wasm-%s-%s.tbz2' % (name, BUILDBOT_BUILDNUMBER))
 
@@ -340,6 +335,11 @@ def GitConfigRebaseMaster(cwd):
 def RemoteBranch(branch):
   """Get the remote-qualified branch name to use for waterfall"""
   return WATERFALL_REMOTE + '/' + branch
+
+
+def IsBuildBot():
+  """Return True if we are running on bot, False otherwise."""
+  return BUILDBOT_BUILDNUMBER is not None
 
 
 def GitUpdateRemote(src_dir, git_repo, remote_name):
@@ -1267,6 +1267,13 @@ def main():
   build_filter = Filter(build_include, options.build_exclude)
   test_include = options.test_include if options.test else []
   test_filter = Filter(test_include, options.test_exclude)
+
+  if IsBuildBot():
+    # Chrome's buildbot infra includes in its paths a module called 'tools' which
+    # conflicts with emscripten's own 'tools' module and overrides the emscripten
+    # test runner's import. We don't need that infra in this script, so we just
+    # scrub it from the environment.
+    del os.environ['PYTHONPATH']
 
   try:
     ret = run(sync_filter, build_filter, test_filter, options)
