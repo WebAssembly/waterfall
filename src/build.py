@@ -378,12 +378,14 @@ class Source:
     else:
       clone = ['git', 'clone', self.git_repo, self.src_dir]
       if self.depth:
-        clone.append('--depth')
-        clone.append(str(self.depth))
+        clone.extend(['--depth', str(self.depth)])
       proc.check_call(clone)
 
     GitUpdateRemote(self.src_dir, self.git_repo, WATERFALL_REMOTE)
-    proc.check_call(['git', 'fetch', WATERFALL_REMOTE], cwd=self.src_dir)
+    fetch = ['git', 'fetch', WATERFALL_REMOTE]
+    if self.depth:
+      fetch.extend(['--depth', str(self.depth)])
+    proc.check_call(fetch, cwd=self.src_dir)
     if not self.checkout.startswith(WATERFALL_REMOTE + '/'):
       sys.stderr.write(('WARNING: `git checkout %s` not based on waterfall '
                         'remote (%s), checking out local branch'
