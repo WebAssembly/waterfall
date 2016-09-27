@@ -134,8 +134,8 @@ V8_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
                                          'd8_' + IT_IS_KNOWN)
 V8_MUSL_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
                                               'd8_musl_' + IT_IS_KNOWN)
-WABT_S2WASM_KNOWN_TORTURE_FAILURES = os.path.join(WABT_SRC_DIR, 's2wasm_' +
-                                                   IT_IS_KNOWN)
+WAST2WASM_KNOWN_TORTURE_FAILURES = os.path.join(WABT_SRC_DIR, 's2wasm_' +
+                                                IT_IS_KNOWN)
 SPEC_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
                                            'spec_' + IT_IS_KNOWN)
 S2WASM_KNOWN_TORTURE_FAILURES = os.path.join(BINARYEN_SRC_DIR, 'test',
