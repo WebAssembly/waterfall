@@ -738,7 +738,10 @@ def V8():
                    os.path.join(V8_SRC_DIR, 'tools', 'dev', 'v8gen.py'),
                    'x64.release'],
                   cwd=V8_SRC_DIR)
-  proc.check_call(['ninja', '-C', V8_OUT_DIR, 'd8', 'unittests'],
+  jobs = []
+  if 'GOMA_DIR' in os.environ:
+    jobs = ['-j', '50']
+  proc.check_call(['ninja', '-v', '-C', V8_OUT_DIR, 'd8', 'unittests'] + jobs,
                   cwd=V8_SRC_DIR)
   proc.check_call(['tools/run-tests.py', 'unittests', '--no-presubmit',
                    '--shell-dir', V8_OUT_DIR],
