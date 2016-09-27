@@ -955,7 +955,7 @@ def CompileLLVMTortureBinaryen(name, em_config, outdir, fails):
       fails=fails,
       out=outdir,
       config='binaryen-interpret')
-  Archive('torture-' + em_config, Tar(outdir))
+  Archive('torture-' + os.path.basename(em_config), Tar(outdir))
   if 0 != unexpected_result_count:
     buildbot.Fail()
   return outdir
@@ -1229,7 +1229,7 @@ def run(sync_filter, build_filter, test_filter, options):
   if test_filter.Check('asm'):
     asm2wasm_out = CompileLLVMTortureBinaryen(
         'Compile LLVM Torture (asm2wasm)',
-        os.path.join(INSTALL_DIR, 'emscripten_config'),
+        EMSCRIPTEN_CONFIG_ASMJS,
         ASM2WASM_TORTURE_OUT_DIR,
         ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES)
     ExecuteLLVMTorture(
@@ -1243,7 +1243,7 @@ def run(sync_filter, build_filter, test_filter, options):
   if test_filter.Check('emwasm'):
     emscripten_wasm_out = CompileLLVMTortureBinaryen(
         'Compile LLVM Torture (emscripten+wasm backend)',
-        os.path.join(INSTALL_DIR, 'emscripten_config_vanilla'),
+        EMSCRIPTEN_CONFIG_WASM,
         EMSCRIPTENWASM_TORTURE_OUT_DIR,
         EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES)
     ExecuteLLVMTorture(
