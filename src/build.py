@@ -1268,10 +1268,10 @@ def main():
   test_filter = Filter(test_include, options.test_exclude)
 
   if IsBuildbot():
-    # Chrome's buildbot infra includes in its paths a module called 'tools' which
-    # conflicts with emscripten's own 'tools' module and overrides the emscripten
-    # test runner's import. We don't need that infra in this script, so we just
-    # scrub it from the environment.
+    # Chrome's buildbot infra includes in its paths a module called 'tools'
+    # which conflicts with emscripten's own 'tools' module and overrides the
+    # emscripten test runner's import. We don't need that infra in this script,
+    # so we just scrub it from the environment.
     del os.environ['PYTHONPATH']
 
   try:
