@@ -52,7 +52,7 @@ GCC_TEST_DIR = os.path.join(GCC_SRC_DIR, 'gcc', 'testsuite')
 
 V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
 
-SEXPR_SRC_DIR = os.path.join(WORK_DIR, 'sexpr-wasm-prototype')
+WABT_SRC_DIR = os.path.join(WORK_DIR, 'wabt')
 
 SPEC_SRC_DIR = os.path.join(WORK_DIR, 'spec')
 ML_DIR = os.path.join(SPEC_SRC_DIR, 'ml-proto')
@@ -78,7 +78,7 @@ PREBUILT_CMAKE_BIN = os.path.join(PREBUILT_CMAKE_DIR, 'bin', 'cmake')
 
 LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out.gn', 'x64.release')
-SEXPR_OUT_DIR = os.path.join(WORK_DIR, 'sexpr-out')
+WABT_OUT_DIR = os.path.join(WORK_DIR, 'wabt-out')
 BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
 BINARYEN_0xB_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out-0xb')
 FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
@@ -134,8 +134,8 @@ V8_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
                                          'd8_' + IT_IS_KNOWN)
 V8_MUSL_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
                                               'd8_musl_' + IT_IS_KNOWN)
-SEXPR_S2WASM_KNOWN_TORTURE_FAILURES = os.path.join(SEXPR_SRC_DIR, 's2wasm_' +
-                                                   IT_IS_KNOWN)
+WAST2WASM_KNOWN_TORTURE_FAILURES = os.path.join(WABT_SRC_DIR, 's2wasm_' +
+                                                IT_IS_KNOWN)
 SPEC_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
                                            'spec_' + IT_IS_KNOWN)
 S2WASM_KNOWN_TORTURE_FAILURES = os.path.join(BINARYEN_SRC_DIR, 'test',
@@ -515,7 +515,8 @@ ALL_SOURCES = [
            custom_sync=SyncPrebuiltClang),
     Source('cmake', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltCMake),
-    Source('sexpr', SEXPR_SRC_DIR,
+    Source('wabt', WABT_SRC_DIR,
+           # TODO: Update this when chromium's mirror updates.
            WASM_GIT_BASE + 'sexpr-wasm-prototype.git'),
     Source('spec', SPEC_SRC_DIR,
            WASM_GIT_BASE + 'spec.git'),
@@ -759,17 +760,17 @@ def V8():
     CopyBinaryToArchive(os.path.join(V8_OUT_DIR, a))
 
 
-def Sexpr():
-  buildbot.Step('Sexpr')
-  Mkdir(SEXPR_OUT_DIR),
-  proc.check_call([PREBUILT_CMAKE_BIN, '-G', 'Ninja', SEXPR_SRC_DIR,
+def Wabt():
+  buildbot.Step('WABT')
+  Mkdir(WABT_OUT_DIR),
+  proc.check_call([PREBUILT_CMAKE_BIN, '-G', 'Ninja', WABT_SRC_DIR,
                    '-DCMAKE_C_COMPILER=%s' % CC,
                    '-DCMAKE_CXX_COMPILER=%s' % CXX,
                    '-DBUILD_TESTS=OFF'],
-                  cwd=SEXPR_OUT_DIR)
-  proc.check_call(['ninja'], cwd=SEXPR_OUT_DIR)
-  sexpr = os.path.join(SEXPR_OUT_DIR, 'sexpr-wasm')
-  CopyBinaryToArchive(sexpr)
+                  cwd=WABT_OUT_DIR)
+  proc.check_call(['ninja'], cwd=WABT_OUT_DIR)
+  wast2wasm = os.path.join(WABT_OUT_DIR, 'wast2wasm')
+  CopyBinaryToArchive(wast2wasm)
 
 
 def OCaml():
@@ -903,7 +904,7 @@ def Musl():
         os.path.join(MUSL_SRC_DIR, 'libc.py'),
         '--clang_dir', INSTALL_BIN,
         '--binaryen_dir', os.path.join(INSTALL_BIN, '0xb'),
-        '--sexpr_wasm', os.path.join(INSTALL_BIN, 'sexpr-wasm'),
+        '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wast2wasm'),
         '--musl', MUSL_SRC_DIR], cwd=MUSL_OUT_DIR)
     for f in ['musl.wast', 'musl.wasm']:
       CopyLibraryToArchive(os.path.join(MUSL_OUT_DIR, f))
@@ -1070,7 +1071,7 @@ def AllBuilds(use_asm=False):
       # Host tools
       Build('llvm', LLVM),
       Build('v8', V8),
-      Build('sexpr', Sexpr),
+      Build('wabt', Wabt),
       Build('ocaml', OCaml),
       Build('spec', Spec),
       Build('binaryen', Binaryen),
@@ -1190,11 +1191,11 @@ def run(sync_filter, build_filter, test_filter, options):
         name='s2wasm',
         linker=os.path.join(INSTALL_BIN, '0xb', 's2wasm'),
         fails=S2WASM_KNOWN_TORTURE_FAILURES)
-    sexpr_wasm_out = AssembleLLVMTorture(
-        name='s2wasm-sexpr-wasm',
-        assembler=os.path.join(INSTALL_BIN, 'sexpr-wasm'),
+    wast2wasm_out = AssembleLLVMTorture(
+        name='wast2wasm',
+        assembler=os.path.join(INSTALL_BIN, 'wast2wasm'),
         indir=s2wasm_out,
-        fails=SEXPR_S2WASM_KNOWN_TORTURE_FAILURES)
+        fails=WAST2WASM_KNOWN_TORTURE_FAILURES)
     ExecuteLLVMTorture(
         name='wasm-shell',
         runner=os.path.join(INSTALL_BIN, '0xb', 'wasm-shell'),
@@ -1211,7 +1212,7 @@ def run(sync_filter, build_filter, test_filter, options):
     ExecuteLLVMTorture(
         name='d8',
         runner=os.path.join(INSTALL_BIN, 'd8'),
-        indir=sexpr_wasm_out,
+        indir=wast2wasm_out,
         fails=V8_KNOWN_TORTURE_FAILURES,
         extension='wasm',
         warn_only=True,
@@ -1219,7 +1220,7 @@ def run(sync_filter, build_filter, test_filter, options):
     ExecuteLLVMTorture(
         name='d8-musl',
         runner=os.path.join(INSTALL_BIN, 'd8'),
-        indir=sexpr_wasm_out,
+        indir=wast2wasm_out,
         fails=V8_MUSL_KNOWN_TORTURE_FAILURES,
         extension='wasm',
         warn_only=True,
