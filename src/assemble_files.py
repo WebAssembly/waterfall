@@ -14,6 +14,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import argparse
 import glob
 import os
 import os.path
@@ -56,7 +57,6 @@ def run(assembler, files, fails, out):
 
 
 def getargs():
-  import argparse
   parser = argparse.ArgumentParser(
       description='Assemble .wast files into .wasm.')
   parser.add_argument('--assembler', type=str, required=True,

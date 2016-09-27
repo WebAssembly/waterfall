@@ -15,6 +15,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import argparse
 import errno
 import glob
 import json
@@ -24,6 +25,8 @@ import shutil
 import sys
 import tarfile
 import tempfile
+import textwrap
+import time
 import traceback
 import urllib2
 
@@ -1077,9 +1080,6 @@ def BuildRepos(filter=None, use_asm=False):
 
 
 def ParseArgs():
-  import argparse
-  import textwrap
-
   def SplitComma(arg):
     if not arg:
       return None
@@ -1251,7 +1251,6 @@ def run(sync_filter, build_filter, test_filter, options):
 
 
 def main():
-  import time
   start = time.time()
   options = ParseArgs()
   sync_include = options.sync_include if options.sync else []

@@ -14,6 +14,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import argparse
 import glob
 import os
 import os.path
@@ -73,7 +74,6 @@ def run(runner, files, fails, out, wasmjs='', extra_files=[]):
 
 
 def getargs():
-  import argparse
   parser = argparse.ArgumentParser(description='Execute .wast or .wasm files.')
   parser.add_argument('--runner', type=str, required=True,
                       help='Runner path')
