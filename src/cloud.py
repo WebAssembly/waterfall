@@ -15,7 +15,6 @@
 #   limitations under the License.
 
 import os
-
 import proc
 
 
@@ -33,19 +32,6 @@ def Upload(local, remote):
   return CLOUD_STORAGE_BASE_URL + remote
 
 
-def Copy(copy_from, copy_to):
-  """Copy from one Cloud Storage file to another."""
-  if not os.environ.get('BUILDBOT_BUILDERNAME'):
-    return
-  copy_from = CLOUD_STORAGE_PATH + copy_from
-  copy_to = CLOUD_STORAGE_PATH + copy_to
-  proc.check_call(
-      ['gsutil.py', 'cp', '-a', 'public-read',
-       'gs://' + copy_from, 'gs://' + copy_to])
-  return CLOUD_STORAGE_BASE_URL + copy_to
-
-
 def Download(remote, local):
   remote = CLOUD_STORAGE_PATH + remote
-  proc.check_call(
-      ['gsutil.py', 'cp', 'gs://' + remote, local])
+  proc.check_call(['gsutil.py', 'cp', 'gs://' + remote, local])

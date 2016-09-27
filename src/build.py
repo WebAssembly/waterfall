@@ -167,12 +167,6 @@ SCHEDULER = SCHEDULERS[BUILDBOT_SCHEDULER]
 BUILDBOT_REVISION = os.environ.get('BUILDBOT_REVISION', None)
 BUILDBOT_BUILDNUMBER = os.environ.get('BUILDBOT_BUILDNUMBER', None)
 BUILDBOT_BUILDERNAME = os.environ.get('BUILDBOT_BUILDERNAME', None)
-if BUILDBOT_BUILDERNAME:
-  # Chrome's buildbot infra includes in its paths a module called 'tools' which
-  # conflicts with emscripten's own 'tools' module and overrides the emscripten
-  # test runner's import. We don't need that infra in this script, so we just
-  # scrub it from the environment.
-  del os.environ['PYTHONPATH']
 
 
 # Pin the GCC revision so that new torture tests don't break the bot. This
@@ -265,7 +259,7 @@ def CopyLibraryToArchive(library):
 
 def Tar(directory, print_content=False):
   """Create a tar file from directory."""
-  if not BUILDBOT_BUILDERNAME:
+  if not IsBuildbot():
     return
   assert os.path.isdir(directory), 'Must tar a directory to avoid tarbombs'
   (up_directory, basename) = os.path.split(directory)
@@ -279,12 +273,19 @@ def Tar(directory, print_content=False):
   return tar
 
 
+def UploadFile(local_name, remote_name):
+  """Archive the file with the given name, and with the LLVM git hash."""
+  if not IsBuildbot():
+    return
+  buildbot.Link('download', cloud.Upload(local_name, '%s/%s/%s' % (
+      BUILDBOT_BUILDERNAME, BUILDBOT_BUILDNUMBER, remote_name)))
+
+
 def Archive(name, tar):
   """Archive the tar file with the given name, and with the LLVM git hash."""
-  if not BUILDBOT_BUILDERNAME:
+  if not IsBuildbot():
     return
-  git_gs = 'git/wasm-%s-%s.tbz2' % (name, BUILDBOT_BUILDNUMBER)
-  buildbot.Link('download', cloud.Upload(tar, git_gs))
+  UploadFile(tar, 'wasm-%s-%s.tbz2' % (name, BUILDBOT_BUILDNUMBER))
 
 
 # Repo and subproject utilities
@@ -332,6 +333,11 @@ def GitConfigRebaseMaster(cwd):
 def RemoteBranch(branch):
   """Get the remote-qualified branch name to use for waterfall"""
   return WATERFALL_REMOTE + '/' + branch
+
+
+def IsBuildbot():
+  """Return True if we are running on bot, False otherwise."""
+  return BUILDBOT_BUILDNUMBER is not None
 
 
 def GitUpdateRemote(src_dir, git_repo, remote_name):
@@ -640,7 +646,7 @@ def SyncRepos(filter=None, sync_lkgr=False):
   good_hashes = None
   if sync_lkgr:
     lkgr_file = os.path.join(WORK_DIR, 'lkgr')
-    cloud.Download('git/lkgr', lkgr_file)
+    cloud.Download('lkgr', lkgr_file)
     lkgr = json.loads(open(lkgr_file).read())
     good_hashes = {}
     for k, v in lkgr['repositories'].iteritems():
@@ -1047,14 +1053,14 @@ def Summary(repos):
   latest_file = os.path.join(WORK_DIR, 'latest')
   with open(latest_file, 'w+') as f:
     f.write(info_json)
-  buildbot.Link('latest', cloud.Upload(latest_file, 'git/latest'))
+  buildbot.Link('latest', cloud.Upload(latest_file, 'latest'))
   if buildbot.Failed():
     buildbot.Fail()
   else:
     lkgr_file = os.path.join(WORK_DIR, 'lkgr')
     with open(lkgr_file, 'w+') as f:
       f.write(info_json)
-    buildbot.Link('lkgr', cloud.Upload(lkgr_file, 'git/lkgr'))
+    buildbot.Link('lkgr', cloud.Upload(lkgr_file, 'lkgr'))
 
 
 def AllBuilds(use_asm=False):
@@ -1267,6 +1273,13 @@ def main():
   build_filter = Filter(build_include, options.build_exclude)
   test_include = options.test_include if options.test else []
   test_filter = Filter(test_include, options.test_exclude)
+
+  if IsBuildbot():
+    # Chrome's buildbot infra includes in its paths a module called 'tools'
+    # which conflicts with emscripten's own 'tools' module and overrides the
+    # emscripten test runner's import. We don't need that infra in this script,
+    # so we just scrub it from the environment.
+    del os.environ['PYTHONPATH']
 
   try:
     ret = run(sync_filter, build_filter, test_filter, options)
