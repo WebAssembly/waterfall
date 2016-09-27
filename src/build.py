@@ -168,7 +168,6 @@ SCHEDULER = SCHEDULERS[BUILDBOT_SCHEDULER]
 BUILDBOT_REVISION = os.environ.get('BUILDBOT_REVISION', None)
 BUILDBOT_BUILDNUMBER = os.environ.get('BUILDBOT_BUILDNUMBER', None)
 BUILDBOT_BUILDERNAME = os.environ.get('BUILDBOT_BUILDERNAME', None)
-IS_BUILDBOT = BUILDBOT_BUILDERNAME != None
 
 
 # Pin the GCC revision so that new torture tests don't break the bot. This
