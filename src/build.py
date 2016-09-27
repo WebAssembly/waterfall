@@ -260,7 +260,7 @@ def CopyLibraryToArchive(library):
 
 def Tar(directory, print_content=False):
   """Create a tar file from directory."""
-  if not IsBuildBot():
+  if not IsBuildbot():
     return
   assert os.path.isdir(directory), 'Must tar a directory to avoid tarbombs'
   (up_directory, basename) = os.path.split(directory)
@@ -276,7 +276,7 @@ def Tar(directory, print_content=False):
 
 def UploadFile(local_name, remote_name):
   """Archive the file with the given name, and with the LLVM git hash."""
-  if not IsBuildBot():
+  if not IsBuildbot():
     return
   buildbot.Link('download', cloud.Upload(local_name, '%s/%s/%s' % (
       BUILDBOT_BUILDERNAME, BUILDBOT_BUILDNUMBER, remote_name)))
@@ -284,7 +284,7 @@ def UploadFile(local_name, remote_name):
 
 def Archive(name, tar):
   """Archive the tar file with the given name, and with the LLVM git hash."""
-  if not IsBuildBot():
+  if not IsBuildbot():
     return
   UploadFile(tar, 'wasm-%s-%s.tbz2' % (name, BUILDBOT_BUILDNUMBER))
 
@@ -336,7 +336,7 @@ def RemoteBranch(branch):
   return WATERFALL_REMOTE + '/' + branch
 
 
-def IsBuildBot():
+def IsBuildbot():
   """Return True if we are running on bot, False otherwise."""
   return BUILDBOT_BUILDNUMBER is not None
 
@@ -1267,7 +1267,7 @@ def main():
   test_include = options.test_include if options.test else []
   test_filter = Filter(test_include, options.test_exclude)
 
-  if IsBuildBot():
+  if IsBuildbot():
     # Chrome's buildbot infra includes in its paths a module called 'tools' which
     # conflicts with emscripten's own 'tools' module and overrides the emscripten
     # test runner's import. We don't need that infra in this script, so we just
