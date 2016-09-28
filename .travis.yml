@@ -1,5 +1,11 @@
 sudo: false
 language: python
+addons:
+  apt:
+    packages:
+      - build-essential
+      - ninja-build
+      - devscripts
 python:
   - "2.7"
 install:
@@ -8,5 +14,6 @@ before_script:
   - flake8 --version
 script:
   - flake8
+  - ./src/build.py --sync-include=chromium-clang,cmake,wabt --build-include=wabt --no-test
 notifications:
   email: false
