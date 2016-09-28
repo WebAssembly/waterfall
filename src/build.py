@@ -864,15 +864,16 @@ def Emscripten(use_asm=True):
     with open(outfile, 'w') as config:
       config.write(text)
 
-  WriteEmscriptenConfig(os.path.join(SCRIPT_DIR, 'emscripten_config'),
-                        EMSCRIPTEN_CONFIG_ASMJS)
-  WriteEmscriptenConfig(os.path.join(SCRIPT_DIR, 'emscripten_config_vanilla'),
-                        EMSCRIPTEN_CONFIG_WASM)
+  configs = [EMSCRIPTEN_CONFIG_WASM]
+  if use_asm:
+      configs.append(EMSCRIPTEN_CONFIG_ASMJS)
 
-  configs = [EMSCRIPTEN_CONFIG_WASM] + (
-      [EMSCRIPTEN_CONFIG_ASMJS] if use_asm else [])
-  for config in configs:
+  for config in enumerate(configs):
+    if config == EMSCRIPTEN_CONFIG_ASMJS:
+      buildbot.Step('emscripten (asm2wasm)')
     print 'Config file: ', config
+    src_config = os.path.join(SCRIPT_DIR, os.path.basename(config))
+    WriteEmscriptenConfig(src_config, config)
     try:
       # Build a C++ file with each active emscripten config. This causes system
       # libs to be built and cached (so we don't have that happen when building
@@ -942,7 +943,7 @@ def CompileLLVMTorture():
 
 
 def CompileLLVMTortureBinaryen(name, em_config, outdir, fails):
-  buildbot.Step(name)
+  buildbot.Step('Compile LLVM Torture (%s)' % name)
   os.environ['EM_CONFIG'] = em_config
   c = os.path.join(INSTALL_DIR, 'bin', 'emscripten', 'emcc')
   cxx = os.path.join(INSTALL_DIR, 'bin', 'emscripten', 'em++')
@@ -954,7 +955,7 @@ def CompileLLVMTortureBinaryen(name, em_config, outdir, fails):
       fails=fails,
       out=outdir,
       config='binaryen-interpret')
-  Archive('torture-' + os.path.basename(em_config), Tar(outdir))
+  Archive('torture-' + name, Tar(outdir))
   if 0 != unexpected_result_count:
     buildbot.Fail()
   return outdir
@@ -997,7 +998,7 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, outdir='',
                        wasmjs='', extra_files=None, warn_only=False):
   extra_files = [] if extra_files is None else extra_files
 
-  buildbot.Step('Execute LLVM Torture with %s' % name)
+  buildbot.Step('Execute LLVM Torture (%s)' % name)
   if not indir:
     print 'Step skipped: no input'
     buildbot.Fail(True)
@@ -1016,14 +1017,14 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, outdir='',
   return outdir
 
 
-def ExecuteEmscriptenTestSuite(name, outdir):
-  buildbot.Step('Execute emscripten testsuite (emwasm)')
-  Mkdir(EMSCRIPTEN_TEST_OUT_DIR)
+def ExecuteEmscriptenTestSuite(name, config, outdir):
+  buildbot.Step('Execute emscripten testsuite (%s)' % name)
+  Mkdir(outdir)
   try:
     proc.check_call(
         [sys.executable,
          os.path.join(INSTALL_BIN, 'emscripten', 'tests', 'runner.py'),
-         'binaryen2', '--em-config', EMSCRIPTEN_CONFIG_WASM],
+         'binaryen2', '--em-config', config],
         cwd=outdir)
   except proc.CalledProcessError:
     buildbot.Fail(True)
@@ -1227,7 +1228,7 @@ def run(sync_filter, build_filter, test_filter, options):
 
   if test_filter.Check('asm'):
     asm2wasm_out = CompileLLVMTortureBinaryen(
-        'Compile LLVM Torture (asm2wasm)',
+        'asm2wasm',
         EMSCRIPTEN_CONFIG_ASMJS,
         ASM2WASM_TORTURE_OUT_DIR,
         ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES)
@@ -1241,12 +1242,12 @@ def run(sync_filter, build_filter, test_filter, options):
 
   if test_filter.Check('emwasm'):
     emscripten_wasm_out = CompileLLVMTortureBinaryen(
-        'Compile LLVM Torture (emscripten+wasm backend)',
+        'emwasm',
         EMSCRIPTEN_CONFIG_WASM,
         EMSCRIPTENWASM_TORTURE_OUT_DIR,
         EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES)
     ExecuteLLVMTorture(
-        name='emscripten-wasm',
+        name='emwasm',
         runner=os.path.join(INSTALL_BIN, 'd8'),
         indir=emscripten_wasm_out,
         fails=EMSCRIPTENWASM_KNOWN_TORTURE_FAILURES,
@@ -1255,8 +1256,9 @@ def run(sync_filter, build_filter, test_filter, options):
 
   if test_filter.Check('emtest'):
     ExecuteEmscriptenTestSuite(
-        'Emscripten test suite (wasm backend)',
-        outdir=EMSCRIPTEN_TEST_OUT_DIR)
+        'emwasm',
+        EMSCRIPTEN_CONFIG_WASM,
+        EMSCRIPTEN_TEST_OUT_DIR)
 
   # Keep the summary step last: it'll be marked as red if the return code is
   # non-zero. Individual steps are marked as red with buildbot.Fail().
