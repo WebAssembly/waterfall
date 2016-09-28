@@ -838,7 +838,7 @@ def Fastcomp():
 
 
 def Emscripten(use_asm=True):
-  buildbot.Step('emscripten')
+  buildbot.Step('emscripten (emwasm)')
   # Remove cached library builds (e.g. libc, libc++) to force them to be
   # rebuilt in the step below.
   Remove(os.path.expanduser(os.path.join('~', '.emscripten_cache')))
