@@ -643,7 +643,7 @@ class Filter:
     return self.include is None and not self.exclude
 
 
-def SyncRepos(filter=None, sync_lkgr=False):
+def SyncRepos(filter, sync_lkgr=False):
   buildbot.Step('Sync Repos')
 
   good_hashes = None
@@ -655,8 +655,6 @@ def SyncRepos(filter=None, sync_lkgr=False):
     for k, v in lkgr['repositories'].iteritems():
       good_hashes[k] = v.get('hash') if v else None
 
-  if not filter:
-    filter = Filter()
   for repo in filter.Apply(ALL_SOURCES):
     repo.Sync(good_hashes)
   # Special cases
@@ -1086,9 +1084,7 @@ def AllBuilds(use_asm=False):
   ]
 
 
-def BuildRepos(filter=None, use_asm=False):
-  if not filter:
-    filter = Filter()
+def BuildRepos(filter, use_asm=False):
   for rule in filter.Apply(AllBuilds(use_asm)):
     rule.Run()
 
