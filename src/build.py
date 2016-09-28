@@ -866,7 +866,7 @@ def Emscripten(use_asm=True):
   if use_asm:
       configs.append(EMSCRIPTEN_CONFIG_ASMJS)
 
-  for config in enumerate(configs):
+  for config in configs:
     if config == EMSCRIPTEN_CONFIG_ASMJS:
       buildbot.Step('emscripten (asm2wasm)')
     print 'Config file: ', config
