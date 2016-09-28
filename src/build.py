@@ -1088,6 +1088,7 @@ def BuildRepos(filter=None, use_asm=False):
   for rule in filter.Apply(AllBuilds(use_asm)):
     rule.Run()
 
+
 class Test:
   def __init__(self, name_, runnable_):
     self.name = name_
@@ -1095,6 +1096,94 @@ class Test:
 
   def Test(self):
     self.runnable()
+
+
+def TestBare():
+  CompileLLVMTorture()
+  s2wasm_out = LinkLLVMTorture(
+      name='s2wasm',
+      linker=os.path.join(INSTALL_BIN, '0xb', 's2wasm'),
+      fails=S2WASM_KNOWN_TORTURE_FAILURES)
+  wast2wasm_out = AssembleLLVMTorture(
+      name='wast2wasm',
+      assembler=os.path.join(INSTALL_BIN, 'wast2wasm'),
+      indir=s2wasm_out,
+      fails=WAST2WASM_KNOWN_TORTURE_FAILURES)
+  ExecuteLLVMTorture(
+      name='wasm-shell',
+      runner=os.path.join(INSTALL_BIN, '0xb', 'wasm-shell'),
+      indir=s2wasm_out,
+      fails=BINARYEN_SHELL_KNOWN_TORTURE_FAILURES,
+      extension='wast',
+      warn_only=True)  # TODO wasm-shell is flaky when running tests.
+  ExecuteLLVMTorture(
+      name='spec',
+      runner=os.path.join(INSTALL_BIN, 'wasm.opt'),
+      indir=s2wasm_out,
+      fails=SPEC_KNOWN_TORTURE_FAILURES,
+      extension='wast')
+  ExecuteLLVMTorture(
+      name='d8',
+      runner=os.path.join(INSTALL_BIN, 'd8'),
+      indir=wast2wasm_out,
+      fails=V8_KNOWN_TORTURE_FAILURES,
+      extension='wasm',
+      warn_only=True,
+      wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
+  ExecuteLLVMTorture(
+      name='d8-musl',
+      runner=os.path.join(INSTALL_BIN, 'd8'),
+      indir=wast2wasm_out,
+      fails=V8_MUSL_KNOWN_TORTURE_FAILURES,
+      extension='wasm',
+      warn_only=True,
+      wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
+      extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
+
+
+def TestAsm():
+  asm2wasm_out = CompileLLVMTortureBinaryen(
+      'Compile LLVM Torture (asm2wasm)',
+      EMSCRIPTEN_CONFIG_ASMJS,
+      ASM2WASM_TORTURE_OUT_DIR,
+      ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES)
+  ExecuteLLVMTorture(
+      name='asm2wasm',
+      runner=os.path.join(INSTALL_BIN, 'd8'),
+      indir=asm2wasm_out,
+      fails=ASM2WASM_KNOWN_TORTURE_FAILURES,
+      extension='c.js',
+      outdir=asm2wasm_out)  # emscripten's wasm.js expects all files in cwd.
+
+
+def TestEmwasm():
+  emscripten_wasm_out = CompileLLVMTortureBinaryen(
+      'Compile LLVM Torture (emscripten+wasm backend)',
+      EMSCRIPTEN_CONFIG_WASM,
+      EMSCRIPTENWASM_TORTURE_OUT_DIR,
+      EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES)
+  ExecuteLLVMTorture(
+      name='emscripten-wasm',
+      runner=os.path.join(INSTALL_BIN, 'd8'),
+      indir=emscripten_wasm_out,
+      fails=EMSCRIPTENWASM_KNOWN_TORTURE_FAILURES,
+      extension='c.js',
+      outdir=emscripten_wasm_out)
+
+
+def TestEmtest():
+  ExecuteEmscriptenTestSuite(
+      'Emscripten test suite (wasm backend)',
+      outdir=EMSCRIPTEN_TEST_OUT_DIR)
+
+
+ALL_TESTS = [
+    Test('bare', TestBare),
+    Test('asm', TestAsm),
+    Test('emwasm', TestEmwasm),
+    Test('emtest', TestEmtest),
+]
+
 
 def ParseArgs():
   import argparse
@@ -1179,95 +1268,8 @@ def run(sync_filter, build_filter, test_filter, options):
   os.environ['PATH'] = (os.path.join(PREBUILT_CMAKE_DIR, 'bin') +
                         os.pathsep + os.environ['PATH'])
 
-  def bare_test():
-    CompileLLVMTorture()
-    s2wasm_out = LinkLLVMTorture(
-        name='s2wasm',
-        linker=os.path.join(INSTALL_BIN, '0xb', 's2wasm'),
-        fails=S2WASM_KNOWN_TORTURE_FAILURES)
-    wast2wasm_out = AssembleLLVMTorture(
-        name='wast2wasm',
-        assembler=os.path.join(INSTALL_BIN, 'wast2wasm'),
-        indir=s2wasm_out,
-        fails=WAST2WASM_KNOWN_TORTURE_FAILURES)
-    ExecuteLLVMTorture(
-        name='wasm-shell',
-        runner=os.path.join(INSTALL_BIN, '0xb', 'wasm-shell'),
-        indir=s2wasm_out,
-        fails=BINARYEN_SHELL_KNOWN_TORTURE_FAILURES,
-        extension='wast',
-        warn_only=True)  # TODO wasm-shell is flaky when running tests.
-    ExecuteLLVMTorture(
-        name='spec',
-        runner=os.path.join(INSTALL_BIN, 'wasm.opt'),
-        indir=s2wasm_out,
-        fails=SPEC_KNOWN_TORTURE_FAILURES,
-        extension='wast')
-    ExecuteLLVMTorture(
-        name='d8',
-        runner=os.path.join(INSTALL_BIN, 'd8'),
-        indir=wast2wasm_out,
-        fails=V8_KNOWN_TORTURE_FAILURES,
-        extension='wasm',
-        warn_only=True,
-        wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
-    ExecuteLLVMTorture(
-        name='d8-musl',
-        runner=os.path.join(INSTALL_BIN, 'd8'),
-        indir=wast2wasm_out,
-        fails=V8_MUSL_KNOWN_TORTURE_FAILURES,
-        extension='wasm',
-        warn_only=True,
-        wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
-        extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
-
-  def asm_test():
-    asm2wasm_out = CompileLLVMTortureBinaryen(
-        'asm2wasm',
-        EMSCRIPTEN_CONFIG_ASMJS,
-        ASM2WASM_TORTURE_OUT_DIR,
-        ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES)
-    ExecuteLLVMTorture(
-        name='asm2wasm',
-        runner=os.path.join(INSTALL_BIN, 'd8'),
-        indir=asm2wasm_out,
-        fails=ASM2WASM_KNOWN_TORTURE_FAILURES,
-        extension='c.js',
-        outdir=asm2wasm_out)  # emscripten's wasm.js expects all files in cwd.
-
-  def emwasm_test():
-    emscripten_wasm_out = CompileLLVMTortureBinaryen(
-        'emwasm',
-        EMSCRIPTEN_CONFIG_WASM,
-        EMSCRIPTENWASM_TORTURE_OUT_DIR,
-        EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES)
-    ExecuteLLVMTorture(
-        name='emwasm',
-        runner=os.path.join(INSTALL_BIN, 'd8'),
-        indir=emscripten_wasm_out,
-        fails=EMSCRIPTENWASM_KNOWN_TORTURE_FAILURES,
-        extension='c.js',
-        outdir=emscripten_wasm_out)
-
-  def emtest_test():
-    ExecuteEmscriptenTestSuite(
-        'emwasm',
-        EMSCRIPTEN_CONFIG_WASM,
-        EMSCRIPTEN_TEST_OUT_DIR)
-
-  all_tests = [
-      Test('bare', bare_test),
-      Test('asm', asm_test),
-      Test('emwasm', emwasm_test),
-      Test('emtest', emtest_test),
-  ]
-
-  use_asm = False
-  for t in test_filter.Apply(all_tests):
-    if t.name == 'asm':
-      use_asm = True
   try:
-    BuildRepos(build_filter, use_asm)
+    BuildRepos(build_filter, test_filter.Check('asm'))
   except Exception as e:
     # If any exception reaches here, do not attempt to run the tests; just
     # log the error for buildbot and exit
@@ -1276,7 +1278,7 @@ def run(sync_filter, build_filter, test_filter, options):
     Summary(repos)
     return 1
 
-  for t in test_filter.Apply(all_tests):
+  for t in test_filter.Apply(ALL_TESTS):
     t.Test()
 
   # Keep the summary step last: it'll be marked as red if the return code is
