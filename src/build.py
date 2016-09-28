@@ -1174,10 +1174,11 @@ def run(sync_filter, build_filter, test_filter, options):
 
   try:
     BuildRepos(build_filter, test_filter.Check('asm'))
-  except Exception as e:
+  except Exception:
     # If any exception reaches here, do not attempt to run the tests; just
     # log the error for buildbot and exit
-    print "Exception thrown: {}".format(e)
+    print "Exception thrown in build step."
+    traceback.print_exc()
     buildbot.Fail()
     Summary(repos)
     return 1
