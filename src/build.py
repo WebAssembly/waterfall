@@ -1201,9 +1201,11 @@ def ParseArgs():
                                            initial_indent='  ',
                                            subsequent_indent='  '))
 
-  epilog = (
-      TextWrapNameList('sync targets:\n', ALL_SOURCES) + '\n\n' +
-      TextWrapNameList('build targets:\n', AllBuilds()))
+  epilog = '\n\n'.join([
+      TextWrapNameList('sync targets:\n', ALL_SOURCES),
+      TextWrapNameList('build targets:\n', AllBuilds()),
+      TextWrapNameList('test targets:\n', ALL_TESTS),
+  ])
 
   parser = argparse.ArgumentParser(
       description='Wasm waterfall top-level CI script',
