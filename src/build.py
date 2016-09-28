@@ -1088,6 +1088,13 @@ def BuildRepos(filter=None, use_asm=False):
   for rule in filter.Apply(AllBuilds(use_asm)):
     rule.Run()
 
+class Test:
+  def __init__(self, name_, runnable_):
+    self.name = name_
+    self.runnable = runnable_
+
+  def Test(self):
+    self.runnable()
 
 def ParseArgs():
   import argparse
@@ -1172,17 +1179,7 @@ def run(sync_filter, build_filter, test_filter, options):
   os.environ['PATH'] = (os.path.join(PREBUILT_CMAKE_DIR, 'bin') +
                         os.pathsep + os.environ['PATH'])
 
-  try:
-    BuildRepos(build_filter, test_filter.Check('asm'))
-  except Exception as e:
-    # If any exception reaches here, do not attempt to run the tests; just
-    # log the error for buildbot and exit
-    print "Exception thrown: {}".format(e)
-    buildbot.Fail()
-    Summary(repos)
-    return 1
-
-  if test_filter.Check('bare'):
+  def bare_test():
     CompileLLVMTorture()
     s2wasm_out = LinkLLVMTorture(
         name='s2wasm',
@@ -1224,7 +1221,7 @@ def run(sync_filter, build_filter, test_filter, options):
         wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
         extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
 
-  if test_filter.Check('asm'):
+  def asm_test():
     asm2wasm_out = CompileLLVMTortureBinaryen(
         'asm2wasm',
         EMSCRIPTEN_CONFIG_ASMJS,
@@ -1238,7 +1235,7 @@ def run(sync_filter, build_filter, test_filter, options):
         extension='c.js',
         outdir=asm2wasm_out)  # emscripten's wasm.js expects all files in cwd.
 
-  if test_filter.Check('emwasm'):
+  def emwasm_test():
     emscripten_wasm_out = CompileLLVMTortureBinaryen(
         'emwasm',
         EMSCRIPTEN_CONFIG_WASM,
@@ -1252,11 +1249,35 @@ def run(sync_filter, build_filter, test_filter, options):
         extension='c.js',
         outdir=emscripten_wasm_out)
 
-  if test_filter.Check('emtest'):
+  def emtest_test():
     ExecuteEmscriptenTestSuite(
         'emwasm',
         EMSCRIPTEN_CONFIG_WASM,
         EMSCRIPTEN_TEST_OUT_DIR)
+
+  all_tests = [
+      Test('bare', bare_test),
+      Test('asm', asm_test),
+      Test('emwasm', emwasm_test),
+      Test('emtest', emtest_test),
+  ]
+
+  use_asm = False
+  for t in test_filter.Apply(all_tests):
+    if t.name == 'asm':
+      use_asm = True
+  try:
+    BuildRepos(build_filter, use_asm)
+  except Exception as e:
+    # If any exception reaches here, do not attempt to run the tests; just
+    # log the error for buildbot and exit
+    print "Exception thrown: {}".format(e)
+    buildbot.Fail()
+    Summary(repos)
+    return 1
+
+  for t in test_filter.Apply(all_tests):
+    t.Test()
 
   # Keep the summary step last: it'll be marked as red if the return code is
   # non-zero. Individual steps are marked as red with buildbot.Fail().
