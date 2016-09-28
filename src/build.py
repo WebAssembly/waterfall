@@ -621,7 +621,9 @@ class Filter:
     specified_names = self.include or self.exclude or []
     missing_names = [i for i in specified_names if i not in all_names]
     if missing_names:
-      raise Exception('Invalid step name(s): ' + str(missing_names))
+      raise Exception('Invalid step name(s): ' + str(missing_names) + '\n\n'
+                      'Valid steps:\n' +
+                      TextWrapNameList(prefix='', items=targets))
 
     return [t for t in targets if self.Check(t.name)]
 
@@ -1185,21 +1187,22 @@ ALL_TESTS = [
 ]
 
 
+def TextWrapNameList(prefix, items):
+  import textwrap
+  width = 80  # TODO(binji): better guess?
+  names = sorted(item.name for item in items)
+  return '%s%s' % (prefix, textwrap.fill(' '.join(names), width,
+                                         initial_indent='  ',
+                                         subsequent_indent='  '))
+
+
 def ParseArgs():
   import argparse
-  import textwrap
 
   def SplitComma(arg):
     if not arg:
       return None
     return arg.split(',')
-
-  def TextWrapNameList(prefix, items):
-    width = 80  # TODO(binji): better guess?
-    names = sorted(item.name for item in items)
-    return '%s%s' % (prefix, textwrap.fill(' '.join(names), width,
-                                           initial_indent='  ',
-                                           subsequent_indent='  '))
 
   epilog = '\n\n'.join([
       TextWrapNameList('sync targets:\n', ALL_SOURCES),
