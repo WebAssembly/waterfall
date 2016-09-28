@@ -866,15 +866,16 @@ def Emscripten(use_asm=True):
     with open(outfile, 'w') as config:
       config.write(text)
 
-  WriteEmscriptenConfig(os.path.join(SCRIPT_DIR, 'emscripten_config'),
-                        EMSCRIPTEN_CONFIG_ASMJS)
-  WriteEmscriptenConfig(os.path.join(SCRIPT_DIR, 'emscripten_config_vanilla'),
-                        EMSCRIPTEN_CONFIG_WASM)
+  configs = [EMSCRIPTEN_CONFIG_WASM]
+  if use_asm:
+      configs.append(EMSCRIPTEN_CONFIG_ASMJS)
 
-  configs = [EMSCRIPTEN_CONFIG_WASM] + (
-      [EMSCRIPTEN_CONFIG_ASMJS] if use_asm else [])
-  for config in configs:
+  for config in enumerate(configs):
+    if config == EMSCRIPTEN_CONFIG_ASMJS:
+      buildbot.Step('emscripten (asm2wasm)')
     print 'Config file: ', config
+    src_config = os.path.join(SCRIPT_DIR, os.path.basename(config))
+    WriteEmscriptenConfig(src_config, config)
     try:
       # Build a C++ file with each active emscripten config. This causes system
       # libs to be built and cached (so we don't have that happen when building
@@ -1018,14 +1019,14 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, outdir='',
   return outdir
 
 
-def ExecuteEmscriptenTestSuite(name, outdir):
-  buildbot.Step('Execute emscripten testsuite (emwasm)')
-  Mkdir(EMSCRIPTEN_TEST_OUT_DIR)
+def ExecuteEmscriptenTestSuite(name, config, outdir):
+  buildbot.Step('Execute emscripten testsuite (%s)' % name)
+  Mkdir(outdir)
   try:
     proc.check_call(
         [sys.executable,
          os.path.join(INSTALL_BIN, 'emscripten', 'tests', 'runner.py'),
-         'binaryen2', '--em-config', EMSCRIPTEN_CONFIG_WASM],
+         'binaryen2', '--em-config', config],
         cwd=outdir)
   except proc.CalledProcessError:
     buildbot.Fail(True)
@@ -1257,8 +1258,9 @@ def run(sync_filter, build_filter, test_filter, options):
 
   if test_filter.Check('emtest'):
     ExecuteEmscriptenTestSuite(
-        'Emscripten test suite (wasm backend)',
-        outdir=EMSCRIPTEN_TEST_OUT_DIR)
+        'emwasm',
+        EMSCRIPTEN_CONFIG_WASM,
+        EMSCRIPTEN_TEST_OUT_DIR)
 
   # Keep the summary step last: it'll be marked as red if the return code is
   # non-zero. Individual steps are marked as red with buildbot.Fail().
