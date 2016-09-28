@@ -611,7 +611,7 @@ class Filter:
     """
     if include and exclude:
       raise Exception('Filter cannot include both include and exclude rules')
-
+    print 'Filter: ', include, exclude
     self.include = include
     self.exclude = exclude
 
@@ -622,19 +622,17 @@ class Filter:
     missing_names = [i for i in specified_names if i not in all_names]
     if missing_names:
       raise Exception('Invalid step name(s): ' + str(missing_names))
-    if self.include is not None:
-      return [t for t in targets if t.name in self.include]
-    if self.exclude:
-      return [t for t in targets if t.name not in self.exclude]
-    return targets
 
-  class DummyTarget:
-    def __init__(self, name):
-      self.name = name
+
+    return [t for t in targets if self.Check(t.name)]
 
   def Check(self, target):
     """ Return true if the specified target will be run. """
-    return len(self.Apply([self.DummyTarget(target)])) > 0
+    if self.include is not None:
+      return target in self.include
+
+    return self.exclude is None or target not in self.exclude
+
 
   def All(self):
     """ Return true if all possible targets will be run. """
