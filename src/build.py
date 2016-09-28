@@ -601,7 +601,7 @@ class Filter:
   """Filter for source or build rules, to allow including or excluding only
      selected targets.
   """
-  def __init__(self, include=None, exclude=None):
+  def __init__(self, name=None, include=None, exclude=None):
     """ include:
          if present, only items in it will be included (if empty, nothing will
          be included).
@@ -612,6 +612,7 @@ class Filter:
     if include and exclude:
       raise Exception('Filter cannot include both include and exclude rules')
 
+    self.name = name
     self.include = include
     self.exclude = exclude
 
@@ -621,9 +622,10 @@ class Filter:
     specified_names = self.include or self.exclude or []
     missing_names = [i for i in specified_names if i not in all_names]
     if missing_names:
-      raise Exception('Invalid step name(s): ' + str(missing_names) + '\n\n'
-                      'Valid steps:\n' +
-                      TextWrapNameList(prefix='', items=targets))
+      raise Exception('Invalid step name(s): {0}\n\n'
+                      'Valid {1} steps:\n{2}'
+                      .format(missing_names, self.name,
+                              TextWrapNameList(prefix='', items=targets)))
 
     return [t for t in targets if self.Check(t.name)]
 
@@ -1297,11 +1299,11 @@ def main():
   start = time.time()
   options = ParseArgs()
   sync_include = options.sync_include if options.sync else []
-  sync_filter = Filter(sync_include, options.sync_exclude)
+  sync_filter = Filter('sync', sync_include, options.sync_exclude)
   build_include = options.build_include if options.build else []
-  build_filter = Filter(build_include, options.build_exclude)
+  build_filter = Filter('build', build_include, options.build_exclude)
   test_include = options.test_include if options.test else []
-  test_filter = Filter(test_include, options.test_exclude)
+  test_filter = Filter('test', test_include, options.test_exclude)
 
   if IsBuildbot():
     # Chrome's buildbot infra includes in its paths a module called 'tools'
