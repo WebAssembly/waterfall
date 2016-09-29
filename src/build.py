@@ -838,12 +838,13 @@ def Fastcomp():
 
 
 def Emscripten(use_asm=True):
-  buildbot.Step('emscripten (emwasm)')
+  buildbot.Step('emscripten')
   # Remove cached library builds (e.g. libc, libc++) to force them to be
   # rebuilt in the step below.
   Remove(os.path.expanduser(os.path.join('~', '.emscripten_cache')))
   emscripten_dir = os.path.join(INSTALL_DIR, 'bin', 'emscripten')
   Remove(emscripten_dir)
+  print 'Copying directory %s to %s' % (EMSCRIPTEN_SRC_DIR, emscripten_dir)
   shutil.copytree(EMSCRIPTEN_SRC_DIR,
                   emscripten_dir,
                   symlinks=True,
@@ -856,13 +857,13 @@ def Emscripten(use_asm=True):
     with open(outfile, 'w') as config:
       config.write(text)
 
-  configs = [EMSCRIPTEN_CONFIG_WASM]
+  configs = [('emwasm', EMSCRIPTEN_CONFIG_WASM)]
   if use_asm:
-      configs.append(EMSCRIPTEN_CONFIG_ASMJS)
+      # build with asm2wasm first to match the ordering of the test steps
+      configs.insert(0, ('asm2wasm', EMSCRIPTEN_CONFIG_ASMJS))
 
-  for config in configs:
-    if config == EMSCRIPTEN_CONFIG_ASMJS:
-      buildbot.Step('emscripten (asm2wasm)')
+  for config_name, config in configs:
+    buildbot.Step('emscripten (%s)' % config_name)
     print 'Config file: ', config
     src_config = os.path.join(SCRIPT_DIR, os.path.basename(config))
     WriteEmscriptenConfig(src_config, config)
