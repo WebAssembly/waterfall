@@ -416,7 +416,7 @@ class Source:
   def PrintGitStatus(self):
     """"Print the current git status for the sync target."""
     print '<<<<<<<<<< STATUS FOR', self.name, '>>>>>>>>>>'
-    if self.src_dir:
+    if os.path.exists(self.src_dir):
       proc.check_call(['git', 'status'], cwd=self.src_dir)
     print
 
@@ -1242,7 +1242,8 @@ def ParseArgs():
 
   parser.add_argument(
       '--git-status', dest='git_status', default=False, action='store_true',
-      help='Show git status for each sync target')
+      help='Show git status for each sync target. '
+           "Doesn't sync, build, or test")
 
   return parser.parse_args()
 
