@@ -391,7 +391,7 @@ class Source:
     AddGithubRemote(self.src_dir)
 
   def CurrentGitInfo(self):
-    if not self.src_dir:
+    if not os.path.exists(self.src_dir):
       return None
 
     def pretty(fmt):
@@ -1242,9 +1242,7 @@ def run(sync_filter, build_filter, test_filter, options):
   Chdir(SCRIPT_DIR)
   Mkdir(WORK_DIR)
   SyncRepos(sync_filter, options.sync_lkgr)
-  repos = None
-  if sync_filter.Check(''):
-    repos = GetRepoInfo()
+  repos = GetRepoInfo()
   if build_filter.All():
     Remove(INSTALL_DIR)
     Mkdir(INSTALL_DIR)
