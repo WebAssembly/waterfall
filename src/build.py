@@ -413,6 +413,13 @@ class Source:
         'remote': remote,
     }
 
+  def PrintGitStatus(self):
+    """"Print the current git status for the sync target."""
+    print '<<<<<<<<<< STATUS FOR', self.name, '>>>>>>>>>>'
+    if self.src_dir:
+      proc.check_call(['git', 'status'], cwd=self.src_dir)
+    print
+
 
 def ChromiumFetchSync(name, work_dir, git_repo,
                       checkout=RemoteBranch('master')):
@@ -1233,10 +1240,19 @@ def ParseArgs():
       '--test-exclude', dest='test_exclude', default='', type=SplitComma,
       help='Include only the comma-separated list of test targets')
 
+  parser.add_argument(
+      '--git-status', dest='git_status', default=False, action='store_true',
+      help='Show git status for each sync target')
+
   return parser.parse_args()
 
 
 def run(sync_filter, build_filter, test_filter, options):
+  if options.git_status:
+    for s in ALL_SOURCES:
+      s.PrintGitStatus()
+    return 0
+
   Clobber()
   Chdir(SCRIPT_DIR)
   Mkdir(WORK_DIR)
@@ -1276,6 +1292,7 @@ def main():
   import time
   start = time.time()
   options = ParseArgs()
+
   sync_include = options.sync_include if options.sync else []
   sync_filter = Filter('sync', sync_include, options.sync_exclude)
   build_include = options.build_include if options.build else []
