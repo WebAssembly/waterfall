@@ -203,7 +203,12 @@ def execute(tester, inputs, fails):
   for result in results:
     sys.stdout.write(str(result) + '\n\n')
   cutoff = 0.9
-  similar_expected_failures = similarity(expected_failures, cutoff)
+  too_many_failures = int(len(inputs) * 0.5)
+  if len(expected_failures) < too_many_failures:
+    similar_expected_failures = similarity(expected_failures, cutoff)
+  else:
+    print 'Too many expected failures to show similarity'
+    similar_expected_failures = []
   for s in similar_expected_failures:
     tests = ' '.join(s.tests)
     if s.average >= cutoff * 100.:
@@ -216,7 +221,11 @@ def execute(tester, inputs, fails):
       sys.stdout.write(('\nUngrouped expected failures, '
                         'average %s%% similarity with stddev %s: '
                         '%s\n') % (s.average, s.stddev, tests))
-  similar_unexpected_failures = similarity(unexpected_failures, cutoff)
+  if len(unexpected_failures) < too_many_failures:
+    similar_unexpected_failures = similarity(unexpected_failures, cutoff)
+  else:
+    print 'Too many unexpected failures to show similarity'
+    similar_unexpected_failures = []
   for s in similar_unexpected_failures:
     tests = ' '.join(s.tests)
     if s.average >= cutoff * 100.:
