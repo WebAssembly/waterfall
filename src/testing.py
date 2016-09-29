@@ -202,33 +202,44 @@ def execute(tester, inputs, fails):
   sys.stdout.write('\nResults:\n')
   for result in results:
     sys.stdout.write(str(result) + '\n\n')
+
   cutoff = 0.9
-  similar_expected_failures = similarity(expected_failures, cutoff)
-  for s in similar_expected_failures:
-    tests = ' '.join(s.tests)
-    if s.average >= cutoff * 100.:
-      sys.stdout.write(('\nSimilar expected failures, '
-                        'average %s%% similarity with stddev %s: '
-                        '%s\n') % (s.average, s.stddev, tests))
-      sample = [f for f in expected_failures if f.test == s.tests[0]][0]
-      sys.stdout.write('Sample failure: %s\n' % sample)
-    else:
-      sys.stdout.write(('\nUngrouped expected failures, '
-                        'average %s%% similarity with stddev %s: '
-                        '%s\n') % (s.average, s.stddev, tests))
-  similar_unexpected_failures = similarity(unexpected_failures, cutoff)
-  for s in similar_unexpected_failures:
-    tests = ' '.join(s.tests)
-    if s.average >= cutoff * 100.:
-      sys.stdout.write(('\nSimilar unexpected failures, '
-                        'average %s%% similarity with stddev %s: '
-                        '%s\n') % (s.average, s.stddev, tests))
-      sample = [f for f in unexpected_failures if f.test == s.tests[0]][0]
-      sys.stdout.write('Sample failure: %s\n' % sample)
-    else:
-      sys.stdout.write(('\nUngrouped unexpected failures, '
-                        'average %s%% similarity with stddev %s: '
-                        '%s\n') % (s.average, s.stddev, tests))
+  # Calculating similarity is pretty expensive. If more than half the tests are
+  # failing, it can take minutes, and most of them are probably failing for the
+  # same fundamental reason. Skip in that case.
+  too_many_failures = int(len(inputs) * 0.5)
+
+  def similar_failures(label, failures):
+    if len(failures) > too_many_failures:
+      print 'Too many %s failures to show similarity' % label
+      return []
+    return similarity(failures, cutoff)
+
+  similar_expected_failures = similar_failures('expected', expected_failures)
+  similar_unexpected_failures = similar_failures('unexpected',
+                                                 unexpected_failures)
+
+  def show_similar_failures(label, similar, failures):
+    for s in similar:
+      tests = ' '.join(s.tests)
+      if s.average >= cutoff * 100.:
+        sys.stdout.write(('\nSimilar %s failures, '
+                          'average %s%% similarity with stddev %s: '
+                          '%s\n') % (label, s.average, s.stddev, tests))
+        sample = [f for f in failures if f.test == s.tests[0]][0]
+        sys.stdout.write('Sample failure: %s\n' % sample)
+      else:
+        sys.stdout.write(('\nUngrouped %s failures, '
+                          'average %s%% similarity with stddev %s: '
+                          '%s\n') % (label, s.average, s.stddev, tests))
+
+  show_similar_failures('expected',
+                        similar_expected_failures,
+                        expected_failures)
+  show_similar_failures('unexpected',
+                        similar_unexpected_failures,
+                        unexpected_failures)
+
   if expected_failures:
     sys.stdout.write('Expected failures:\n')
     for f in expected_failures:
