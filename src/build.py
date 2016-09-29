@@ -57,7 +57,6 @@ WABT_SRC_DIR = os.path.join(WORK_DIR, 'wabt')
 SPEC_SRC_DIR = os.path.join(WORK_DIR, 'spec')
 ML_DIR = os.path.join(SPEC_SRC_DIR, 'ml-proto')
 BINARYEN_SRC_DIR = os.path.join(WORK_DIR, 'binaryen')
-BINARYEN_0xB_SRC_DIR = os.path.join(WORK_DIR, 'binaryen-0xb')
 MUSL_SRC_DIR = os.path.join(WORK_DIR, 'musl')
 
 FIND_SVN_REV = os.path.join(SCRIPT_DIR, 'find_svn_rev.py')
@@ -80,7 +79,6 @@ LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out.gn', 'x64.release')
 WABT_OUT_DIR = os.path.join(WORK_DIR, 'wabt-out')
 BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
-BINARYEN_0xB_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out-0xb')
 FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
 MUSL_OUT_DIR = os.path.join(WORK_DIR, 'musl-out')
 TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
@@ -522,12 +520,6 @@ ALL_SOURCES = [
            WASM_GIT_BASE + 'spec.git'),
     Source('binaryen', BINARYEN_SRC_DIR,
            WASM_GIT_BASE + 'binaryen.git'),
-    Source('binaryen-0xb', BINARYEN_0xB_SRC_DIR,
-           WASM_GIT_BASE + 'binaryen.git',
-           # This is the commit hash for the last 0xb-compatible binaryen
-           # version. This is hardcoded because we shouldn't keep this after
-           # the rest of the toolchain is 0xc-compatible.
-           checkout='79029eb346b721eacdaa28326fe8e7b50042611c'),
     Source('musl', MUSL_SRC_DIR,
            WASM_GIT_BASE + 'musl.git',
            checkout=RemoteBranch('wasm-prototype-1'))
@@ -796,36 +788,26 @@ def Spec():
   CopyBinaryToArchive(wasm)
 
 
-def BinaryenBase(step_name, src_dir, out_dir, archive_dir=None):
-  buildbot.Step(step_name)
-  Mkdir(out_dir)
+def Binaryen():
+  buildbot.Step('binaryen')
+  Mkdir(BINARYEN_OUT_DIR)
   proc.check_call(
-      [PREBUILT_CMAKE_BIN, '-G', 'Ninja', src_dir,
+      [PREBUILT_CMAKE_BIN, '-G', 'Ninja', BINARYEN_SRC_DIR,
        '-DCMAKE_C_COMPILER=' + CC,
        '-DCMAKE_CXX_COMPILER=' + CXX],
-      cwd=out_dir)
-  proc.check_call(['ninja'], cwd=out_dir)
-  bin_dir = os.path.join(out_dir, 'bin')
+      cwd=BINARYEN_OUT_DIR)
+  proc.check_call(['ninja'], cwd=BINARYEN_OUT_DIR)
+  bin_dir = os.path.join(BINARYEN_OUT_DIR, 'bin')
   assert os.path.isdir(bin_dir), 'Expected %s' % bin_dir
   for node in os.listdir(bin_dir):
     f = os.path.join(bin_dir, node)
     if os.path.isfile(f):
-      CopyBinaryToArchive(f, archive_dir)
-  CopyBinaryToArchive(os.path.join(src_dir, 'bin', 'wasm.js'), archive_dir)
-  if archive_dir is None:  # Only do this for the 'master' Binaryen
-    js_src_dir = os.path.join(src_dir, 'src', 'js')
-    js_dest_dir = os.path.join(INSTALL_DIR, 'src', 'js')
-    print 'copying directory', js_src_dir, 'to', js_dest_dir
-    CopyTree(js_src_dir, js_dest_dir)
-
-
-def Binaryen():
-  BinaryenBase('binaryen', BINARYEN_SRC_DIR, BINARYEN_OUT_DIR)
-
-
-def Binaryen0xb():
-  BinaryenBase('binaryen-0xb', BINARYEN_0xB_SRC_DIR, BINARYEN_0xB_OUT_DIR,
-               archive_dir='0xb')
+      CopyBinaryToArchive(f)
+  CopyBinaryToArchive(os.path.join(BINARYEN_SRC_DIR, 'bin', 'wasm.js'))
+  js_src_dir = os.path.join(BINARYEN_SRC_DIR, 'src', 'js')
+  js_dest_dir = os.path.join(INSTALL_DIR, 'src', 'js')
+  print 'copying directory', js_src_dir, 'to', js_dest_dir
+  CopyTree(js_src_dir, js_dest_dir)
 
 
 def Fastcomp():
@@ -904,7 +886,7 @@ def Musl():
     proc.check_call([
         os.path.join(MUSL_SRC_DIR, 'libc.py'),
         '--clang_dir', INSTALL_BIN,
-        '--binaryen_dir', os.path.join(INSTALL_BIN, '0xb'),
+        '--binaryen_dir', os.path.join(INSTALL_BIN),
         '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wast2wasm'),
         '--musl', MUSL_SRC_DIR], cwd=MUSL_OUT_DIR)
     for f in ['musl.wast', 'musl.wasm']:
@@ -1076,7 +1058,6 @@ def AllBuilds(use_asm=False):
       Build('ocaml', OCaml),
       Build('spec', Spec),
       Build('binaryen', Binaryen),
-      Build('binaryen-0xb', Binaryen0xb),
       Build('fastcomp', Fastcomp),
       Build('emscripten', Emscripten, use_asm),
       # Target libs
@@ -1104,7 +1085,7 @@ def TestBare():
   CompileLLVMTorture()
   s2wasm_out = LinkLLVMTorture(
       name='s2wasm',
-      linker=os.path.join(INSTALL_BIN, '0xb', 's2wasm'),
+      linker=os.path.join(INSTALL_BIN, 's2wasm'),
       fails=S2WASM_KNOWN_TORTURE_FAILURES)
   wast2wasm_out = AssembleLLVMTorture(
       name='wast2wasm',
@@ -1113,7 +1094,7 @@ def TestBare():
       fails=WAST2WASM_KNOWN_TORTURE_FAILURES)
   ExecuteLLVMTorture(
       name='wasm-shell',
-      runner=os.path.join(INSTALL_BIN, '0xb', 'wasm-shell'),
+      runner=os.path.join(INSTALL_BIN, 'wasm-shell'),
       indir=s2wasm_out,
       fails=BINARYEN_SHELL_KNOWN_TORTURE_FAILURES,
       extension='wast',
