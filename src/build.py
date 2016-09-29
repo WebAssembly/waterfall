@@ -104,6 +104,7 @@ LLVM_OFFICIAL_MIRROR_BASE = GIT_MIRROR_BASE + 'external/llvm.org/'
 GITHUB_MIRROR_BASE = GIT_MIRROR_BASE + 'external/github.com/'
 LLVM_GITHUB_MIRROR_BASE = GITHUB_MIRROR_BASE + 'llvm-mirror/'
 WASM_GIT_BASE = GITHUB_MIRROR_BASE + 'WebAssembly/'
+WASM_GITHUB_BASE = 'https://github.com/WebAssembly/'
 EMSCRIPTEN_GIT_BASE = GITHUB_MIRROR_BASE + 'kripken/'
 
 # Name of remote for build script to use. Don't touch origin to avoid
@@ -514,8 +515,9 @@ ALL_SOURCES = [
     Source('cmake', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltCMake),
     Source('wabt', WABT_SRC_DIR,
-           # TODO: Update this when chromium's mirror updates.
-           WASM_GIT_BASE + 'sexpr-wasm-prototype.git'),
+           # TODO: Change to WASM_GIT_BASE once the mirror is in place:
+           # http://crbug.com/650786
+           WASM_GITHUB_BASE + 'wabt.git'),
     Source('spec', SPEC_SRC_DIR,
            WASM_GIT_BASE + 'spec.git'),
     Source('binaryen', BINARYEN_SRC_DIR,
