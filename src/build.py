@@ -754,15 +754,15 @@ def V8():
 
 def Wabt():
   buildbot.Step('WABT')
-  Mkdir(WABT_OUT_DIR),
+  Mkdir(WABT_OUT_DIR)
   proc.check_call([PREBUILT_CMAKE_BIN, '-G', 'Ninja', WABT_SRC_DIR,
                    '-DCMAKE_C_COMPILER=%s' % CC,
                    '-DCMAKE_CXX_COMPILER=%s' % CXX,
+                   '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR,
                    '-DBUILD_TESTS=OFF'],
                   cwd=WABT_OUT_DIR)
   proc.check_call(['ninja'], cwd=WABT_OUT_DIR)
-  wast2wasm = os.path.join(WABT_OUT_DIR, 'wast2wasm')
-  CopyBinaryToArchive(wast2wasm)
+  proc.check_call(['ninja', 'install'], cwd=WABT_OUT_DIR)
 
 
 def OCaml():
