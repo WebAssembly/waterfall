@@ -1054,17 +1054,16 @@ def Summary(repos):
   for step in buildbot.FailedList():
     print '    %s' % step
 
-  latest_file = os.path.join(WORK_DIR, 'latest')
-  with open(latest_file, 'w+') as f:
+  info_file = os.path.join(INSTALL_DIR, 'buildinfo.json')
+  with open(info_file, 'w+') as f:
     f.write(info_json)
-  buildbot.Link('latest', cloud.Upload(latest_file, 'latest'))
+
+  buildbot.Link('latest', cloud.Upload(info_file, 'latest'))
+
   if buildbot.Failed():
     buildbot.Fail()
   else:
-    lkgr_file = os.path.join(WORK_DIR, 'lkgr')
-    with open(lkgr_file, 'w+') as f:
-      f.write(info_json)
-    buildbot.Link('lkgr', cloud.Upload(lkgr_file, 'lkgr'))
+    buildbot.Link('lkgr', cloud.Upload(info_file, 'lkgr'))
 
 
 def AllBuilds(use_asm=False):
