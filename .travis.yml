@@ -14,6 +14,6 @@ before_script:
   - flake8 --version
 script:
   - flake8
-  - ./src/build.py --sync-include=chromium-clang,cmake,wabt --build-include=wabt --no-test
+  - ./src/build.py --sync-include=chromium-clang,cmake,wabt --build-include=wabt,debian --no-test
 notifications:
   email: false

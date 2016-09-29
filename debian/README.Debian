@@ -1,0 +1,11 @@
+wasm-toolchain for Debian
+-------------------------
+
+This is a binary-only package produced by the wasm waterfall which
+is hosted at https://wasm-stat.us/.  The code that runs the build
+is hosted at https://github.com/WebAssembly/waterfall.
+
+The versions of each of the source package that were used to produce
+this package are documented in /usr/share/wasm/buildinfo.json.
+
+ -- Sam Clegg <sbc@chromium.org>  Fri, 23 Sep 2016 10:57:11 -0700
