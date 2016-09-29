@@ -1143,7 +1143,7 @@ def TestBare():
 
 def TestAsm():
   asm2wasm_out = CompileLLVMTortureBinaryen(
-      'Compile LLVM Torture (asm2wasm)',
+      'asm2wasm',
       EMSCRIPTEN_CONFIG_ASMJS,
       ASM2WASM_TORTURE_OUT_DIR,
       ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES)
@@ -1158,12 +1158,12 @@ def TestAsm():
 
 def TestEmwasm():
   emscripten_wasm_out = CompileLLVMTortureBinaryen(
-      'Compile LLVM Torture (emscripten+wasm backend)',
+      'emwasm',
       EMSCRIPTEN_CONFIG_WASM,
       EMSCRIPTENWASM_TORTURE_OUT_DIR,
       EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES)
   ExecuteLLVMTorture(
-      name='emscripten-wasm',
+      name='emwasm',
       runner=os.path.join(INSTALL_BIN, 'd8'),
       indir=emscripten_wasm_out,
       fails=EMSCRIPTENWASM_KNOWN_TORTURE_FAILURES,
@@ -1173,8 +1173,9 @@ def TestEmwasm():
 
 def TestEmtest():
   ExecuteEmscriptenTestSuite(
-      'Emscripten test suite (wasm backend)',
-      outdir=EMSCRIPTEN_TEST_OUT_DIR)
+      'emtest',
+      EMSCRIPTEN_CONFIG_WASM,
+      EMSCRIPTEN_TEST_OUT_DIR)
 
 
 ALL_TESTS = [
