@@ -814,8 +814,7 @@ def BinaryenBase(step_name, src_dir, out_dir, archive_dir=None):
     js_src_dir = os.path.join(src_dir, 'src', 'js')
     js_dest_dir = os.path.join(INSTALL_DIR, 'src', 'js')
     print 'copying directory', js_src_dir, 'to', js_dest_dir
-    shutil.rmtree(js_dest_dir)
-    shutil.copytree(js_src_dir, js_dest_dir)
+    CopyTree(js_src_dir, js_dest_dir)
 
 
 def Binaryen():
