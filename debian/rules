@@ -15,8 +15,8 @@ DESTDIR = $(TMP)$(PREFIX)
 override_dh_auto_install:
 	mkdir -p debian/wasm-toolchain/opt/wasm
 	cp -ar src/work/wasm-install/* $(DESTDIR)
-	find $(DESTDIR) -name "*.pyc" -exec "rm {}" \;
+	find $(DESTDIR) -name "*.pyc" -exec rm "{}" \;
 	rm -rf $(DESTDIR)/bin/emscripten/tests
-	rm -rf $(DESTDIR)/bin/emscripten/third_party
 	cp src/emscripten_config* debian/wasm-toolchain/opt/wasm
+	rm -f debian/wasm-toolchain/opt/wasm/emscripten_config*sanity*
 	perl -pi -e 's/{{WASM_INSTALL}}/\/opt\/wasm/' debian/wasm-toolchain/opt/wasm/emscripten_config*
