@@ -657,6 +657,8 @@ def SyncRepos(filter, sync_lkgr=False):
       buildername = 'mac'
     elif sys.platform == 'win32':
       buildername = 'windows'
+    else
+      raise Exception('Unknown platform: %s' % sys.platform)
     lkgr_file = os.path.join(WORK_DIR, 'lkgr.json')
     cloud.Download('%s/lkgr.json' % buildername, lkgr_file)
     lkgr = json.loads(open(lkgr_file).read())
@@ -1073,13 +1075,16 @@ def Summary(repos):
   info_file = os.path.join(INSTALL_DIR, 'buildinfo.json')
   with open(info_file, 'w+') as f:
     f.write(info_json)
+    f.write('\n')
 
-  buildbot.Link('latest.json', cloud.Upload(info_file, 'latest.json'))
+  latest_file = '%s/%s' % (BUILDBOT_BUILDNUMBER, 'latest.json')
+  buildbot.Link('latest.json', cloud.Upload(info_file, latest_file))
 
   if buildbot.Failed():
     buildbot.Fail()
   else:
-    buildbot.Link('lkgr.json', cloud.Upload(info_file, 'lkgr.json'))
+    lkgr_file = '%s/%s' % (BUILDBOT_BUILDNUMBER, 'lkgr.json')
+    buildbot.Link('lkgr.json', cloud.Upload(info_file, lkgr_file))
 
 
 def AllBuilds(use_asm=False):
