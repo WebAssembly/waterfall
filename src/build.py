@@ -887,6 +887,10 @@ def Emscripten(use_asm=True):
       del os.environ['EMCC_DEBUG']
       del os.environ['EM_CONFIG']
 
+  wrapper = os.path.join(SCRIPT_DIR, 'emcc_wrapper.sh')
+  shutil.copy2(wrapper, os.path.join(INSTALL_BIN, 'emcc'))
+  shutil.copy2(wrapper, os.path.join(INSTALL_BIN, 'em++'))
+
 
 def Musl():
   buildbot.Step('musl')
