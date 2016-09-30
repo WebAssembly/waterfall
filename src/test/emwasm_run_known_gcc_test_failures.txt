@@ -31,11 +31,7 @@ shiftdi.c.js
 complex-5.c.js # missing fmaxf, presumably needed by compiler-rt
 
 ## The following work using wasm-clang without emcc
-	20040811-1.c.js # OOB trap
-	20070824-1.c.js # abort() (also works without emcc)
 	pr23135.c.js # OOB trap (works without emcc)
-	pr43220.c.js # OOB trap (works without emcc)
-	vla-dealloc-1.c.js # OOB trap (works without emcc)
 	20051012-1.c.js # error reading binary
 	921208-2.c.js # error reading binary
 	920501-1.c.js # error reading binary
