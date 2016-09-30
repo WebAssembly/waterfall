@@ -604,12 +604,13 @@ class Filter:
      selected targets.
   """
   def __init__(self, name=None, include=None, exclude=None):
-    """ include:
-         if present, only items in it will be included (if empty, nothing will
-         be included).
-        exclude:
-         if present, items in it will be excluded.
-        include ane exclude cannot both be present.
+    """
+    include:
+      if present, only items in it will be included (if empty, nothing will
+      be included).
+    exclude:
+      if present, items in it will be excluded.
+      include ane exclude cannot both be present.
     """
     if include and exclude:
       raise Exception('Filter cannot include both include and exclude rules')
@@ -619,7 +620,7 @@ class Filter:
     self.exclude = exclude
 
   def Apply(self, targets):
-    """ Return the filtered list of targets. """
+    """Return the filtered list of targets."""
     all_names = [t.name for t in targets]
     specified_names = self.include or self.exclude or []
     missing_names = [i for i in specified_names if i not in all_names]
@@ -632,7 +633,7 @@ class Filter:
     return [t for t in targets if self.Check(t.name)]
 
   def Check(self, target):
-    """ Return true if the specified target will be run. """
+    """Return true if the specified target will be run."""
     if self.include is not None:
       return target in self.include
 
@@ -641,7 +642,7 @@ class Filter:
     return True
 
   def All(self):
-    """ Return true if all possible targets will be run. """
+    """Return true if all possible targets will be run."""
     return self.include is None and not self.exclude
 
 
@@ -650,8 +651,14 @@ def SyncRepos(filter, sync_lkgr=False):
 
   good_hashes = None
   if sync_lkgr:
-    lkgr_file = os.path.join(WORK_DIR, 'lkgr')
-    cloud.Download('lkgr', lkgr_file)
+    if sys.platform.startswith('linux'):
+      buildername = 'linux'
+    elif sys.platform == 'darwin':
+      buildername = 'mac'
+    elif sys.platform == 'win32':
+      buildername = 'windows'
+    lkgr_file = os.path.join(WORK_DIR, 'lkgr.json')
+    cloud.Download('%s/lkgr.json' % buildername, lkgr_file)
     lkgr = json.loads(open(lkgr_file).read())
     good_hashes = {}
     for k, v in lkgr['repositories'].iteritems():
@@ -1067,12 +1074,12 @@ def Summary(repos):
   with open(info_file, 'w+') as f:
     f.write(info_json)
 
-  buildbot.Link('latest', cloud.Upload(info_file, 'latest'))
+  buildbot.Link('latest.json', cloud.Upload(info_file, 'latest.json'))
 
   if buildbot.Failed():
     buildbot.Fail()
   else:
-    buildbot.Link('lkgr', cloud.Upload(info_file, 'lkgr'))
+    buildbot.Link('lkgr.json', cloud.Upload(info_file, 'lkgr.json'))
 
 
 def AllBuilds(use_asm=False):
