@@ -916,6 +916,24 @@ def ArchiveBinaries():
   Archive('binaries', Tar(INSTALL_DIR, print_content=True))
 
 
+def DebianPackage():
+  if not sys.platform.startswith('linux'):
+    return
+  buildbot.Step('Debian package')
+  top_dir = os.path.dirname(SCRIPT_DIR)
+  try:
+    proc.check_call(['debuild', '--no-lintian', '-i', '-us', '-uc', '-b'],
+                    cwd=top_dir)
+  except proc.CalledProcessError:
+    # Note the failure but allow the build to continue.
+    buildbot.Fail()
+    return
+
+  debfile = os.path.join(os.path.dirname(top_dir),
+                         'wasm-toolchain_0.1_amd64.deb')
+  UploadFile(debfile, os.path.basename(debfile))
+
+
 def CompileLLVMTorture():
   name = 'Compile LLVM Torture'
   buildbot.Step(name)
@@ -1071,6 +1089,7 @@ def AllBuilds(use_asm=False):
       Build('musl', Musl),
       # Archive
       Build('archive', ArchiveBinaries),
+      Build('debian', DebianPackage),
   ]
 
 
