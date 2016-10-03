@@ -922,8 +922,10 @@ def ArchiveBinaries():
 
 
 def DebianPackage():
-  if not sys.platform.startswith('linux'):
+  is_linux = sys.platform.startswith('linux')
+  if not (is_linux and IsBuildbot()):
     return
+
   buildbot.Step('Debian package')
   top_dir = os.path.dirname(SCRIPT_DIR)
   try:
