@@ -100,7 +100,3 @@ va-arg-22.c.s.wast.wasm # abort()
 # LLVM emits a divide by zero:
 #   https://llvm.org/bugs/show_bug.cgi?id=26452
 pr60960.c.s.wast.wasm # divide by zero
-
-# New in 0xc:
-# abort() gets called
-930126-1.c.s.wast.wasm
