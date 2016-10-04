@@ -8,7 +8,7 @@ import os
 WASM_INSTALL = '{{WASM_INSTALL}}'
 
 # this helps projects using emscripten find it
-EMSCRIPTEN_ROOT = os.path.join(WASM_INSTALL, 'bin', 'emscripten') # directory
+EMSCRIPTEN_ROOT = os.path.join(WASM_INSTALL, 'emscripten') # directory
 LLVM_ROOT = os.path.join(WASM_INSTALL, 'fastcomp', 'bin') # directory
 BINARYEN_ROOT = os.path.join(WASM_INSTALL) # directory
 
