@@ -8,7 +8,7 @@ is hosted at https://github.com/WebAssembly/waterfall.
 This package includes the following components:
 
  - upstream llvm including wasm backend (/opt/wasm/llvm)
- - fastcmp llvm (/opt/wasm/fastcomp)
+ - fastcomp llvm (/opt/wasm/fastcomp)
  - emscripten (/opt/wasm/emscripten)
  - binaryen (/opt/wasm/bin/ /opt/wasm/src/js/)
  - wabt (/opt/wasm/bin/)
@@ -25,5 +25,7 @@ These wrapper scripts allow emcc and em++ to be used without any
 EM_CONFIG or ~/.emscripten (i.e. they provide a pre-configured
 version of the toolchain).  The preconfigured toolchain will use
 upstream LLVM when EMCC_WASM_BACKEND is set and fastcomp otherwise.
+Technically it is still possible to override this with --em-config
+on the command line.
 
  -- Sam Clegg <sbc@chromium.org>  Fri, 23 Sep 2016 10:57:11 -0700

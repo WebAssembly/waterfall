@@ -4,8 +4,8 @@
 # The intent of this scripts is to provide entry points into a pre-baked
 # toolchain that is not configured via EM_CONFIG or $HOME/.emscripten, but
 # worked out-of-the-box with a builtin configuration file.
-# Technically it is still possible to override this with --em-config command
-# line.
+# Technically it is still possible to override this with --em-config on the
+# command line.
 
 SCRIPT_FILE=$(readlink -f "${BASH_SOURCE}")
 SCRIPT_DIR=$(cd $(dirname "${SCRIPT_FILE}") && pwd)
