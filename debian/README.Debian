@@ -10,9 +10,9 @@ This package includes the following components:
  - upstream llvm including wasm backend (/opt/wasm/llvm)
  - fastcmp llvm (/opt/wasm/fastcomp)
  - emscripten (/opt/wasm/emscripten)
- - binaryian (/opt/wasm/bin/)
+ - binaryen (/opt/wasm/bin/ /opt/wasm/src/js/)
  - wabt (/opt/wasm/bin/)
- - emscripten luancher script (/opt/wasm/bin/emcc)
+ - emscripten launcher scripts (/opt/wasm/bin/emcc + em++)
 
 The versions of each of the source package that were used to produce
 this package are documented in /opt/wasm/buildinfo.json.
@@ -22,9 +22,8 @@ the debian alternatives mechanism to install /usr/bin/emcc and
 /usr/bin/em++ which point to the scripts in /opt/wasm/bin/emcc.
 
 These wrapper scripts allow emcc and em++ to be used without any
-EM_CONFIG or ~/.emscripten_config (i.e. they provide a pre-configured
+EM_CONFIG or ~/.emscripten (i.e. they provide a pre-configured
 version of the toolchain).  The preconfigured toolchain will use
-upstream LLVM when EMCC_WASM_BACKEND is set and fastcomp otherwise,
-allowing the toolchain to produce both wasm and asmjs.
+upstream LLVM when EMCC_WASM_BACKEND is set and fastcomp otherwise.
 
  -- Sam Clegg <sbc@chromium.org>  Fri, 23 Sep 2016 10:57:11 -0700
