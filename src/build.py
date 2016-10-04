@@ -842,7 +842,7 @@ def Emscripten(use_asm=True):
   # Remove cached library builds (e.g. libc, libc++) to force them to be
   # rebuilt in the step below.
   Remove(os.path.expanduser(os.path.join('~', '.emscripten_cache')))
-  emscripten_dir = os.path.join(INSTALL_DIR, 'bin', 'emscripten')
+  emscripten_dir = os.path.join(INSTALL_DIR, 'emscripten')
   Remove(emscripten_dir)
   print 'Copying directory %s to %s' % (EMSCRIPTEN_SRC_DIR, emscripten_dir)
   shutil.copytree(EMSCRIPTEN_SRC_DIR,
@@ -960,8 +960,8 @@ def CompileLLVMTorture():
 def CompileLLVMTortureBinaryen(name, em_config, outdir, fails):
   buildbot.Step('Compile LLVM Torture (%s)' % name)
   os.environ['EM_CONFIG'] = em_config
-  c = os.path.join(INSTALL_DIR, 'bin', 'emscripten', 'emcc')
-  cxx = os.path.join(INSTALL_DIR, 'bin', 'emscripten', 'em++')
+  c = os.path.join(INSTALL_DIR, 'emscripten', 'emcc')
+  cxx = os.path.join(INSTALL_DIR, 'emscripten', 'em++')
   Remove(outdir)
   Mkdir(outdir)
   unexpected_result_count = compile_torture_tests.run(
@@ -1038,7 +1038,7 @@ def ExecuteEmscriptenTestSuite(name, config, outdir):
   try:
     proc.check_call(
         [sys.executable,
-         os.path.join(INSTALL_BIN, 'emscripten', 'tests', 'runner.py'),
+         os.path.join(INSTALL_DIR, 'emscripten', 'tests', 'runner.py'),
          'binaryen2', '--em-config', config],
         cwd=outdir)
   except proc.CalledProcessError:
