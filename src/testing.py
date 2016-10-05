@@ -19,7 +19,6 @@ import math
 import multiprocessing
 import os
 import os.path
-import resource
 import sys
 
 import proc
@@ -68,6 +67,7 @@ class Tester(object):
   def setlimits():
     # Set maximum CPU time to 90 seconds in child process
     try:
+      import resource
       resource.setrlimit(resource.RLIMIT_CPU, (90, 90))
     except:
       pass
