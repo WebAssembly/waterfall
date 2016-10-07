@@ -350,7 +350,7 @@ def GitUpdateRemote(src_dir, git_repo, remote_name):
                     cwd=src_dir)
 
 
-class Source:
+class Source(object):
   """Metadata about a sync-able source repo on the waterfall"""
   def __init__(self, name, src_dir, git_repo,
                checkout=RemoteBranch('master'), depth=None,
@@ -599,7 +599,7 @@ def Clobber():
       shutil.rmtree(WORK_DIR)
 
 
-class Filter:
+class Filter(object):
   """Filter for source or build rules, to allow including or excluding only
      selected targets.
   """
@@ -938,8 +938,16 @@ def DebianPackage():
   buildbot.Step('Debian package')
   top_dir = os.path.dirname(SCRIPT_DIR)
   try:
+    if BUILDBOT_BUILDNUMBER:
+      message = ('Automatic build %s produced on http://wasm-stat.us' %
+                 BUILDBOT_BUILDNUMBER)
+      version = '0.1.' + BUILDBOT_BUILDNUMBER
+      proc.check_call(['dch', '-D', 'unstable', '-v', version, message],
+                      cwd=top_dir)
     proc.check_call(['debuild', '--no-lintian', '-i', '-us', '-uc', '-b'],
                     cwd=top_dir)
+    if BUILDBOT_BUILDNUMBER:
+      proc.check_call(['git', 'checkout', 'debian/changelog'], cwd=top_dir)
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
     buildbot.Fail()
@@ -1056,7 +1064,7 @@ def ExecuteEmscriptenTestSuite(name, config, outdir):
     buildbot.Fail(True)
 
 
-class Build:
+class Build(object):
   def __init__(self, name_, runnable_, *args, **kwargs):
     self.name = name_
     self.runnable = runnable_
@@ -1117,7 +1125,7 @@ def BuildRepos(filter, use_asm=False):
     rule.Run()
 
 
-class Test:
+class Test(object):
   def __init__(self, name_, runnable_):
     self.name = name_
     self.runnable = runnable_
