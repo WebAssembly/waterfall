@@ -239,21 +239,20 @@ def CopyTree(src, dst):
       shutil.copy2(os.path.join(root, f), dstfile)
 
 
-def CopyBinaryToArchive(binary, extra_dir=None):
+def CopyBinaryToArchive(binary, subdir=''):
   """All binaries are archived in the same tar file."""
-  install_bin = INSTALL_BIN
-  if extra_dir is not None:
-    install_bin = os.path.join(INSTALL_BIN, extra_dir)
+  install_bin = os.path.join(INSTALL_DIR, subdir, 'bin')
   print 'Copying binary %s to archive %s' % (binary, install_bin)
   Mkdir(install_bin)
   shutil.copy2(binary, install_bin)
 
 
-def CopyLibraryToArchive(library):
+def CopyLibraryToArchive(library, subdir=''):
   """All libraries are archived in the same tar file."""
-  print 'Copying library %s to archive %s' % (library, INSTALL_LIB)
-  Mkdir(INSTALL_LIB)
-  shutil.copy2(library, INSTALL_LIB)
+  install_lib = os.path.join(INSTALL_DIR, subdir, 'lib')
+  print 'Copying library %s to archive %s' % (library, install_lib)
+  Mkdir(install_lib)
+  shutil.copy2(library, install_lib)
 
 
 def Tar(directory, print_content=False):
@@ -694,6 +693,23 @@ def Which(name):
     return ''
 
 
+def CopyLLVMTools(build_dir, install_subdir=''):
+  # The following isn't useful for now, and takes up space.
+  Remove(os.path.join(INSTALL_DIR, install_subdir, 'bin', 'clang-check'))
+  # The following are useful, LLVM_INSTALL_TOOLCHAIN_ONLY did away with them.
+  extra_bins = ['FileCheck', 'lli', 'llc', 'llvm-as', 'llvm-dis', 'llvm-link',
+                'llvm-nm', 'opt']
+  extra_libs = ['libLLVM*.so']
+  for p in [glob.glob(os.path.join(build_dir, 'bin', b)) for b in
+            extra_bins]:
+    for e in p:
+      CopyBinaryToArchive(os.path.join(build_dir, 'bin', e), install_subdir)
+  for p in [glob.glob(os.path.join(build_dir, 'lib', l)) for l in
+            extra_libs]:
+    for e in p:
+      CopyLibraryToArchive(os.path.join(build_dir, 'lib', e), install_subdir)
+
+
 def LLVM():
   buildbot.Step('LLVM')
   Mkdir(LLVM_OUT_DIR)
@@ -734,20 +750,7 @@ def LLVM():
   proc.check_call(['ninja', '-v'] + jobs, cwd=LLVM_OUT_DIR)
   proc.check_call(['ninja', 'check-all'], cwd=LLVM_OUT_DIR)
   proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR)
-  # The following isn't useful for now, and takes up space.
-  Remove(os.path.join(INSTALL_BIN, 'clang-check'))
-  # The following are useful, LLVM_INSTALL_TOOLCHAIN_ONLY did away with them.
-  extra_bins = ['FileCheck', 'lli', 'llc', 'llvm-as', 'llvm-dis', 'llvm-link',
-                'llvm-nm', 'opt']
-  extra_libs = ['libLLVM*.so']
-  for p in [glob.glob(os.path.join(LLVM_OUT_DIR, 'bin', b)) for b in
-            extra_bins]:
-    for e in p:
-      CopyBinaryToArchive(os.path.join(LLVM_OUT_DIR, 'bin', e))
-  for p in [glob.glob(os.path.join(LLVM_OUT_DIR, 'lib', l)) for l in
-            extra_libs]:
-    for e in p:
-      CopyLibraryToArchive(os.path.join(LLVM_OUT_DIR, 'lib', e))
+  CopyLLVMTools(LLVM_OUT_DIR)
 
 
 def V8():
@@ -830,20 +833,23 @@ def Binaryen():
 def Fastcomp():
   buildbot.Step('fastcomp')
   Mkdir(FASTCOMP_OUT_DIR)
+  install_dir = os.path.join(INSTALL_DIR, 'fastcomp')
   proc.check_call(
       [PREBUILT_CMAKE_BIN, '-G', 'Ninja', FASTCOMP_SRC_DIR,
        '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
        '-DCMAKE_C_COMPILER=' + CC,
        '-DCMAKE_CXX_COMPILER=' + CXX,
        '-DCMAKE_BUILD_TYPE=Release',
-       '-DCMAKE_INSTALL_PREFIX=' + os.path.join(INSTALL_DIR, 'fastcomp'),
+       '-DCMAKE_INSTALL_PREFIX=' + install_dir,
        '-DLLVM_INCLUDE_EXAMPLES=OFF',
        '-DLLVM_BUILD_LLVM_DYLIB=ON',
        '-DLLVM_LINK_LLVM_DYLIB=ON',
+       '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
        '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
        '-DLLVM_ENABLE_ASSERTIONS=ON'], cwd=FASTCOMP_OUT_DIR)
   proc.check_call(['ninja'], cwd=FASTCOMP_OUT_DIR)
   proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR)
+  CopyLLVMTools(FASTCOMP_OUT_DIR, 'fastcomp')
 
 
 def Emscripten(use_asm=True):
