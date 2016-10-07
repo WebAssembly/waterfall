@@ -239,17 +239,17 @@ def CopyTree(src, dst):
       shutil.copy2(os.path.join(root, f), dstfile)
 
 
-def CopyBinaryToArchive(binary, subdir=''):
+def CopyBinaryToArchive(binary, install_subdir=''):
   """All binaries are archived in the same tar file."""
-  install_bin = os.path.join(INSTALL_DIR, subdir, 'bin')
+  install_bin = os.path.join(INSTALL_DIR, install_subdir, 'bin')
   print 'Copying binary %s to archive %s' % (binary, install_bin)
   Mkdir(install_bin)
   shutil.copy2(binary, install_bin)
 
 
-def CopyLibraryToArchive(library, subdir=''):
+def CopyLibraryToArchive(library, install_subdir=''):
   """All libraries are archived in the same tar file."""
-  install_lib = os.path.join(INSTALL_DIR, subdir, 'lib')
+  install_lib = os.path.join(INSTALL_DIR, install_subdir, 'lib')
   print 'Copying library %s to archive %s' % (library, install_lib)
   Mkdir(install_lib)
   shutil.copy2(library, install_lib)
