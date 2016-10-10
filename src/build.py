@@ -254,6 +254,18 @@ def CopyLibraryToArchive(library, install_subdir=''):
   shutil.copy2(library, install_lib)
 
 
+def Git(cmd, **kwargs):
+  """Invoke git."""
+  return proc.check_output(
+      ['git'] + cmd, shell=sys.platform == 'win32', **kwargs)
+
+
+def Gclient(cmd, **kwargs):
+  """Invoke gclient."""
+  return proc.check_output(
+      ['gclient'] + cmd, shell=sys.platform == 'win32', **kwargs)
+
+
 def Tar(directory, print_content=False):
   """Create a tar file from directory."""
   if not IsBuildbot():
@@ -289,14 +301,12 @@ def Archive(name, tar):
 
 def GitRemoteUrl(cwd, remote):
   """Get the URL of a remote."""
-  return proc.check_output(['git', 'config', '--get', 'remote.%s.url' %
-                            remote], cwd=cwd).strip()
+  return Git(['config', '--get', 'remote.%s.url' % remote], cwd=cwd).strip()
 
 
 def HasRemote(cwd, remote):
   """"Checked whether the named remote exists."""
-  remotes = proc.check_output(['git', 'remote'],
-                              cwd=cwd).strip().splitlines()
+  remotes = Git(['remote'], cwd=cwd).strip().splitlines()
   return remote in remotes
 
 
@@ -313,8 +323,7 @@ def AddGithubRemote(cwd):
     return
   remote = GITHUB_SSH + '/'.join(remote_url.split('/')[-2:])
   print '%s has no github remote, adding %s' % (cwd, remote)
-  proc.check_call(['git', 'remote', 'add', GITHUB_REMOTE, remote],
-                  cwd=cwd)
+  Git(['remote', 'add', GITHUB_REMOTE, remote], cwd=cwd)
 
 
 def GitConfigRebaseMaster(cwd):
@@ -323,8 +332,7 @@ def GitConfigRebaseMaster(cwd):
   The upstream repository is in Subversion. Use `git pull --rebase` instead of
   git pull: llvm.org/docs/GettingStarted.html#git-mirror
   """
-  proc.check_call(
-      ['git', 'config', 'branch.master.rebase', 'true'], cwd=cwd)
+  Git(['config', 'branch.master.rebase', 'true'], cwd=cwd)
 
 
 def RemoteBranch(branch):
@@ -339,13 +347,11 @@ def IsBuildbot():
 
 def GitUpdateRemote(src_dir, git_repo, remote_name):
   try:
-    proc.check_call(['git', 'remote', 'set-url', remote_name, git_repo],
-                    cwd=src_dir)
+    Git(['remote', 'set-url', remote_name, git_repo], cwd=src_dir)
   except proc.CalledProcessError:
     # If proc.check_call fails it throws an exception. 'git remote set-url'
     # fails when the remote doesn't exist, so we should try to add it.
-    proc.check_call(['git', 'remote', 'add', remote_name, git_repo],
-                    cwd=src_dir)
+    Git(['remote', 'add', remote_name, git_repo], cwd=src_dir)
 
 
 class Source(object):
@@ -373,19 +379,19 @@ class Source(object):
     if os.path.isdir(self.src_dir):
       print '%s directory already exists' % self.name
     else:
-      clone = ['git', 'clone', self.git_repo, self.src_dir]
+      clone = ['clone', self.git_repo, self.src_dir]
       if self.depth:
         clone.append('--depth')
         clone.append(str(self.depth))
-      proc.check_call(clone)
+      Git(clone)
 
     GitUpdateRemote(self.src_dir, self.git_repo, WATERFALL_REMOTE)
-    proc.check_call(['git', 'fetch', WATERFALL_REMOTE], cwd=self.src_dir)
+    Git(['fetch', WATERFALL_REMOTE], cwd=self.src_dir)
     if not self.checkout.startswith(WATERFALL_REMOTE + '/'):
       sys.stderr.write(('WARNING: `git checkout %s` not based on waterfall '
                         'remote (%s), checking out local branch'
                         % (self.checkout, WATERFALL_REMOTE)))
-    proc.check_call(['git', 'checkout', self.checkout], cwd=self.src_dir)
+    Git(['checkout', self.checkout], cwd=self.src_dir)
     AddGithubRemote(self.src_dir)
 
   def CurrentGitInfo(self):
@@ -393,8 +399,8 @@ class Source(object):
       return None
 
     def pretty(fmt):
-      return proc.check_output(
-          ['git', 'log', '-n1', '--pretty=format:%s' % fmt],
+      return Git(
+          ['log', '-n1', '--pretty=format:%s' % fmt],
           cwd=self.src_dir).strip()
     try:
       remote = GitRemoteUrl(self.src_dir, WATERFALL_REMOTE)
@@ -415,7 +421,7 @@ class Source(object):
     """"Print the current git status for the sync target."""
     print '<<<<<<<<<< STATUS FOR', self.name, '>>>>>>>>>>'
     if os.path.exists(self.src_dir):
-      proc.check_call(['git', 'status'], cwd=self.src_dir)
+      Git(['status'], cwd=self.src_dir)
     print
 
 
@@ -428,13 +434,13 @@ def ChromiumFetchSync(name, work_dir, git_repo,
     # Create Chromium repositories one deeper, separating .gclient files.
     parent = os.path.split(work_dir)[0]
     Mkdir(parent)
-    proc.check_call(['gclient', 'config', git_repo], cwd=parent)
-    proc.check_call(['git', 'clone', git_repo], cwd=parent)
+    Gclient(['config', git_repo], cwd=parent)
+    Git(['clone', git_repo], cwd=parent)
 
   GitUpdateRemote(work_dir, git_repo, WATERFALL_REMOTE)
-  proc.check_call(['git', 'fetch', WATERFALL_REMOTE], cwd=work_dir)
-  proc.check_call(['git', 'checkout', checkout], cwd=work_dir)
-  proc.check_call(['gclient', 'sync'], cwd=work_dir)
+  Git(['fetch', WATERFALL_REMOTE], cwd=work_dir)
+  Git(['checkout', checkout], cwd=work_dir)
+  Gclient(['sync'], cwd=work_dir)
   return (name, work_dir)
 
 
@@ -446,9 +452,8 @@ def SyncPrebuiltClang(name, src_dir, git_repo):
     print 'Cloning Prebuilt Chromium Clang directory'
     Mkdir(src_dir)
     Mkdir(os.path.join(src_dir, 'tools'))
-    proc.check_call(
-        ['git', 'clone', git_repo, tools_clang])
-  proc.check_call(['git', 'fetch'], cwd=tools_clang)
+    Git(['clone', git_repo, tools_clang])
+  Git(['fetch'], cwd=tools_clang)
   proc.check_call(
       [os.path.join(tools_clang, 'scripts', 'update.py')])
   assert os.path.isfile(CC), 'Expect clang at %s' % CC
@@ -535,8 +540,8 @@ def CurrentSvnRev(path):
 
 
 def FindPriorSvnRev(path, goal):
-  revs = proc.check_output(
-      ['git', 'rev-list', RemoteBranch('master')], cwd=path).splitlines()
+  revs = Git(
+      ['rev-list', RemoteBranch('master')], cwd=path).splitlines()
   for rev in revs:
     num = proc.check_output([FIND_SVN_REV, rev], cwd=path).strip()
     if int(num) <= goal:
@@ -551,7 +556,7 @@ def SyncToSameSvnRev(primary, secondary):
     print 'Finding prior %s rev' % secondary
     prior_rev = FindPriorSvnRev(secondary, primary_svn_rev)
     print 'Checking out %s rev: %s' % (secondary, prior_rev)
-    proc.check_call(['git', 'checkout', prior_rev], cwd=secondary)
+    Git(['checkout', prior_rev], cwd=secondary)
 
 
 def SyncLLVMClang(good_hashes=None):
@@ -563,8 +568,8 @@ def SyncLLVMClang(good_hashes=None):
     else:
       return RemoteBranch('master')
 
-  proc.check_call(['git', 'checkout', get_rev('llvm')], cwd=LLVM_SRC_DIR)
-  proc.check_call(['git', 'checkout', get_rev('clang')], cwd=CLANG_SRC_DIR)
+  Git(['checkout', get_rev('llvm')], cwd=LLVM_SRC_DIR)
+  Git(['checkout', get_rev('clang')], cwd=CLANG_SRC_DIR)
   # If LLVM didn't trigger the new build then sync LLVM to the corresponding
   # clang revision, even if clang may not have triggered the build: usually
   # LLVM provides APIs which clang uses, which means that most synchronized
@@ -950,7 +955,7 @@ def DebianPackage():
     proc.check_call(['debuild', '--no-lintian', '-i', '-us', '-uc', '-b'],
                     cwd=top_dir)
     if BUILDBOT_BUILDNUMBER:
-      proc.check_call(['git', 'checkout', 'debian/changelog'], cwd=top_dir)
+      Git(['checkout', 'debian/changelog'], cwd=top_dir)
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
     buildbot.Fail()
