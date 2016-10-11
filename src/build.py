@@ -455,7 +455,7 @@ def SyncPrebuiltClang(name, src_dir, git_repo):
     Git(['clone', git_repo, tools_clang])
   Git(['fetch'], cwd=tools_clang)
   proc.check_call(
-      [os.path.join(tools_clang, 'scripts', 'update.py')])
+      [sys.executable, os.path.join(tools_clang, 'scripts', 'update.py')])
   assert os.path.isfile(CC), 'Expect clang at %s' % CC
   assert os.path.isfile(CXX), 'Expect clang++ at %s' % CXX
   return ('chromium-clang', tools_clang)
@@ -536,14 +536,16 @@ ALL_SOURCES = [
 
 
 def CurrentSvnRev(path):
-  return int(proc.check_output([FIND_SVN_REV, 'HEAD'], cwd=path).strip())
+  return int(proc.check_output([sys.executable, FIND_SVN_REV, 'HEAD'],
+                               cwd=path).strip())
 
 
 def FindPriorSvnRev(path, goal):
   revs = Git(
       ['rev-list', RemoteBranch('master')], cwd=path).splitlines()
   for rev in revs:
-    num = proc.check_output([FIND_SVN_REV, rev], cwd=path).strip()
+    num = proc.check_output([sys.executable, FIND_SVN_REV, rev],
+                            cwd=path).strip()
     if int(num) <= goal:
       return rev
   raise Exception('Cannot find svn rev at or before %d' % goal)
@@ -766,7 +768,8 @@ def V8():
     jobs = ['-j', '50']
   proc.check_call(['ninja', '-v', '-C', V8_OUT_DIR, 'd8', 'unittests'] + jobs,
                   cwd=V8_SRC_DIR)
-  proc.check_call(['tools/run-tests.py', 'unittests', '--no-presubmit',
+  proc.check_call([sys.executable,
+                   'tools/run-tests.py', 'unittests', '--no-presubmit',
                    '--shell-dir', V8_OUT_DIR],
                   cwd=V8_SRC_DIR)
   to_archive = ['d8', 'natives_blob.bin', 'snapshot_blob.bin']
@@ -914,6 +917,7 @@ def Musl():
   Mkdir(MUSL_OUT_DIR)
   try:
     proc.check_call([
+        sys.executable,
         os.path.join(MUSL_SRC_DIR, 'libc.py'),
         '--clang_dir', INSTALL_BIN,
         '--binaryen_dir', os.path.join(INSTALL_BIN),
