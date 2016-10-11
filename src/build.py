@@ -238,17 +238,17 @@ def CopyTree(src, dst):
       shutil.copy2(os.path.join(root, f), dstfile)
 
 
-def CopyBinaryToArchive(binary, install_subdir=''):
+def CopyBinaryToArchive(binary, prefix=''):
   """All binaries are archived in the same tar file."""
-  install_bin = os.path.join(INSTALL_DIR, install_subdir, 'bin')
+  install_bin = os.path.join(INSTALL_DIR, prefix, 'bin')
   print 'Copying binary %s to archive %s' % (binary, install_bin)
   Mkdir(install_bin)
   shutil.copy2(binary, install_bin)
 
 
-def CopyLibraryToArchive(library, install_subdir=''):
+def CopyLibraryToArchive(library, prefix=''):
   """All libraries are archived in the same tar file."""
-  install_lib = os.path.join(INSTALL_DIR, install_subdir, 'lib')
+  install_lib = os.path.join(INSTALL_DIR, prefix, 'lib')
   print 'Copying library %s to archive %s' % (library, install_lib)
   Mkdir(install_lib)
   shutil.copy2(library, install_lib)
@@ -697,9 +697,9 @@ def Which(name):
     return ''
 
 
-def CopyLLVMTools(build_dir, install_subdir=''):
+def CopyLLVMTools(build_dir, prefix=''):
   # The following isn't useful for now, and takes up space.
-  Remove(os.path.join(INSTALL_DIR, install_subdir, 'bin', 'clang-check'))
+  Remove(os.path.join(INSTALL_DIR, prefix, 'bin', 'clang-check'))
   # The following are useful, LLVM_INSTALL_TOOLCHAIN_ONLY did away with them.
   extra_bins = ['FileCheck', 'lli', 'llc', 'llvm-as', 'llvm-dis', 'llvm-link',
                 'llvm-nm', 'opt']
@@ -707,11 +707,11 @@ def CopyLLVMTools(build_dir, install_subdir=''):
   for p in [glob.glob(os.path.join(build_dir, 'bin', b)) for b in
             extra_bins]:
     for e in p:
-      CopyBinaryToArchive(os.path.join(build_dir, 'bin', e), install_subdir)
+      CopyBinaryToArchive(os.path.join(build_dir, 'bin', e), prefix)
   for p in [glob.glob(os.path.join(build_dir, 'lib', l)) for l in
             extra_libs]:
     for e in p:
-      CopyLibraryToArchive(os.path.join(build_dir, 'lib', e), install_subdir)
+      CopyLibraryToArchive(os.path.join(build_dir, 'lib', e), prefix)
 
 
 def LLVM():
