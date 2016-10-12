@@ -58,7 +58,6 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 920501-9.c.s.wast # env.sprintf
 920726-1.c.s.wast # env.sprintf
 920810-1.c.s.wast # env.malloc
-921110-1.c.s.wast # abort() is declared with the wrong type (returning i32)
 921117-1.c.s.wast # env.strcmp
 930513-1.c.s.wast # env.sprintf
 930622-2.c.s.wast # env.__floatditf
