@@ -525,8 +525,7 @@ ALL_SOURCES = [
     Source('wabt', WABT_SRC_DIR,
            WASM_GIT_BASE + 'wabt.git'),
     Source('spec', SPEC_SRC_DIR,
-           WASM_GIT_BASE + 'spec.git',
-           checkout=RemoteBranch('binary-0xc')),
+           WASM_GIT_BASE + 'spec.git'),
     Source('binaryen', BINARYEN_SRC_DIR,
            WASM_GIT_BASE + 'binaryen.git'),
     Source('musl', MUSL_SRC_DIR,
@@ -1169,7 +1168,6 @@ def TestBare():
       runner=os.path.join(INSTALL_BIN, 'wasm.opt'),
       indir=s2wasm_out,
       fails=SPEC_KNOWN_TORTURE_FAILURES,
-      warn_only=True,  # TODO https://github.com/WebAssembly/spec/issues/353
       extension='wast')
   ExecuteLLVMTorture(
       name='d8',
