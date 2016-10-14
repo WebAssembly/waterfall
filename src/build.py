@@ -999,7 +999,7 @@ def CompileLLVMTortureBinaryen(name, em_config, outdir, fails):
       sysroot_dir=INSTALL_SYSROOT,
       fails=fails,
       out=outdir,
-      config='binaryen-native' if name == 'asm2wasm' else 'binaryen-interpret')
+      config='binaryen-native')
   Archive('torture-' + name, Tar(outdir))
   if 0 != unexpected_result_count:
     buildbot.Fail()
