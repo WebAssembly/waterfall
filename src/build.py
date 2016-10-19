@@ -1221,7 +1221,7 @@ def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only):
 
 def TestEmtest():
   ExecuteEmscriptenTestSuite(
-      'emtest',
+      'emwasm',
       EMSCRIPTEN_CONFIG_WASM,
       EMSCRIPTEN_TEST_OUT_DIR,
       warn_only=True)
@@ -1229,7 +1229,7 @@ def TestEmtest():
 
 def TestEmtestAsm2Wasm():
   ExecuteEmscriptenTestSuite(
-      'emtest-asm2wasm',
+      'asm2wasm',
       EMSCRIPTEN_CONFIG_ASMJS,
       EMSCRIPTEN_ASMJS_TEST_OUT_DIR,
       warn_only=False)
@@ -1240,7 +1240,7 @@ ALL_TESTS = [
     Test('asm', TestAsm),
     Test('emwasm', TestEmwasm),
     Test('emtest', TestEmtest),
-    Test('emtest-asm2wasm', TestEmtestAsm2Wasm),
+    Test('emtest-asm', TestEmtestAsm2Wasm),
 ]
 
 
