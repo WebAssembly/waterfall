@@ -85,6 +85,7 @@ TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
 ASM2WASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'asm2wasm-torture-out')
 EMSCRIPTENWASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-torture-out')
 EMSCRIPTEN_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-out')
+EMSCRIPTEN_ASMJS_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-asm2wasm-out')
 
 INSTALL_DIR = os.path.join(WORK_DIR, 'wasm-install')
 INSTALL_BIN = os.path.join(INSTALL_DIR, 'bin')
@@ -1062,19 +1063,6 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, outdir='',
   return outdir
 
 
-def ExecuteEmscriptenTestSuite(name, config, outdir):
-  buildbot.Step('Execute emscripten testsuite (%s)' % name)
-  Mkdir(outdir)
-  try:
-    proc.check_call(
-        [sys.executable,
-         os.path.join(INSTALL_DIR, 'emscripten', 'tests', 'runner.py'),
-         'binaryen2', '--em-config', config],
-        cwd=outdir)
-  except proc.CalledProcessError:
-    buildbot.Fail(True)
-
-
 class Build(object):
   def __init__(self, name_, runnable_, *args, **kwargs):
     self.name = name_
@@ -1218,11 +1206,33 @@ def TestEmwasm():
       outdir=emscripten_wasm_out)
 
 
+def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only):
+  buildbot.Step('Execute emscripten testsuite (%s)' % name)
+  Mkdir(outdir)
+  try:
+    proc.check_call(
+        [sys.executable,
+         os.path.join(INSTALL_DIR, 'emscripten', 'tests', 'runner.py'),
+         'binaryen2', '--em-config', config],
+        cwd=outdir)
+  except proc.CalledProcessError:
+    buildbot.Fail(warn_only)
+
+
 def TestEmtest():
   ExecuteEmscriptenTestSuite(
-      'emtest',
+      'emwasm',
       EMSCRIPTEN_CONFIG_WASM,
-      EMSCRIPTEN_TEST_OUT_DIR)
+      EMSCRIPTEN_TEST_OUT_DIR,
+      warn_only=True)
+
+
+def TestEmtestAsm2Wasm():
+  ExecuteEmscriptenTestSuite(
+      'asm2wasm',
+      EMSCRIPTEN_CONFIG_ASMJS,
+      EMSCRIPTEN_ASMJS_TEST_OUT_DIR,
+      warn_only=False)
 
 
 ALL_TESTS = [
@@ -1230,6 +1240,7 @@ ALL_TESTS = [
     Test('asm', TestAsm),
     Test('emwasm', TestEmwasm),
     Test('emtest', TestEmtest),
+    Test('emtest-asm', TestEmtestAsm2Wasm),
 ]
 
 
