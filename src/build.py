@@ -55,7 +55,7 @@ V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
 WABT_SRC_DIR = os.path.join(WORK_DIR, 'wabt')
 
 SPEC_SRC_DIR = os.path.join(WORK_DIR, 'spec')
-ML_DIR = os.path.join(SPEC_SRC_DIR, 'ml-proto')
+ML_DIR = os.path.join(SPEC_SRC_DIR, 'interpreter')
 BINARYEN_SRC_DIR = os.path.join(WORK_DIR, 'binaryen')
 MUSL_SRC_DIR = os.path.join(WORK_DIR, 'musl')
 
