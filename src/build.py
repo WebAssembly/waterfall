@@ -960,14 +960,14 @@ def DebianPackage():
                     cwd=top_dir)
     if BUILDBOT_BUILDNUMBER:
       Git(['checkout', 'debian/changelog'], cwd=top_dir)
+
+      debfile = os.path.join(os.path.dirname(top_dir),
+                             'wasm-toolchain_0.1_amd64.deb')
+      UploadFile(debfile, os.path.basename(debfile))
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
     buildbot.Fail()
     return
-
-  debfile = os.path.join(os.path.dirname(top_dir),
-                         'wasm-toolchain_0.1_amd64.deb')
-  UploadFile(debfile, os.path.basename(debfile))
 
 
 def CompileLLVMTorture():
