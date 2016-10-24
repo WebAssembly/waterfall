@@ -962,7 +962,7 @@ def DebianPackage():
       Git(['checkout', 'debian/changelog'], cwd=top_dir)
 
       debfile = os.path.join(os.path.dirname(top_dir),
-                             'wasm-toolchain_0.1_amd64.deb')
+                             'wasm-toolchain_%s_amd64.deb' % version)
       UploadFile(debfile, os.path.basename(debfile))
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
