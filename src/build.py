@@ -819,20 +819,11 @@ def Binaryen():
   proc.check_call(
       [PREBUILT_CMAKE_BIN, '-G', 'Ninja', BINARYEN_SRC_DIR,
        '-DCMAKE_C_COMPILER=' + CC,
-       '-DCMAKE_CXX_COMPILER=' + CXX],
+       '-DCMAKE_CXX_COMPILER=' + CXX,
+       '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR],
       cwd=BINARYEN_OUT_DIR)
   proc.check_call(['ninja'], cwd=BINARYEN_OUT_DIR)
-  bin_dir = os.path.join(BINARYEN_OUT_DIR, 'bin')
-  assert os.path.isdir(bin_dir), 'Expected %s' % bin_dir
-  for node in os.listdir(bin_dir):
-    f = os.path.join(bin_dir, node)
-    if os.path.isfile(f):
-      CopyBinaryToArchive(f)
-  CopyBinaryToArchive(os.path.join(BINARYEN_SRC_DIR, 'bin', 'wasm.js'))
-  js_src_dir = os.path.join(BINARYEN_SRC_DIR, 'src', 'js')
-  js_dest_dir = os.path.join(INSTALL_DIR, 'src', 'js')
-  print 'copying directory', js_src_dir, 'to', js_dest_dir
-  CopyTree(js_src_dir, js_dest_dir)
+  proc.check_call(['ninja', 'install'], cwd=BINARYEN_OUT_DIR)
 
 
 def Fastcomp():
