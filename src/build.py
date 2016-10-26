@@ -648,8 +648,14 @@ class Filter(object):
     """Return true if all possible targets will be run."""
     return self.include is None and not self.exclude
 
+  def Any(self):
+    """Return true if any targets can be run."""
+    return self.include is None or len(self.include)
+
 
 def SyncRepos(filter, sync_lkgr=False):
+  if not filter.Any():
+    return
   buildbot.Step('Sync Repos')
 
   good_hashes = None
@@ -1070,25 +1076,30 @@ def Summary(repos):
   info = {'repositories': repos}
   info['build'] = BUILDBOT_BUILDNUMBER
   info['scheduler'] = SCHEDULER
-  info_json = json.dumps(info, indent=2)
-  print info_json
+  info_file = os.path.join(INSTALL_DIR, 'buildinfo.json')
+
+  if IsBuildbot():
+    info_json = json.dumps(info, indent=2)
+    print info_json
+
+    with open(info_file, 'w+') as f:
+      f.write(info_json)
+      f.write('\n')
+
   print 'Failed steps: %s.' % buildbot.Failed()
   for step in buildbot.FailedList():
     print '    %s' % step
 
-  info_file = os.path.join(INSTALL_DIR, 'buildinfo.json')
-  with open(info_file, 'w+') as f:
-    f.write(info_json)
-    f.write('\n')
-
-  latest_file = '%s/%s' % (BUILDBOT_BUILDERNAME, 'latest.json')
-  buildbot.Link('latest.json', cloud.Upload(info_file, latest_file))
+  if IsBuildbot():
+    latest_file = '%s/%s' % (BUILDBOT_BUILDERNAME, 'latest.json')
+    buildbot.Link('latest.json', cloud.Upload(info_file, latest_file))
 
   if buildbot.Failed():
     buildbot.Fail()
   else:
-    lkgr_file = '%s/%s' % (BUILDBOT_BUILDERNAME, 'lkgr.json')
-    buildbot.Link('lkgr.json', cloud.Upload(info_file, lkgr_file))
+    if IsBuildbot():
+      lkgr_file = '%s/%s' % (BUILDBOT_BUILDERNAME, 'lkgr.json')
+      buildbot.Link('lkgr.json', cloud.Upload(info_file, lkgr_file))
 
 
 def AllBuilds(use_asm=False):
@@ -1318,7 +1329,7 @@ def run(sync_filter, build_filter, test_filter, options):
   Chdir(SCRIPT_DIR)
   Mkdir(WORK_DIR)
   SyncRepos(sync_filter, options.sync_lkgr)
-  repos = GetRepoInfo()
+  repos = GetRepoInfo() if IsBuildbot() else {}
   if build_filter.All():
     Remove(INSTALL_DIR)
     Mkdir(INSTALL_DIR)
