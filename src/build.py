@@ -650,7 +650,6 @@ class Filter(object):
 
   def Any(self):
     """Return true if any targets can be run."""
-    print self.include, self.exclude
     return self.include is None or len(self.include)
 
 
