@@ -1329,10 +1329,7 @@ def run(sync_filter, build_filter, test_filter, options):
   Chdir(SCRIPT_DIR)
   Mkdir(WORK_DIR)
   SyncRepos(sync_filter, options.sync_lkgr)
-  if IsBuildbot():
-    repos = GetRepoInfo()
-  else:
-    repos = {}
+  repos = GetRepoInfo() if IsBuildbot() else {}
   if build_filter.All():
     Remove(INSTALL_DIR)
     Mkdir(INSTALL_DIR)
