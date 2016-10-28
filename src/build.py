@@ -104,6 +104,7 @@ GITHUB_MIRROR_BASE = GIT_MIRROR_BASE + 'external/github.com/'
 LLVM_GITHUB_MIRROR_BASE = GITHUB_MIRROR_BASE + 'llvm-mirror/'
 WASM_GIT_BASE = GITHUB_MIRROR_BASE + 'WebAssembly/'
 EMSCRIPTEN_GIT_BASE = GITHUB_MIRROR_BASE + 'kripken/'
+MUSL_GIT_BASE = 'https://github.com/jfbastien/'
 
 # Name of remote for build script to use. Don't touch origin to avoid
 # clobbering any local development.
@@ -530,7 +531,7 @@ ALL_SOURCES = [
     Source('binaryen', BINARYEN_SRC_DIR,
            WASM_GIT_BASE + 'binaryen.git'),
     Source('musl', MUSL_SRC_DIR,
-           WASM_GIT_BASE + 'musl.git',
+           MUSL_GIT_BASE + 'musl.git',
            checkout=RemoteBranch('wasm-prototype-1'))
 ]
 
