@@ -709,7 +709,7 @@ def CopyLLVMTools(build_dir, prefix=''):
   Remove(os.path.join(INSTALL_DIR, prefix, 'bin', 'clang-check'))
   # The following are useful, LLVM_INSTALL_TOOLCHAIN_ONLY did away with them.
   extra_bins = ['FileCheck', 'lli', 'llc', 'llvm-as', 'llvm-dis', 'llvm-link',
-                'llvm-nm', 'opt']
+                'llvm-mc', 'llvm-nm', 'llvm-objdump', 'llvm-readobj', 'opt']
   extra_libs = ['libLLVM*.so']
   for p in [glob.glob(os.path.join(build_dir, 'bin', b)) for b in
             extra_bins]:
@@ -759,7 +759,9 @@ def LLVM():
 
   proc.check_call(command, cwd=LLVM_OUT_DIR)
   proc.check_call(['ninja', '-v'] + jobs, cwd=LLVM_OUT_DIR)
-  proc.check_call(['ninja', 'check-all'], cwd=LLVM_OUT_DIR)
+  if sys.platform != 'darwin':
+    # TODO(dschuff): remove this when https://reviews.llvm.org/D25304 lands
+    proc.check_call(['ninja', 'check-all'], cwd=LLVM_OUT_DIR)
   proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR)
   CopyLLVMTools(LLVM_OUT_DIR)
 
