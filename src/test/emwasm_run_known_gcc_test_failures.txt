@@ -9,7 +9,6 @@
 20071220-1.c.js
 20071220-2.c.js
 20101011-1.c.js
-alloca-1.c.js
 bitfld-3.c.js
 bitfld-5.c.js
 builtin-bitops-1.c.js

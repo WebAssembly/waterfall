@@ -59,9 +59,6 @@ va-arg-22.c.s.wast.wasm
 # Untriaged (this one broke at rev e5b9c73, r269252)
 20030125-1.c.s.wast.wasm # abort()
 
-# abort() as well, but occurring for musl only.
-980602-2.c.s.wast.wasm
-
 # d8 segfault.
 930513-1.c.s.wast.wasm
 
@@ -77,7 +74,6 @@ va-arg-22.c.s.wast.wasm
 bitfld-5.c.s.wast.wasm
 complex-5.c.s.wast.wasm
 complex-7.c.s.wast.wasm
-pr40022.c.s.wast.wasm
 pr56982.c.s.wast.wasm
 pr60960.c.s.wast.wasm
 stdarg-1.c.s.wast.wasm
@@ -85,9 +81,6 @@ stdarg-2.c.s.wast.wasm
 struct-ret-1.c.s.wast.wasm
 va-arg-5.c.s.wast.wasm
 va-arg-6.c.s.wast.wasm
-
-# Fails with musl only.
-pr20621-1.c.s.wast.wasm # main() returned 272
 
 # Unknown exception: function signature mismatch
 # Which function?
