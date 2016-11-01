@@ -124,10 +124,12 @@ OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 # Sync Node.js binary
 NODE_VERSION = '7.0.0'
 NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
+
+
 def NodePlatformName():
-    return {'darwin': 'darwin-x64', 'linux2': 'linux-x64'}[sys.platform]
+  return {'darwin': 'darwin-x64', 'linux2': 'linux-x64'}[sys.platform]
 NODE_BIN = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName(),
-                           'bin', 'node')
+                        'bin', 'node')
 
 # Known failures.
 IT_IS_KNOWN = 'known_gcc_test_failures.txt'
