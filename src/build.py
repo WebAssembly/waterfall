@@ -542,7 +542,7 @@ ALL_SOURCES = [
            WASM_GIT_BASE + 'wabt.git'),
     Source('spec', SPEC_SRC_DIR,
            WASM_GIT_BASE + 'spec.git'),
-    Source('ocaml', OCAML_DIR, '', # The git arg is ignored.
+    Source('ocaml', OCAML_DIR, '',  # The git arg is ignored.
            custom_sync=SyncOCaml),
     Source('binaryen', BINARYEN_SRC_DIR,
            WASM_GIT_BASE + 'binaryen.git'),
