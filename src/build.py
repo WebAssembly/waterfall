@@ -123,7 +123,11 @@ OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 
 # Sync Node.js binary
 NODE_VERSION = '7.0.0'
-NODE_TAR_BASE = 'node-v' + NODE_VERSION + '-'
+NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
+def NodePlatformName():
+    return {'darwin': 'darwin-x64', 'linux2': 'linux-x64'}[sys.platform]
+NODE_BIN = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName(),
+                           'bin', 'node')
 
 # Known failures.
 IT_IS_KNOWN = 'known_gcc_test_failures.txt'
@@ -509,11 +513,11 @@ def SyncTarball(out_dir, name, version, url, tar):
 def SyncOCaml(name, src_dir, git_repo):
   return SyncTarball(src_dir, 'OCaml', OCAML_VERSION, OCAML_URL, OCAML_TAR)
 
+
 def SyncPrebuiltNodeJS(name, src_dir, git_repo):
-  os_string = {'darwin': 'darwin-x64', 'linux2': 'linux-x64'}[sys.platform]
   extension = {'darwin': 'gz', 'linux2': 'xz'}[sys.platform]
-  out_dir = os.path.join(WORK_DIR, NODE_TAR_BASE + os_string)
-  tarball = NODE_TAR_BASE + os_string + '.tar.' + extension
+  out_dir = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName())
+  tarball = NODE_BASE_NAME + NodePlatformName() + '.tar.' + extension
   print tarball
   node_url = WASM_STORAGE_BASE + tarball
   return SyncTarball(out_dir, name, NODE_VERSION, node_url,
@@ -895,6 +899,7 @@ def Emscripten(use_asm=True):
   def WriteEmscriptenConfig(infile, outfile):
     with open(infile) as config:
       text = config.read().replace('{{WASM_INSTALL}}', INSTALL_DIR)
+      text = text.replace('{{PREBUILT_NODE}}', NODE_BIN)
     with open(outfile, 'w') as config:
       config.write(text)
 
