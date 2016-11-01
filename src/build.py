@@ -112,14 +112,18 @@ WATERFALL_REMOTE = '_waterfall'
 
 # Sync OCaml from a cached tar file because the upstream repository is only
 # http. The file untars into a directory of the same name as the tar file.
-OCAML_STORAGE_BASE = 'https://wasm.storage.googleapis.com/'
+WASM_STORAGE_BASE = 'https://wasm.storage.googleapis.com/'
 OCAML_VERSION = 'ocaml-4.02.2'
 OCAML_TAR_NAME = OCAML_VERSION + '.tar.gz'
 OCAML_TAR = os.path.join(WORK_DIR, OCAML_TAR_NAME)
-OCAML_URL = OCAML_STORAGE_BASE + OCAML_TAR_NAME
+OCAML_URL = WASM_STORAGE_BASE + OCAML_TAR_NAME
 OCAML_DIR = os.path.join(WORK_DIR, OCAML_VERSION)
 OCAML_OUT_DIR = os.path.join(WORK_DIR, 'ocaml-out')
 OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
+
+# Sync Node.js binary
+NODE_VERSION = '7.0.0'
+NODE_TAR_BASE = 'node-v' + NODE_VERSION + '-'
 
 # Known failures.
 IT_IS_KNOWN = 'known_gcc_test_failures.txt'
@@ -488,18 +492,32 @@ def SyncPrebuiltCMake(name, src_dir, git_repo):
       raise
 
 
+def SyncTarball(out_dir, name, version, url, tar):
+  if os.path.isdir(out_dir):
+    print '%s directory already exists' % name
+    return
+  print 'Downloading %s %s from %s' % (name, version, url)
+  f = urllib2.urlopen(url)
+  print 'URL: %s' % f.geturl()
+  print 'Info: %s' % f.info()
+  with open(tar, 'wb') as out:
+    out.write(f.read())
+  proc.check_call(['tar', '-xvf', tar], cwd=WORK_DIR)
+  assert os.path.isdir(out_dir), 'Untar should produce %s' % out_dir
+
+
 def SyncOCaml(name, src_dir, git_repo):
-  if os.path.isdir(src_dir):
-    print 'OCaml directory already exists'
-  else:
-    print 'Downloading OCaml %s from %s' % (OCAML_VERSION, OCAML_URL)
-    f = urllib2.urlopen(OCAML_URL)
-    print 'URL: %s' % f.geturl()
-    print 'Info: %s' % f.info()
-    with open(OCAML_TAR, 'wb') as out:
-      out.write(f.read())
-    proc.check_call(['tar', '-xvf', OCAML_TAR], cwd=WORK_DIR)
-    assert os.path.isdir(OCAML_DIR), 'Untar should produce %s' % OCAML_DIR
+  return SyncTarball(src_dir, 'OCaml', OCAML_VERSION, OCAML_URL, OCAML_TAR)
+
+def SyncPrebuiltNodeJS(name, src_dir, git_repo):
+  os_string = {'darwin': 'darwin-x64', 'linux2': 'linux-x64'}[sys.platform]
+  extension = {'darwin': 'gz', 'linux2': 'xz'}[sys.platform]
+  out_dir = os.path.join(WORK_DIR, NODE_TAR_BASE + os_string)
+  tarball = NODE_TAR_BASE + os_string + '.tar.' + extension
+  print tarball
+  node_url = WASM_STORAGE_BASE + tarball
+  return SyncTarball(out_dir, name, NODE_VERSION, node_url,
+                     os.path.join(WORK_DIR, tarball))
 
 
 def NoSync(*args):
@@ -538,6 +556,8 @@ ALL_SOURCES = [
            custom_sync=SyncPrebuiltClang),
     Source('cmake', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltCMake),
+    Source('nodejs', '', '',  # The source and git args are ignored.
+           custom_sync=SyncPrebuiltNodeJS),
     Source('wabt', WABT_SRC_DIR,
            WASM_GIT_BASE + 'wabt.git'),
     Source('spec', SPEC_SRC_DIR,
@@ -1345,7 +1365,8 @@ def run(sync_filter, build_filter, test_filter, options):
                         os.pathsep + os.environ['PATH'])
 
   try:
-    BuildRepos(build_filter, test_filter.Check('asm'))
+    BuildRepos(build_filter,
+               test_filter.Check('asm') or test_filter.Check('emtest-asm'))
   except Exception:
     # If any exception reaches here, do not attempt to run the tests; just
     # log the error for buildbot and exit
