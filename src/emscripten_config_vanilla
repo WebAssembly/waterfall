@@ -20,7 +20,11 @@ BINARYEN_ROOT = os.path.join(WASM_INSTALL) # directory
 # EMSCRIPTEN_NATIVE_OPTIMIZER='/path/to/custom/optimizer(.exe)'
 
 # See below for notes on which JS engine(s) you need
-NODE_JS = os.path.expanduser(os.getenv('NODE') or '/usr/bin/nodejs') # executable
+prebuilt_node = '{{PREBUILT_NODE}}'
+if not os.path.isfile(prebuilt_node):
+   prebuilt_node = None
+
+NODE_JS = os.path.expanduser(os.getenv('NODE') or prebuilt_node or '/usr/bin/nodejs') # executable
 SPIDERMONKEY_ENGINE = [os.path.expanduser(os.getenv('SPIDERMONKEY') or 'js')] # executable
 V8_ENGINE = os.path.join(WASM_INSTALL, 'bin', 'd8') # executable
 
@@ -42,8 +46,8 @@ CRUNCH = os.path.expanduser(os.getenv('CRUNCH') or 'crunch') # executable
 #                 spidermonkey from source. Any of these three is fine, as long as it's
 #                 a recent version (especially for v8 and spidermonkey).
 
-#COMPILER_ENGINE = NODE_JS
-COMPILER_ENGINE = V8_ENGINE
+COMPILER_ENGINE = NODE_JS
+#COMPILER_ENGINE = V8_ENGINE
 #COMPILER_ENGINE = SPIDERMONKEY_ENGINE
 
 
