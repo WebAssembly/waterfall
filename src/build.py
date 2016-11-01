@@ -110,9 +110,10 @@ MUSL_GIT_BASE = 'https://github.com/jfbastien/'
 # clobbering any local development.
 WATERFALL_REMOTE = '_waterfall'
 
+WASM_STORAGE_BASE = 'https://wasm.storage.googleapis.com/'
+
 # Sync OCaml from a cached tar file because the upstream repository is only
 # http. The file untars into a directory of the same name as the tar file.
-WASM_STORAGE_BASE = 'https://wasm.storage.googleapis.com/'
 OCAML_VERSION = 'ocaml-4.02.2'
 OCAML_TAR_NAME = OCAML_VERSION + '.tar.gz'
 OCAML_TAR = os.path.join(WORK_DIR, OCAML_TAR_NAME)
@@ -121,7 +122,7 @@ OCAML_DIR = os.path.join(WORK_DIR, OCAML_VERSION)
 OCAML_OUT_DIR = os.path.join(WORK_DIR, 'ocaml-out')
 OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 
-# Sync Node.js binary
+# Use prebuilt Node.js binary because the buildbots don't have node preinstalled
 NODE_VERSION = '7.0.0'
 NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
 
@@ -520,7 +521,6 @@ def SyncPrebuiltNodeJS(name, src_dir, git_repo):
   extension = {'darwin': 'gz', 'linux2': 'xz'}[sys.platform]
   out_dir = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName())
   tarball = NODE_BASE_NAME + NodePlatformName() + '.tar.' + extension
-  print tarball
   node_url = WASM_STORAGE_BASE + tarball
   return SyncTarball(out_dir, name, NODE_VERSION, node_url,
                      os.path.join(WORK_DIR, tarball))
