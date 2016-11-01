@@ -488,6 +488,20 @@ def SyncPrebuiltCMake(name, src_dir, git_repo):
       raise
 
 
+def SyncOCaml(name, src_dir, git_repo):
+  if os.path.isdir(src_dir):
+    print 'OCaml directory already exists'
+  else:
+    print 'Downloading OCaml %s from %s' % (OCAML_VERSION, OCAML_URL)
+    f = urllib2.urlopen(OCAML_URL)
+    print 'URL: %s' % f.geturl()
+    print 'Info: %s' % f.info()
+    with open(OCAML_TAR, 'wb') as out:
+      out.write(f.read())
+    proc.check_call(['tar', '-xvf', OCAML_TAR], cwd=WORK_DIR)
+    assert os.path.isdir(OCAML_DIR), 'Untar should produce %s' % OCAML_DIR
+
+
 def NoSync(*args):
   pass
 
@@ -528,6 +542,8 @@ ALL_SOURCES = [
            WASM_GIT_BASE + 'wabt.git'),
     Source('spec', SPEC_SRC_DIR,
            WASM_GIT_BASE + 'spec.git'),
+    Source('ocaml', OCAML_DIR, '',  # The git arg is ignored.
+           custom_sync=SyncOCaml),
     Source('binaryen', BINARYEN_SRC_DIR,
            WASM_GIT_BASE + 'binaryen.git'),
     Source('musl', MUSL_SRC_DIR,
@@ -580,20 +596,6 @@ def SyncLLVMClang(good_hashes=None):
   primary = LLVM_SRC_DIR if SCHEDULER == 'llvm' else CLANG_SRC_DIR
   secondary = LLVM_SRC_DIR if primary == CLANG_SRC_DIR else CLANG_SRC_DIR
   SyncToSameSvnRev(primary, secondary)
-
-
-def SyncOCaml():
-  if os.path.isdir(OCAML_DIR):
-    print 'OCaml directory already exists'
-  else:
-    print 'Downloading OCaml %s from %s' % (OCAML_VERSION, OCAML_URL)
-    f = urllib2.urlopen(OCAML_URL)
-    print 'URL: %s' % f.geturl()
-    print 'Info: %s' % f.info()
-    with open(OCAML_TAR, 'wb') as out:
-      out.write(f.read())
-    proc.check_call(['tar', '-xvf', OCAML_TAR], cwd=WORK_DIR)
-    assert os.path.isdir(OCAML_DIR), 'Untar should produce %s' % OCAML_DIR
 
 
 def Clobber():
@@ -681,8 +683,6 @@ def SyncRepos(filter, sync_lkgr=False):
   # Special cases
   if filter.Check('clang'):
     SyncLLVMClang(good_hashes)
-  if filter.Check('ocaml'):
-    SyncOCaml()
 
 
 def GetRepoInfo():
@@ -804,8 +804,9 @@ def OCaml():
   makefile = os.path.join(OCAML_DIR, 'config', 'Makefile')
   if not os.path.isfile(makefile):
     configure = os.path.join(OCAML_DIR, 'configure')
+    cc_flag = ['-cc', CC] if sys.platform != 'darwin' else []
     proc.check_call(
-        [configure, '-prefix', OCAML_OUT_DIR, '-cc', CC], cwd=OCAML_DIR)
+        [configure, '-prefix', OCAML_OUT_DIR] + cc_flag, cwd=OCAML_DIR)
   proc.check_call(['make', 'world.opt', '-j%s' % NPROC], cwd=OCAML_DIR)
   proc.check_call(['make', 'install'], cwd=OCAML_DIR)
   ocamlbuild = os.path.join(OCAML_BIN_DIR, 'ocamlbuild')
