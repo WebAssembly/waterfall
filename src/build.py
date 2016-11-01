@@ -122,7 +122,7 @@ OCAML_DIR = os.path.join(WORK_DIR, OCAML_VERSION)
 OCAML_OUT_DIR = os.path.join(WORK_DIR, 'ocaml-out')
 OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 
-# Use prebuilt Node.js binary because the buildbots don't have node preinstalled
+# Use prebuilt Node.js because the buildbots don't have node preinstalled
 NODE_VERSION = '7.0.0'
 NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
 
