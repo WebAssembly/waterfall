@@ -122,8 +122,10 @@ OCAML_DIR = os.path.join(WORK_DIR, OCAML_VERSION)
 OCAML_OUT_DIR = os.path.join(WORK_DIR, 'ocaml-out')
 OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 
+
 def IsWindows():
   return sys.platform == 'win32'
+
 
 def Executable(name):
   if IsWindows():
@@ -136,7 +138,8 @@ NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
 
 
 def NodePlatformName():
-  if IsWindows(): return ''
+  if IsWindows():
+    return ''
   return {'darwin': 'darwin-x64', 'linux2': 'linux-x64'}[sys.platform]
 NODE_BIN = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName(),
                         'bin', 'node')
