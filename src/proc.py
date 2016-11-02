@@ -29,9 +29,24 @@ import sys
 from subprocess import * # flake8: noqa
 
 
+def FixPythonAndWindows(cmd):
+  if cmd[0].endswith('.py'):
+    return [sys.executable].extend(cmd)
+
+  exe = cmd[0]
+  def IsExe(f):
+    return os.path.isfile(f) and os.access(f, os.X_OK)
+  if not IsExe(exe):
+    if IsExe(exe + '.exe'):
+      exe = exe + '.exe'
+    if IsExe(exe + '.bat'):
+      exe = exe + '.bat'
+  return [exe].extend(cmd[1:])
+
 # Now we can override any parts of subprocess we want, while leaving the rest.
 def check_call(cmd, **kwargs):
   cwd = kwargs.get('cwd', os.getcwd())
+  cmd = FixPythonAndWindows(cmd)
   c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
   print 'subprocess.check_call(`%s`, cwd=`%s`)' % (c, cwd)
   sys.stdout.flush()
@@ -41,6 +56,7 @@ def check_call(cmd, **kwargs):
 
 def check_output(cmd, **kwargs):
   cwd = kwargs.get('cwd', os.getcwd())
+  cmd = FixPythonAndWindows(cmd)
   c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
   print 'subprocess.check_output(`%s`, cwd=`%s`)' % (c, cwd)
   sys.stdout.flush()
