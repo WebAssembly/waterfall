@@ -122,12 +122,24 @@ OCAML_DIR = os.path.join(WORK_DIR, OCAML_VERSION)
 OCAML_OUT_DIR = os.path.join(WORK_DIR, 'ocaml-out')
 OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 
+
+def IsWindows():
+  return sys.platform == 'win32'
+
+
+def Executable(name):
+  if IsWindows():
+    return name + '.exe'
+  return name
+
 # Use prebuilt Node.js because the buildbots don't have node preinstalled
 NODE_VERSION = '7.0.0'
 NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
 
 
 def NodePlatformName():
+  if IsWindows():
+    return ''
   return {'darwin': 'darwin-x64', 'linux2': 'linux-x64'}[sys.platform]
 NODE_BIN = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName(),
                         'bin', 'node')
@@ -371,15 +383,21 @@ class Source(object):
   """Metadata about a sync-able source repo on the waterfall"""
   def __init__(self, name, src_dir, git_repo,
                checkout=RemoteBranch('master'), depth=None,
-               custom_sync=None):
+               custom_sync=None, no_windows=False):
     self.name = name
     self.src_dir = src_dir
     self.git_repo = git_repo
     self.checkout = checkout
     self.depth = depth
     self.custom_sync = custom_sync
+    # Several of these steps have not been made to work on windows yet.
+    # Temporarily disable them.
+    self.no_windows = no_windows
 
   def Sync(self, good_hashes=None):
+    if IsWindows() and self.no_windows:
+      print "Skipping %s: Doesn't work on Windows" % self.name
+      return
     if good_hashes and good_hashes.get(self.name):
       self.checkout = good_hashes[self.name]
     if self.custom_sync:
@@ -559,17 +577,17 @@ ALL_SOURCES = [
            custom_sync=ChromiumFetchSync),
     Source('chromium-clang', PREBUILT_CLANG,
            GIT_MIRROR_BASE + 'chromium/src/tools/clang',
-           custom_sync=SyncPrebuiltClang),
+           custom_sync=SyncPrebuiltClang, no_windows=True),
     Source('cmake', '', '',  # The source and git args are ignored.
-           custom_sync=SyncPrebuiltCMake),
+           custom_sync=SyncPrebuiltCMake, no_windows=True),
     Source('nodejs', '', '',  # The source and git args are ignored.
-           custom_sync=SyncPrebuiltNodeJS),
+           custom_sync=SyncPrebuiltNodeJS, no_windows=True),
     Source('wabt', WABT_SRC_DIR,
            WASM_GIT_BASE + 'wabt.git'),
     Source('spec', SPEC_SRC_DIR,
-           WASM_GIT_BASE + 'spec.git'),
+           WASM_GIT_BASE + 'spec.git', no_windows=True),
     Source('ocaml', OCAML_DIR, '',  # The git arg is ignored.
-           custom_sync=SyncOCaml),
+           custom_sync=SyncOCaml, no_windows=True),
     Source('binaryen', BINARYEN_SRC_DIR,
            WASM_GIT_BASE + 'binaryen.git'),
     Source('musl', MUSL_SRC_DIR,
@@ -707,7 +725,7 @@ def SyncRepos(filter, sync_lkgr=False):
   for repo in filter.Apply(ALL_SOURCES):
     repo.Sync(good_hashes)
   # Special cases
-  if filter.Check('clang'):
+  if filter.Check('clang') and not IsWindows():
     SyncLLVMClang(good_hashes)
 
 
@@ -807,7 +825,7 @@ def V8():
                    'tools/run-tests.py', 'unittests', '--no-presubmit',
                    '--shell-dir', V8_OUT_DIR],
                   cwd=V8_SRC_DIR)
-  to_archive = ['d8', 'natives_blob.bin', 'snapshot_blob.bin']
+  to_archive = [Executable('d8'), 'natives_blob.bin', 'snapshot_blob.bin']
   for a in to_archive:
     CopyBinaryToArchive(os.path.join(V8_OUT_DIR, a))
 
@@ -1092,13 +1110,19 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, outdir='',
 
 
 class Build(object):
-  def __init__(self, name_, runnable_, *args, **kwargs):
+  def __init__(self, name_, runnable_, no_windows=True, *args, **kwargs):
     self.name = name_
     self.runnable = runnable_
     self.args = args
     self.kwargs = kwargs
+    # Almost all of these steps depend directly or indirectly on CMake.
+    # Temporarily disable them.
+    self.no_windows = no_windows
 
   def Run(self):
+    if IsWindows() and self.no_windows:
+      print "Skipping %s: Doesn't work on windows" % self.runnable.__name__
+      return
     self.runnable(*self.args, **self.kwargs)
 
 
@@ -1137,7 +1161,7 @@ def AllBuilds(use_asm=False):
   return [
       # Host tools
       Build('llvm', LLVM),
-      Build('v8', V8),
+      Build('v8', V8, no_windows=False),
       Build('wabt', Wabt),
       Build('ocaml', OCaml),
       Build('spec', Spec),
@@ -1383,8 +1407,10 @@ def run(sync_filter, build_filter, test_filter, options):
     Summary(repos)
     return 1
 
-  for t in test_filter.Apply(ALL_TESTS):
-    t.Test()
+  if not IsWindows():
+    # None of the tests work on windows yet
+    for t in test_filter.Apply(ALL_TESTS):
+      t.Test()
 
   # Keep the summary step last: it'll be marked as red if the return code is
   # non-zero. Individual steps are marked as red with buildbot.Fail().
