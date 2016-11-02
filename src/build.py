@@ -390,6 +390,8 @@ class Source(object):
     self.checkout = checkout
     self.depth = depth
     self.custom_sync = custom_sync
+    # Several of these steps have not been made to work on windows yet.
+    # Temporarily disable them.
     self.no_windows = no_windows
 
   def Sync(self, good_hashes=None):
@@ -1113,7 +1115,8 @@ class Build(object):
     self.runnable = runnable_
     self.args = args
     self.kwargs = kwargs
-    # Almost all of these steps depend directly or indirectly on CMake
+    # Almost all of these steps depend directly or indirectly on CMake.
+    # Temporarily disable them.
     self.no_windows = no_windows
 
   def Run(self):
