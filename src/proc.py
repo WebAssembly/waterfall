@@ -31,7 +31,7 @@ from subprocess import * # flake8: noqa
 
 def FixPythonAndWindows(cmd):
   if cmd[0].endswith('.py'):
-    return [sys.executable].extend(cmd)
+    return [sys.executable] + cmd
 
   exe = cmd[0]
   def IsExe(f):
@@ -41,7 +41,7 @@ def FixPythonAndWindows(cmd):
       exe = exe + '.exe'
     if IsExe(exe + '.bat'):
       exe = exe + '.bat'
-  return [exe].extend(cmd[1:])
+  return [exe] + cmd[1:]
 
 # Now we can override any parts of subprocess we want, while leaving the rest.
 def check_call(cmd, **kwargs):
