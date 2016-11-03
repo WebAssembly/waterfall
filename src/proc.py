@@ -30,10 +30,8 @@ from subprocess import * # flake8: noqa
 
 
 def Which(filename, cwd):
-  abs_path = os.path.join(cwd, filename)
-  if os.path.exists(abs_path):
-    return abs_path
-  for path in os.environ['PATH'].split(os.pathsep):
+  to_search = ([cwd] + os.environ['PATH'].split(os.pathsep))
+  for path in to_search:
     abs_path = os.path.join(path, filename)
     if os.path.exists(abs_path):
       return abs_path
