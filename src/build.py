@@ -486,7 +486,7 @@ def SyncPrebuiltClang(name, src_dir, git_repo):
     Git(['clone', git_repo, tools_clang])
   Git(['fetch'], cwd=tools_clang)
   proc.check_call(
-      [sys.executable, os.path.join(tools_clang, 'scripts', 'update.py')])
+      [os.path.join(tools_clang, 'scripts', 'update.py')])
   assert os.path.isfile(CC), 'Expect clang at %s' % CC
   assert os.path.isfile(CXX), 'Expect clang++ at %s' % CXX
   return ('chromium-clang', tools_clang)
@@ -598,7 +598,7 @@ ALL_SOURCES = [
 
 def CurrentSvnRev(path):
   return int(proc.check_output(
-      [sys.executable, FIND_SVN_REV, 'HEAD'], cwd=path).strip())
+      [FIND_SVN_REV, 'HEAD'], cwd=path).strip())
 
 
 def FindPriorSvnRev(path, goal):
@@ -606,7 +606,7 @@ def FindPriorSvnRev(path, goal):
       ['rev-list', RemoteBranch('master')], cwd=path).splitlines()
   for rev in revs:
     num = proc.check_output(
-        [sys.executable, FIND_SVN_REV, rev], cwd=path).strip()
+        [FIND_SVN_REV, rev], cwd=path).strip()
     if int(num) <= goal:
       return rev
   raise Exception('Cannot find svn rev at or before %d' % goal)
@@ -812,8 +812,7 @@ def LLVM():
 
 def V8():
   buildbot.Step('V8')
-  proc.check_call([sys.executable,
-                   os.path.join(V8_SRC_DIR, 'tools', 'dev', 'v8gen.py'),
+  proc.check_call([os.path.join(V8_SRC_DIR, 'tools', 'dev', 'v8gen.py'),
                    'x64.release'],
                   cwd=V8_SRC_DIR)
   jobs = []
@@ -821,8 +820,7 @@ def V8():
     jobs = ['-j', '50']
   proc.check_call(['ninja', '-v', '-C', V8_OUT_DIR, 'd8', 'unittests'] + jobs,
                   cwd=V8_SRC_DIR)
-  proc.check_call([sys.executable,
-                   'tools/run-tests.py', 'unittests', '--no-presubmit',
+  proc.check_call(['tools/run-tests.py', 'unittests', '--no-presubmit',
                    '--shell-dir', V8_OUT_DIR],
                   cwd=V8_SRC_DIR)
   to_archive = [Executable('d8'), 'natives_blob.bin', 'snapshot_blob.bin']
@@ -963,7 +961,6 @@ def Musl():
   Mkdir(MUSL_OUT_DIR)
   try:
     proc.check_call([
-        sys.executable,
         os.path.join(MUSL_SRC_DIR, 'libc.py'),
         '--clang_dir', INSTALL_BIN,
         '--binaryen_dir', os.path.join(INSTALL_BIN),
@@ -1268,8 +1265,7 @@ def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only):
   Mkdir(outdir)
   try:
     proc.check_call(
-        [sys.executable,
-         os.path.join(INSTALL_DIR, 'emscripten', 'tests', 'runner.py'),
+        [os.path.join(INSTALL_DIR, 'emscripten', 'tests', 'runner.py'),
          'binaryen2', '--em-config', config],
         cwd=outdir)
   except proc.CalledProcessError:
