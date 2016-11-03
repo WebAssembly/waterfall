@@ -29,11 +29,22 @@ import sys
 from subprocess import * # flake8: noqa
 
 
+def Which(filename):
+  if os.path.exists(filename):
+    return filename
+  for path in os.environ['PATH'].split(os.pathsep):
+    fullname = os.path.join(path, filename)
+    if os.path.exists(fullname):
+      return fullname
+  return None
+
+
 def FixPython(cmd):
   script = cmd[0]
-  if script.endswith('.py') and os.path.exists(script):
-    return [sys.executable] + cmd
+  if script.endswith('.py'):
+    return [sys.executable, Which(script)] + cmd[1:]
   return cmd
+
 
 # Now we can override any parts of subprocess we want, while leaving the rest.
 def check_call(cmd, **kwargs):
