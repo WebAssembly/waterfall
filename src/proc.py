@@ -30,7 +30,8 @@ from subprocess import * # flake8: noqa
 
 
 def FixPython(cmd):
-  if cmd[0].endswith('.py'):
+  script = cmd[0]
+  if script.endswith('.py') and os.path.exists(script):
     return [sys.executable] + cmd
   return cmd
 
