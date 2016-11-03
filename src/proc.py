@@ -29,27 +29,29 @@ import sys
 from subprocess import * # flake8: noqa
 
 
-def Which(filename):
-  if os.path.exists(filename):
-    return filename
+def Which(filename, cwd):
+  abs_path = os.path.join(cwd, filename)
+  if os.path.exists(abs_path):
+    return abs_path
   for path in os.environ['PATH'].split(os.pathsep):
-    fullname = os.path.join(path, filename)
-    if os.path.exists(fullname):
-      return fullname
-  return None
+    abs_path = os.path.join(path, filename)
+    if os.path.exists(abs_path):
+      return abs_path
+  raise Exception('File "%s" not found. (cwd=`%s`, PATH=`%s`'
+                  % (filename, cwd, os.environ['PATH']))
 
 
-def FixPython(cmd):
+def FixPython(cmd, cwd):
   script = cmd[0]
   if script.endswith('.py'):
-    return [sys.executable, Which(script)] + cmd[1:]
+    return [sys.executable, Which(script, cwd)] + cmd[1:]
   return cmd
 
 
 # Now we can override any parts of subprocess we want, while leaving the rest.
 def check_call(cmd, **kwargs):
   cwd = kwargs.get('cwd', os.getcwd())
-  cmd = FixPython(cmd)
+  cmd = FixPython(cmd, cwd)
   c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
   print 'subprocess.check_call(`%s`, cwd=`%s`)' % (c, cwd)
   sys.stdout.flush()
@@ -59,7 +61,7 @@ def check_call(cmd, **kwargs):
 
 def check_output(cmd, **kwargs):
   cwd = kwargs.get('cwd', os.getcwd())
-  cmd = FixPython(cmd)
+  cmd = FixPython(cmd, cwd)
   c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
   print 'subprocess.check_output(`%s`, cwd=`%s`)' % (c, cwd)
   sys.stdout.flush()
