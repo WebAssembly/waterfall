@@ -29,19 +29,23 @@ import sys
 from subprocess import * # flake8: noqa
 
 
+def CanExecute(path):
+  return os.path.isfile(path) and os.access(path, os.X_OK)
+
+
 def Which(filename, cwd):
-  to_search = ([cwd] + os.environ['PATH'].split(os.pathsep))
+  to_search = [cwd] + os.environ['PATH'].split(os.pathsep)
   for path in to_search:
     abs_path = os.path.join(path, filename)
-    if os.path.exists(abs_path):
+    if CanExecute(abs_path):
       return abs_path
-  raise Exception('File "%s" not found. (cwd=`%s`, PATH=`%s`'
-                  % (filename, cwd, os.environ['PATH']))
+  raise Exception('File "%s" not found. (cwd=`%s`, PATH=`%s`' %
+                  (filename, cwd, os.environ['PATH']))
 
 
 def FixPython(cmd, cwd):
   script = cmd[0]
-  if script.endswith('.py'):
+  if script.endswith('.py') and not CanExecute(script):
     return [sys.executable, Which(script, cwd)] + cmd[1:]
   return cmd
 
