@@ -2,48 +2,48 @@
 # and binaryen interpret-binary mode
 
 # no builtin returnaddress or frameaddress
-20010122-1.c
-frame-address.c
-pr17377.c
+20010122-1.c.js
+frame-address.c.js
+pr17377.c.js
 
 # inline assembly tricks
-20030222-1.c
-20071220-1.c
-20071220-2.c
-pr38533.c
-pr41239.c
-pr49279.c
+20030222-1.c.js
+20071220-1.c.js
+20071220-2.c.js
+pr38533.c.js
+pr41239.c.js
+pr49279.c.js
 
 # aborts in native clang
-20031003-1.c
-20071018-1.c
-20071120-1.c
-alloca-1.c
-bitfld-3.c
-bitfld-5.c
-builtin-bitops-1.c
-eeprof-1.c
-pr34971.c
-pr36765.c
-pr39228.c
-pr43008.c
-pr47237.c
-va-arg-pack-1.c
+20031003-1.c.js
+20071018-1.c.js
+20071120-1.c.js
+alloca-1.c.js
+bitfld-3.c.js
+bitfld-5.c.js
+builtin-bitops-1.c.js
+eeprof-1.c.js
+pr34971.c.js
+pr36765.c.js
+pr39228.c.js
+pr43008.c.js
+pr47237.c.js
+va-arg-pack-1.c.js
 
 # SIMD
-20050316-2.c
-20050604-1.c
-20050607-1.c
-20060420-1.c
-simd-1.c
-simd-2.c
-simd-4.c
-simd-5.c
-simd-6.c
-pr53645-2.c
-pr53645.c
-pr60960.c
+20050316-2.c.js
+20050604-1.c.js
+20050607-1.c.js
+20060420-1.c.js
+simd-1.c.js
+simd-2.c.js
+simd-4.c.js
+simd-5.c.js
+simd-6.c.js
+pr53645-2.c.js
+pr53645.c.js
+pr60960.c.js
 
 # signal()
-20101011-1.c
+20101011-1.c.js
 
