@@ -23,7 +23,7 @@ bitfld-3.c.js
 bitfld-5.c.js
 builtin-bitops-1.c.js
 eeprof-1.c.js
-pr32244.c.js
+pr32244-1.c.js
 pr34971.c.js
 pr36765.c.js
 pr39228.c.js
