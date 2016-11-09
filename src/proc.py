@@ -29,16 +29,37 @@ import sys
 from subprocess import * # flake8: noqa
 
 
-def FixPython(cmd):
+def Which(filename, cwd, require_executable=True):
+  if os.path.isabs(filename):
+    return filename
+
+  to_search = [cwd] + os.environ.get('PATH', '').split(os.pathsep)
+  exe_suffixes = ['']
+  if sys.platform == 'win32':
+    exe_suffixes += ['.exe', '.bat']
+  for path in to_search:
+    abs_path = os.path.abspath(os.path.join(path, filename))
+    for suffix in exe_suffixes:
+      full_path = abs_path + suffix
+      if (os.path.isfile(full_path) and
+          (not require_executable or os.access(full_path, os.X_OK))):
+        return full_path
+  raise Exception('File "%s" not found. (cwd=`%s`, PATH=`%s`' %
+                  (filename, cwd, os.environ['PATH']))
+
+
+def FixPython(cmd, cwd):
   script = cmd[0]
-  if script.endswith('.py') and os.path.exists(script):
-    return [sys.executable] + cmd
+  if script.endswith('.py'):
+    abs_script = Which(script, cwd, require_executable=False)
+    return [sys.executable, abs_script] + cmd[1:]
   return cmd
+
 
 # Now we can override any parts of subprocess we want, while leaving the rest.
 def check_call(cmd, **kwargs):
   cwd = kwargs.get('cwd', os.getcwd())
-  cmd = FixPython(cmd)
+  cmd = FixPython(cmd, cwd)
   c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
   print 'subprocess.check_call(`%s`, cwd=`%s`)' % (c, cwd)
   sys.stdout.flush()
@@ -48,7 +69,7 @@ def check_call(cmd, **kwargs):
 
 def check_output(cmd, **kwargs):
   cwd = kwargs.get('cwd', os.getcwd())
-  cmd = FixPython(cmd)
+  cmd = FixPython(cmd, cwd)
   c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
   print 'subprocess.check_output(`%s`, cwd=`%s`)' % (c, cwd)
   sys.stdout.flush()
