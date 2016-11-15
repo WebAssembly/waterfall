@@ -68,11 +68,7 @@ PREBUILT_CLANG_BIN = os.path.join(
 CC = os.path.join(PREBUILT_CLANG_BIN, 'clang')
 CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
 
-# The archive itself contains the 'cmake343' directory.
 PREBUILT_CMAKE_DIR = os.path.join(WORK_DIR, 'cmake343')
-PREBUILT_CMAKE_ARCHIVE = 'cmake343_%s.tgz'
-PREBUILT_CMAKE_URL = ('https://commondatastorage.googleapis.com/' +
-                      'chromium-browser-clang/tools/')
 PREBUILT_CMAKE_BIN = os.path.join(PREBUILT_CMAKE_DIR, 'bin', 'cmake')
 
 LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
@@ -492,43 +488,40 @@ def SyncPrebuiltClang(name, src_dir, git_repo):
   return ('chromium-clang', tools_clang)
 
 
-def SyncPrebuiltCMake(name, src_dir, git_repo):
-  if os.path.isdir(PREBUILT_CMAKE_DIR):
-    print 'Prebuilt CMake directory already exists'
-  else:
-    platform = 'Darwin' if sys.platform == 'darwin' else 'Linux'
-    filename = PREBUILT_CMAKE_ARCHIVE % platform
-    url = PREBUILT_CMAKE_URL + filename
-    Mkdir(PREBUILT_CMAKE_DIR)
-    try:
-      response = urllib2.urlopen(url)
-      data = response.read()
-      print 'Downloaded %s' % url
-      with tempfile.TemporaryFile() as f:
-        f.write(data)
-        f.seek(0)
-        # The tar file itself includes the 'cmake343' directory, so set the
-        # extract path to WORK_DIR to get the right path
-        tarfile.open(mode='r:gz', fileobj=f).extractall(path=WORK_DIR)
-        assert os.path.isfile(PREBUILT_CMAKE_BIN)
-      print 'Extracted CMake to %s' % PREBUILT_CMAKE_DIR
-    except urllib2.URLError as e:
-      print 'Error downloading %s: %s' % (url, e)
-      raise
-
-
 def SyncTarball(out_dir, name, version, url, tar):
   if os.path.isdir(out_dir):
     print '%s directory already exists' % name
     return
   print 'Downloading %s %s from %s' % (name, version, url)
-  f = urllib2.urlopen(url)
-  print 'URL: %s' % f.geturl()
-  print 'Info: %s' % f.info()
-  with open(tar, 'wb') as out:
-    out.write(f.read())
-  proc.check_call(['tar', '-xvf', tar], cwd=WORK_DIR)
-  assert os.path.isdir(out_dir), 'Untar should produce %s' % out_dir
+  try:
+    f = urllib2.urlopen(url)
+    print 'URL: %s' % f.geturl()
+    print 'Info: %s' % f.info()
+    with open(tar, 'wb') as out:
+      out.write(f.read())
+      out.seek(0)
+      tarfile.open(mode='r:gz', fileobj=out).extractall(path=WORK_DIR)
+  except urllib2.URLError as e:
+    print 'Error downloading %s: %s' % (url, e)
+    raise
+
+
+def SyncPrebuiltCMake(name, src_dir, git_repo):
+  if os.path.isdir(PREBUILT_CMAKE_DIR):
+    print 'Prebuilt CMake directory already exists'
+  else:
+    platform = {'linux2':'Linux', 'darwin':'Darwin', 'win32':'win32'}[sys.platform]
+    arch = 'x86' if IsWindows() else 'x86_64'
+    extension = '.zip' if IsWindows() else '.tar.gz'
+    file_base = 'cmake-3.4.3-%s-%s' % (platform, arch)
+    file_name = file_base + extension
+    url = WASM_STORAGE_BASE + file_name
+    archive = os.path.join(WORK_DIR, file_name)
+
+    SyncTarball(PREBUILT_CMAKE_DIR, 'CMake', '3.4.3', url, archive)
+  
+    os.rename(os.path.join(WORK_DIR, file_base), PREBUILT_CMAKE_DIR)
+    assert os.path.isfile(PREBUILT_CMAKE_BIN)
 
 
 def SyncOCaml(name, src_dir, git_repo):
@@ -579,7 +572,7 @@ ALL_SOURCES = [
            GIT_MIRROR_BASE + 'chromium/src/tools/clang',
            custom_sync=SyncPrebuiltClang, no_windows=True),
     Source('cmake', '', '',  # The source and git args are ignored.
-           custom_sync=SyncPrebuiltCMake, no_windows=True),
+           custom_sync=SyncPrebuiltCMake),
     Source('nodejs', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltNodeJS, no_windows=True),
     Source('wabt', WABT_SRC_DIR,
