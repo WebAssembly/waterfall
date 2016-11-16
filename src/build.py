@@ -113,7 +113,6 @@ WASM_STORAGE_BASE = 'https://wasm.storage.googleapis.com/'
 # http. The file untars into a directory of the same name as the tar file.
 OCAML_VERSION = 'ocaml-4.02.2'
 OCAML_TAR_NAME = OCAML_VERSION + '.tar.gz'
-OCAML_TAR = os.path.join(WORK_DIR, OCAML_TAR_NAME)
 OCAML_URL = WASM_STORAGE_BASE + OCAML_TAR_NAME
 OCAML_DIR = os.path.join(WORK_DIR, OCAML_VERSION)
 OCAML_OUT_DIR = os.path.join(WORK_DIR, 'ocaml-out')
@@ -127,10 +126,12 @@ def IsWindows():
 def IsMac():
   return sys.platform == 'darwin'
 
+
 def Executable(name):
   if IsWindows():
     return name + '.exe'
   return name
+
 
 # Use prebuilt Node.js because the buildbots don't have node preinstalled
 NODE_VERSION = '7.0.0'
@@ -141,6 +142,8 @@ def NodePlatformName():
   if IsWindows():
     return ''
   return {'darwin': 'darwin-x64', 'linux2': 'linux-x64'}[sys.platform]
+
+
 NODE_BIN = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName(),
                         'bin', 'node')
 
@@ -492,7 +495,7 @@ def SyncPrebuiltClang(name, src_dir, git_repo):
   return ('chromium-clang', tools_clang)
 
 
-def SyncTarball(out_dir, name, version, url, tar):
+def SyncArchive(out_dir, name, version, url):
   if os.path.isdir(out_dir):
     print '%s directory already exists' % name
     return
@@ -501,15 +504,15 @@ def SyncTarball(out_dir, name, version, url, tar):
     f = urllib2.urlopen(url)
     print 'URL: %s' % f.geturl()
     print 'Info: %s' % f.info()
-    with open(tar, 'w+b') as out:
-      out.write(f.read())
-      out.seek(0)
+    with tempfile.TemporaryFile()as t:
+      t.write(f.read())
+      t.seek(0)
       print 'Extracting %s' % tar
-      if tar.endswith('.zip'):
-        with zipfile.ZipFile(out, 'r') as zip:
+      if url.endswith('zip'):
+        with zipfile.ZipFile(t, 'r') as zip:
           zip.extractall(path=WORK_DIR)
       else:
-        tarfile.open(mode='r', fileobj=out).extractall(path=WORK_DIR)
+        tarfile.open(mode='r', fileobj=t).extractall(path=WORK_DIR)
   except urllib2.URLError as e:
     print 'Error downloading %s: %s' % (url, e)
     raise
@@ -519,15 +522,15 @@ def SyncPrebuiltCMake(name, src_dir, git_repo):
   if os.path.isdir(PREBUILT_CMAKE_DIR):
     print 'Prebuilt CMake directory already exists'
   else:
-    platform = {'linux2':'Linux', 'darwin':'Darwin', 'win32':'win32'}[sys.platform]
+    platform = {'linux2': 'Linux',
+                'darwin': 'Darwin',
+                'win32': 'win32'}[sys.platform]
     arch = 'x86' if IsWindows() else 'x86_64'
     extension = '.zip' if IsWindows() else '.tar.gz'
     file_base = 'cmake-3.4.3-%s-%s' % (platform, arch)
-    file_name = file_base + extension
-    url = WASM_STORAGE_BASE + file_name
-    archive = os.path.join(WORK_DIR, file_name)
+    url = WASM_STORAGE_BASE + file_base + extension
 
-    SyncTarball(PREBUILT_CMAKE_DIR, 'CMake', '3.4.3', url, archive)
+    SyncArchive(PREBUILT_CMAKE_DIR, 'CMake', '3.4.3', url)
 
     contents_dir = os.path.join(WORK_DIR, file_base)
     if IsMac():
@@ -537,7 +540,7 @@ def SyncPrebuiltCMake(name, src_dir, git_repo):
 
 
 def SyncOCaml(name, src_dir, git_repo):
-  return SyncTarball(src_dir, 'OCaml', OCAML_VERSION, OCAML_URL, OCAML_TAR)
+  return SyncArchive(src_dir, 'OCaml', OCAML_VERSION, OCAML_URL)
 
 
 def SyncPrebuiltNodeJS(name, src_dir, git_repo):
@@ -545,12 +548,12 @@ def SyncPrebuiltNodeJS(name, src_dir, git_repo):
   out_dir = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName())
   tarball = NODE_BASE_NAME + NodePlatformName() + '.tar.' + extension
   node_url = WASM_STORAGE_BASE + tarball
-  return SyncTarball(out_dir, name, NODE_VERSION, node_url,
-                     os.path.join(WORK_DIR, tarball))
+  return SyncArchive(out_dir, name, NODE_VERSION, node_url)
 
 
 def NoSync(*args):
   pass
+
 
 ALL_SOURCES = [
     Source('waterfall', SCRIPT_DIR, None, custom_sync=NoSync),
@@ -743,7 +746,7 @@ def GetRepoInfo():
   return info
 
 
-### Build rules
+# Build rules
 
 def OverrideCMakeCompiler():
   if IsWindows():
@@ -800,7 +803,6 @@ def LLVM():
                       c for c in ['C', 'CXX']])
     except:
       compiler_launcher = None
-
 
   if compiler_launcher:
     command.extend(['-DCMAKE_%s_COMPILER_LAUNCHER=%s' %
@@ -894,7 +896,7 @@ def Fastcomp():
        '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
        '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
        '-DLLVM_ENABLE_ASSERTIONS=ON'] + OverrideCMakeCompiler(),
-    cwd=FASTCOMP_OUT_DIR)
+      cwd=FASTCOMP_OUT_DIR)
   proc.check_call(['ninja'], cwd=FASTCOMP_OUT_DIR)
   proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR)
   CopyLLVMTools(FASTCOMP_OUT_DIR, 'fastcomp')
