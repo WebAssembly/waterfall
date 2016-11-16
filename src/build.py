@@ -497,7 +497,7 @@ def SyncTarball(out_dir, name, version, url, tar):
     f = urllib2.urlopen(url)
     print 'URL: %s' % f.geturl()
     print 'Info: %s' % f.info()
-    with open(tar, 'wb') as out:
+    with open(tar, 'w+b') as out:
       out.write(f.read())
       out.seek(0)
       tarfile.open(mode='r:gz', fileobj=out).extractall(path=WORK_DIR)
