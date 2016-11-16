@@ -26,6 +26,7 @@ import tarfile
 import tempfile
 import traceback
 import urllib2
+import zipfile
 
 import assemble_files
 import buildbot
@@ -68,11 +69,7 @@ PREBUILT_CLANG_BIN = os.path.join(
 CC = os.path.join(PREBUILT_CLANG_BIN, 'clang')
 CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
 
-# The archive itself contains the 'cmake343' directory.
 PREBUILT_CMAKE_DIR = os.path.join(WORK_DIR, 'cmake343')
-PREBUILT_CMAKE_ARCHIVE = 'cmake343_%s.tgz'
-PREBUILT_CMAKE_URL = ('https://commondatastorage.googleapis.com/' +
-                      'chromium-browser-clang/tools/')
 PREBUILT_CMAKE_BIN = os.path.join(PREBUILT_CMAKE_DIR, 'bin', 'cmake')
 
 LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
@@ -116,7 +113,6 @@ WASM_STORAGE_BASE = 'https://wasm.storage.googleapis.com/'
 # http. The file untars into a directory of the same name as the tar file.
 OCAML_VERSION = 'ocaml-4.02.2'
 OCAML_TAR_NAME = OCAML_VERSION + '.tar.gz'
-OCAML_TAR = os.path.join(WORK_DIR, OCAML_TAR_NAME)
 OCAML_URL = WASM_STORAGE_BASE + OCAML_TAR_NAME
 OCAML_DIR = os.path.join(WORK_DIR, OCAML_VERSION)
 OCAML_OUT_DIR = os.path.join(WORK_DIR, 'ocaml-out')
@@ -127,10 +123,15 @@ def IsWindows():
   return sys.platform == 'win32'
 
 
+def IsMac():
+  return sys.platform == 'darwin'
+
+
 def Executable(name):
   if IsWindows():
     return name + '.exe'
   return name
+
 
 # Use prebuilt Node.js because the buildbots don't have node preinstalled
 NODE_VERSION = '7.0.0'
@@ -141,6 +142,8 @@ def NodePlatformName():
   if IsWindows():
     return ''
   return {'darwin': 'darwin-x64', 'linux2': 'linux-x64'}[sys.platform]
+
+
 NODE_BIN = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName(),
                         'bin', 'node')
 
@@ -492,47 +495,52 @@ def SyncPrebuiltClang(name, src_dir, git_repo):
   return ('chromium-clang', tools_clang)
 
 
-def SyncPrebuiltCMake(name, src_dir, git_repo):
-  if os.path.isdir(PREBUILT_CMAKE_DIR):
-    print 'Prebuilt CMake directory already exists'
-  else:
-    platform = 'Darwin' if sys.platform == 'darwin' else 'Linux'
-    filename = PREBUILT_CMAKE_ARCHIVE % platform
-    url = PREBUILT_CMAKE_URL + filename
-    Mkdir(PREBUILT_CMAKE_DIR)
-    try:
-      response = urllib2.urlopen(url)
-      data = response.read()
-      print 'Downloaded %s' % url
-      with tempfile.TemporaryFile() as f:
-        f.write(data)
-        f.seek(0)
-        # The tar file itself includes the 'cmake343' directory, so set the
-        # extract path to WORK_DIR to get the right path
-        tarfile.open(mode='r:gz', fileobj=f).extractall(path=WORK_DIR)
-        assert os.path.isfile(PREBUILT_CMAKE_BIN)
-      print 'Extracted CMake to %s' % PREBUILT_CMAKE_DIR
-    except urllib2.URLError as e:
-      print 'Error downloading %s: %s' % (url, e)
-      raise
-
-
-def SyncTarball(out_dir, name, version, url, tar):
+def SyncArchive(out_dir, name, version, url):
   if os.path.isdir(out_dir):
     print '%s directory already exists' % name
     return
   print 'Downloading %s %s from %s' % (name, version, url)
-  f = urllib2.urlopen(url)
-  print 'URL: %s' % f.geturl()
-  print 'Info: %s' % f.info()
-  with open(tar, 'wb') as out:
-    out.write(f.read())
-  proc.check_call(['tar', '-xvf', tar], cwd=WORK_DIR)
-  assert os.path.isdir(out_dir), 'Untar should produce %s' % out_dir
+  try:
+    f = urllib2.urlopen(url)
+    print 'URL: %s' % f.geturl()
+    print 'Info: %s' % f.info()
+    with tempfile.TemporaryFile()as t:
+      t.write(f.read())
+      t.seek(0)
+      print 'Extracting...'
+      if url.endswith('zip'):
+        with zipfile.ZipFile(t, 'r') as zip:
+          zip.extractall(path=WORK_DIR)
+      else:
+        tarfile.open(mode='r', fileobj=t).extractall(path=WORK_DIR)
+  except urllib2.URLError as e:
+    print 'Error downloading %s: %s' % (url, e)
+    raise
+
+
+def SyncPrebuiltCMake(name, src_dir, git_repo):
+  if os.path.isdir(PREBUILT_CMAKE_DIR):
+    print 'Prebuilt CMake directory already exists'
+  else:
+    platform = {'linux2': 'Linux',
+                'darwin': 'Darwin',
+                'win32': 'win32'}[sys.platform]
+    arch = 'x86' if IsWindows() else 'x86_64'
+    extension = '.zip' if IsWindows() else '.tar.gz'
+    file_base = 'cmake-3.4.3-%s-%s' % (platform, arch)
+    url = WASM_STORAGE_BASE + file_base + extension
+
+    SyncArchive(PREBUILT_CMAKE_DIR, 'CMake', '3.4.3', url)
+
+    contents_dir = os.path.join(WORK_DIR, file_base)
+    if IsMac():
+      contents_dir = os.path.join(contents_dir, 'CMake.app', 'Contents')
+
+    os.rename(contents_dir, PREBUILT_CMAKE_DIR)
 
 
 def SyncOCaml(name, src_dir, git_repo):
-  return SyncTarball(src_dir, 'OCaml', OCAML_VERSION, OCAML_URL, OCAML_TAR)
+  return SyncArchive(src_dir, 'OCaml', OCAML_VERSION, OCAML_URL)
 
 
 def SyncPrebuiltNodeJS(name, src_dir, git_repo):
@@ -540,12 +548,12 @@ def SyncPrebuiltNodeJS(name, src_dir, git_repo):
   out_dir = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName())
   tarball = NODE_BASE_NAME + NodePlatformName() + '.tar.' + extension
   node_url = WASM_STORAGE_BASE + tarball
-  return SyncTarball(out_dir, name, NODE_VERSION, node_url,
-                     os.path.join(WORK_DIR, tarball))
+  return SyncArchive(out_dir, name, NODE_VERSION, node_url)
 
 
 def NoSync(*args):
   pass
+
 
 ALL_SOURCES = [
     Source('waterfall', SCRIPT_DIR, None, custom_sync=NoSync),
@@ -579,7 +587,7 @@ ALL_SOURCES = [
            GIT_MIRROR_BASE + 'chromium/src/tools/clang',
            custom_sync=SyncPrebuiltClang, no_windows=True),
     Source('cmake', '', '',  # The source and git args are ignored.
-           custom_sync=SyncPrebuiltCMake, no_windows=True),
+           custom_sync=SyncPrebuiltCMake),
     Source('nodejs', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltNodeJS, no_windows=True),
     Source('wabt', WABT_SRC_DIR,
@@ -738,14 +746,13 @@ def GetRepoInfo():
   return info
 
 
-def Which(name):
-  """Find an executable on the system by name. If not found return ''."""
-  # If we want to run this on Windows, we'll have to be smarter.
-  try:
-    o = proc.check_output(['which', name])
-    return o.strip()
-  except proc.CalledProcessError:
-    return ''
+# Build rules
+
+def OverrideCMakeCompiler():
+  if IsWindows():
+    return []
+  return ['-DCMAKE_C_COMPILER=' + CC,
+          '-DCMAKE_CXX_COMPILER=' + CXX]
 
 
 def CopyLLVMTools(build_dir, prefix=''):
@@ -771,8 +778,6 @@ def LLVM():
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', LLVM_SRC_DIR,
              '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
              '-DLLVM_BUILD_TESTS=ON',
-             '-DCMAKE_C_COMPILER=' + CC,
-             '-DCMAKE_CXX_COMPILER=' + CXX,
              '-DCMAKE_BUILD_TYPE=Release',
              '-DCMAKE_INSTALL_PREFIX=' + INSTALL_DIR,
              '-DLLVM_INCLUDE_EXAMPLES=OFF',
@@ -785,17 +790,19 @@ def LLVM():
              '-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=WebAssembly',
              '-DLLVM_TARGETS_TO_BUILD=X86']
 
-  compiler_launcher = None
+  command.extend(OverrideCMakeCompiler())
+
   jobs = []
   if 'GOMA_DIR' in os.environ:
     compiler_launcher = os.path.join(os.environ['GOMA_DIR'], 'gomacc')
     jobs = ['-j', '50']
   else:
-    ccache = Which('ccache')
-    if ccache:
-      compiler_launcher = ccache
+    try:
+      compiler_launcher = proc.Which('ccache', WORK_DIR)
       command.extend(['-DCMAKE_%s_FLAGS=-Qunused-arguments' %
                       c for c in ['C', 'CXX']])
+    except:
+      compiler_launcher = None
 
   if compiler_launcher:
     command.extend(['-DCMAKE_%s_COMPILER_LAUNCHER=%s' %
@@ -832,10 +839,8 @@ def Wabt():
   buildbot.Step('WABT')
   Mkdir(WABT_OUT_DIR)
   proc.check_call([PREBUILT_CMAKE_BIN, '-G', 'Ninja', WABT_SRC_DIR,
-                   '-DCMAKE_C_COMPILER=%s' % CC,
-                   '-DCMAKE_CXX_COMPILER=%s' % CXX,
                    '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR,
-                   '-DBUILD_TESTS=OFF'],
+                   '-DBUILD_TESTS=OFF'] + OverrideCMakeCompiler(),
                   cwd=WABT_OUT_DIR)
   proc.check_call(['ninja'], cwd=WABT_OUT_DIR)
   proc.check_call(['ninja', 'install'], cwd=WABT_OUT_DIR)
@@ -870,9 +875,7 @@ def Binaryen():
   Mkdir(BINARYEN_OUT_DIR)
   proc.check_call(
       [PREBUILT_CMAKE_BIN, '-G', 'Ninja', BINARYEN_SRC_DIR,
-       '-DCMAKE_C_COMPILER=' + CC,
-       '-DCMAKE_CXX_COMPILER=' + CXX,
-       '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR],
+       '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR] + OverrideCMakeCompiler(),
       cwd=BINARYEN_OUT_DIR)
   proc.check_call(['ninja'], cwd=BINARYEN_OUT_DIR)
   proc.check_call(['ninja', 'install'], cwd=BINARYEN_OUT_DIR)
@@ -885,8 +888,6 @@ def Fastcomp():
   proc.check_call(
       [PREBUILT_CMAKE_BIN, '-G', 'Ninja', FASTCOMP_SRC_DIR,
        '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
-       '-DCMAKE_C_COMPILER=' + CC,
-       '-DCMAKE_CXX_COMPILER=' + CXX,
        '-DCMAKE_BUILD_TYPE=Release',
        '-DCMAKE_INSTALL_PREFIX=' + install_dir,
        '-DLLVM_INCLUDE_EXAMPLES=OFF',
@@ -894,7 +895,8 @@ def Fastcomp():
        '-DLLVM_LINK_LLVM_DYLIB=ON',
        '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
        '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
-       '-DLLVM_ENABLE_ASSERTIONS=ON'], cwd=FASTCOMP_OUT_DIR)
+       '-DLLVM_ENABLE_ASSERTIONS=ON'] + OverrideCMakeCompiler(),
+      cwd=FASTCOMP_OUT_DIR)
   proc.check_call(['ninja'], cwd=FASTCOMP_OUT_DIR)
   proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR)
   CopyLLVMTools(FASTCOMP_OUT_DIR, 'fastcomp')
@@ -1159,10 +1161,10 @@ def AllBuilds(use_asm=False):
       # Host tools
       Build('llvm', LLVM),
       Build('v8', V8, no_windows=False),
-      Build('wabt', Wabt),
+      Build('wabt', Wabt, no_windows=False),
       Build('ocaml', OCaml),
       Build('spec', Spec),
-      Build('binaryen', Binaryen),
+      Build('binaryen', Binaryen, no_windows=False),
       Build('fastcomp', Fastcomp),
       Build('emscripten', Emscripten, use_asm),
       # Target libs
