@@ -507,7 +507,7 @@ def SyncArchive(out_dir, name, version, url):
     with tempfile.TemporaryFile()as t:
       t.write(f.read())
       t.seek(0)
-      print 'Extracting %s' % tar
+      print 'Extracting...'
       if url.endswith('zip'):
         with zipfile.ZipFile(t, 'r') as zip:
           zip.extractall(path=WORK_DIR)
