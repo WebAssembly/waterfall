@@ -743,14 +743,13 @@ def GetRepoInfo():
   return info
 
 
-def Which(name):
-  """Find an executable on the system by name. If not found return ''."""
-  # If we want to run this on Windows, we'll have to be smarter.
-  try:
-    o = proc.check_output(['which', name])
-    return o.strip()
-  except proc.CalledProcessError:
-    return ''
+### Build rules
+
+def OverrideCMakeCompiler():
+  if IsWindows():
+    return []
+  return ['-DCMAKE_C_COMPILER=' + CC,
+          '-DCMAKE_CXX_COMPILER=' + CXX]
 
 
 def CopyLLVMTools(build_dir, prefix=''):
@@ -776,8 +775,6 @@ def LLVM():
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', LLVM_SRC_DIR,
              '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
              '-DLLVM_BUILD_TESTS=ON',
-             '-DCMAKE_C_COMPILER=' + CC,
-             '-DCMAKE_CXX_COMPILER=' + CXX,
              '-DCMAKE_BUILD_TYPE=Release',
              '-DCMAKE_INSTALL_PREFIX=' + INSTALL_DIR,
              '-DLLVM_INCLUDE_EXAMPLES=OFF',
@@ -790,17 +787,20 @@ def LLVM():
              '-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=WebAssembly',
              '-DLLVM_TARGETS_TO_BUILD=X86']
 
-  compiler_launcher = None
+  command.extend(OverrideCMakeCompiler())
+
   jobs = []
   if 'GOMA_DIR' in os.environ:
     compiler_launcher = os.path.join(os.environ['GOMA_DIR'], 'gomacc')
     jobs = ['-j', '50']
   else:
-    ccache = Which('ccache')
-    if ccache:
-      compiler_launcher = ccache
+    try:
+      compiler_launcher = proc.Which('ccache', WORK_DIR)
       command.extend(['-DCMAKE_%s_FLAGS=-Qunused-arguments' %
                       c for c in ['C', 'CXX']])
+    except:
+      compiler_launcher = None
+
 
   if compiler_launcher:
     command.extend(['-DCMAKE_%s_COMPILER_LAUNCHER=%s' %
@@ -837,10 +837,8 @@ def Wabt():
   buildbot.Step('WABT')
   Mkdir(WABT_OUT_DIR)
   proc.check_call([PREBUILT_CMAKE_BIN, '-G', 'Ninja', WABT_SRC_DIR,
-                   '-DCMAKE_C_COMPILER=%s' % CC,
-                   '-DCMAKE_CXX_COMPILER=%s' % CXX,
                    '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR,
-                   '-DBUILD_TESTS=OFF'],
+                   '-DBUILD_TESTS=OFF'] + OverrideCMakeCompiler(),
                   cwd=WABT_OUT_DIR)
   proc.check_call(['ninja'], cwd=WABT_OUT_DIR)
   proc.check_call(['ninja', 'install'], cwd=WABT_OUT_DIR)
@@ -875,9 +873,7 @@ def Binaryen():
   Mkdir(BINARYEN_OUT_DIR)
   proc.check_call(
       [PREBUILT_CMAKE_BIN, '-G', 'Ninja', BINARYEN_SRC_DIR,
-       '-DCMAKE_C_COMPILER=' + CC,
-       '-DCMAKE_CXX_COMPILER=' + CXX,
-       '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR],
+       '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR] + OverrideCMakeCompiler(),
       cwd=BINARYEN_OUT_DIR)
   proc.check_call(['ninja'], cwd=BINARYEN_OUT_DIR)
   proc.check_call(['ninja', 'install'], cwd=BINARYEN_OUT_DIR)
@@ -890,8 +886,6 @@ def Fastcomp():
   proc.check_call(
       [PREBUILT_CMAKE_BIN, '-G', 'Ninja', FASTCOMP_SRC_DIR,
        '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
-       '-DCMAKE_C_COMPILER=' + CC,
-       '-DCMAKE_CXX_COMPILER=' + CXX,
        '-DCMAKE_BUILD_TYPE=Release',
        '-DCMAKE_INSTALL_PREFIX=' + install_dir,
        '-DLLVM_INCLUDE_EXAMPLES=OFF',
@@ -899,7 +893,8 @@ def Fastcomp():
        '-DLLVM_LINK_LLVM_DYLIB=ON',
        '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
        '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
-       '-DLLVM_ENABLE_ASSERTIONS=ON'], cwd=FASTCOMP_OUT_DIR)
+       '-DLLVM_ENABLE_ASSERTIONS=ON'] + OverrideCMakeCompiler(),
+    cwd=FASTCOMP_OUT_DIR)
   proc.check_call(['ninja'], cwd=FASTCOMP_OUT_DIR)
   proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR)
   CopyLLVMTools(FASTCOMP_OUT_DIR, 'fastcomp')
@@ -1164,10 +1159,10 @@ def AllBuilds(use_asm=False):
       # Host tools
       Build('llvm', LLVM),
       Build('v8', V8, no_windows=False),
-      Build('wabt', Wabt),
+      Build('wabt', Wabt, no_windows=False),
       Build('ocaml', OCaml),
       Build('spec', Spec),
-      Build('binaryen', Binaryen),
+      Build('binaryen', Binaryen, no_windows=False),
       Build('fastcomp', Fastcomp),
       Build('emscripten', Emscripten, use_asm),
       # Target libs
