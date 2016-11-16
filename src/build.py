@@ -123,6 +123,9 @@ def IsWindows():
   return sys.platform == 'win32'
 
 
+def IsMac():
+  return sys.platform == 'darwin'
+
 def Executable(name):
   if IsWindows():
     return name + '.exe'
@@ -500,7 +503,8 @@ def SyncTarball(out_dir, name, version, url, tar):
     with open(tar, 'w+b') as out:
       out.write(f.read())
       out.seek(0)
-      tarfile.open(mode='r:gz', fileobj=out).extractall(path=WORK_DIR)
+      print 'Extracting %s' % tar
+      tarfile.open(mode='r', fileobj=out).extractall(path=WORK_DIR)
   except urllib2.URLError as e:
     print 'Error downloading %s: %s' % (url, e)
     raise
@@ -519,8 +523,12 @@ def SyncPrebuiltCMake(name, src_dir, git_repo):
     archive = os.path.join(WORK_DIR, file_name)
 
     SyncTarball(PREBUILT_CMAKE_DIR, 'CMake', '3.4.3', url, archive)
-  
-    os.rename(os.path.join(WORK_DIR, file_base), PREBUILT_CMAKE_DIR)
+
+    contents_dir = os.path.join(WORK_DIR, file_base)
+    if IsMac():
+      contents_dir = os.path.join(contents_dir, 'CMake.app', 'Contents')
+    os.rename(contents_dir, PREBUILT_CMAKE_DIR)
+
     assert os.path.isfile(PREBUILT_CMAKE_BIN)
 
 
