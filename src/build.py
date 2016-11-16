@@ -26,6 +26,7 @@ import tarfile
 import tempfile
 import traceback
 import urllib2
+import zipfile
 
 import assemble_files
 import buildbot
@@ -504,7 +505,11 @@ def SyncTarball(out_dir, name, version, url, tar):
       out.write(f.read())
       out.seek(0)
       print 'Extracting %s' % tar
-      tarfile.open(mode='r', fileobj=out).extractall(path=WORK_DIR)
+      if tar.endswith('.zip'):
+        with zipfile.ZipFile(out, 'r') as zip:
+          zip.extractall(path=WORK_DIR)
+      else:
+        tarfile.open(mode='r', fileobj=out).extractall(path=WORK_DIR)
   except urllib2.URLError as e:
     print 'Error downloading %s: %s' % (url, e)
     raise
@@ -527,9 +532,8 @@ def SyncPrebuiltCMake(name, src_dir, git_repo):
     contents_dir = os.path.join(WORK_DIR, file_base)
     if IsMac():
       contents_dir = os.path.join(contents_dir, 'CMake.app', 'Contents')
-    os.rename(contents_dir, PREBUILT_CMAKE_DIR)
 
-    assert os.path.isfile(PREBUILT_CMAKE_BIN)
+    os.rename(contents_dir, PREBUILT_CMAKE_DIR)
 
 
 def SyncOCaml(name, src_dir, git_repo):
