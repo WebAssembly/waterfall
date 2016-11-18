@@ -33,6 +33,7 @@ import buildbot
 import cloud
 import compile_torture_tests
 import execute_files
+import host_toolchains
 import link_assembly_files
 import proc
 
@@ -478,22 +479,11 @@ def ChromiumFetchSync(name, work_dir, git_repo,
   return (name, work_dir)
 
 
-def SyncPrebuiltClang(name, src_dir, git_repo):
-  tools_clang = os.path.join(src_dir, 'tools', 'clang')
-  if os.path.isdir(tools_clang):
-    print 'Prebuilt Chromium Clang directory already exists'
+def SyncToolchain(name, src_dir, git_repo):
+  if IsWindows():
+    host_toolchains.SyncWinToolchain(V8_SRC_DIR)
   else:
-    print 'Cloning Prebuilt Chromium Clang directory'
-    Mkdir(src_dir)
-    Mkdir(os.path.join(src_dir, 'tools'))
-    Git(['clone', git_repo, tools_clang])
-  Git(['fetch'], cwd=tools_clang)
-  proc.check_call(
-      [os.path.join(tools_clang, 'scripts', 'update.py')])
-  assert os.path.isfile(CC), 'Expect clang at %s' % CC
-  assert os.path.isfile(CXX), 'Expect clang++ at %s' % CXX
-  return ('chromium-clang', tools_clang)
-
+    host_toolchains.SyncPrebuiltClang(name, src_dir, git_repo)
 
 def SyncArchive(out_dir, name, version, url):
   if os.path.isdir(out_dir):
@@ -583,9 +573,9 @@ ALL_SOURCES = [
     Source('v8', V8_SRC_DIR,
            GIT_MIRROR_BASE + 'v8/v8',
            custom_sync=ChromiumFetchSync),
-    Source('chromium-clang', PREBUILT_CLANG,
+    Source('host-toolchain', PREBUILT_CLANG,
            GIT_MIRROR_BASE + 'chromium/src/tools/clang',
-           custom_sync=SyncPrebuiltClang, no_windows=True),
+           custom_sync=SyncToolchain),
     Source('cmake', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltCMake),
     Source('nodejs', '', '',  # The source and git args are ignored.
@@ -750,7 +740,8 @@ def GetRepoInfo():
 
 def OverrideCMakeCompiler():
   if IsWindows():
-    return []
+      return ['-DCMAKE_C_COMPILER=%s' % host_toolchains.GetToolchainPath('cc').replace('\\', '/'),
+              '-DCMAKE_CXX_COMPILER=%s' % host_toolchains.GetToolchainPath('cc').replace('\\', '/')]
   return ['-DCMAKE_C_COMPILER=' + CC,
           '-DCMAKE_CXX_COMPILER=' + CXX]
 
@@ -836,6 +827,7 @@ def V8():
 
 
 def Wabt():
+  cl = host_toolchains.GetToolchainPath('cc')
   buildbot.Step('WABT')
   Mkdir(WABT_OUT_DIR)
   proc.check_call([PREBUILT_CMAKE_BIN, '-G', 'Ninja', WABT_SRC_DIR,
