@@ -956,6 +956,8 @@ def Emscripten(use_asm=True):
   wrapper = os.path.join(SCRIPT_DIR, 'emcc_wrapper.sh')
   shutil.copy2(wrapper, os.path.join(INSTALL_BIN, 'emcc'))
   shutil.copy2(wrapper, os.path.join(INSTALL_BIN, 'em++'))
+  shutil.copy2(wrapper, os.path.join(INSTALL_BIN, 'emconfigure'))
+  shutil.copy2(wrapper, os.path.join(INSTALL_BIN, 'emmake'))
 
 
 def Musl():

@@ -22,4 +22,4 @@ else
   export EM_CONFIG="${WASM_ROOT}/emscripten_config"
 fi
 
-exec "${WASM_ROOT}/emscripten/$(basename $0)" $*
+exec "${WASM_ROOT}/emscripten/$(basename $0)" "$@"
