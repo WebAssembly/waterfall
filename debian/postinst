@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-for x in emcc em++ wasm2wast wast2wasm wasm-interp s2wasm wasm-opt wasm-as \
-         wasm-dis wasm-shell wasm.opt d8; do
+for x in emcc em++ emconfigure emmake wasm2wast wast2wasm wasmdump wasm-interp \
+         s2wasm wasm-opt wasm-as wasm-dis wasm-shell wasm.opt d8; do
   update-alternatives --install /usr/bin/$x $x /opt/wasm/bin/$x 10
 done
