@@ -23,13 +23,11 @@ import proc
 WORK_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'work')
 CR_BUILD_DIR = os.path.join(WORK_DIR, 'build')
 SETUP_TOOLCHAIN = os.path.join(CR_BUILD_DIR, 'toolchain', 'win', 'setup_toolchain.py')
-VS_TOOLCHAIN = os.path.join(CR_BUILD_DIR, 'vs_toolchain.py')
-WIN_TOOLCHAIN_JSON = os.path.join(CR_BUILD_DIR, 'win_toolchain.json')
+V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
+VS_TOOLCHAIN = os.path.join(V8_SRC_DIR, 'gypfiles', 'vs_toolchain.py')
+WIN_TOOLCHAIN_JSON = os.path.join(V8_SRC_DIR, 'gypfiles', 'win_toolchain.json')
 
-dummy_gyp_env = os.environ.copy()
-dummy_gyp_env['PYTHONPATH'] = os.path.dirname(os.path.abspath(__file__))
-dummy_gyp_env['GYP_MSVS_VERSION'] = '2015'
-
+os.environ['GYP_MSVS_VERSION'] = '2015'
 
 def SyncPrebuiltClang(name, src_dir, git_repo):
   """Update the prebuilt clang toolchain used by chromium bots"""
@@ -51,7 +49,7 @@ def SyncPrebuiltClang(name, src_dir, git_repo):
 
 def SyncWinToolchain():
   """Update the VS toolchain used by Chromium bots"""
-  proc.check_call([VS_TOOLCHAIN, 'update'], env=dummy_gyp_env)
+  proc.check_call([VS_TOOLCHAIN, 'update'])
 
 
 def GetEnv(dir):
@@ -70,7 +68,7 @@ def SetUpEnv(outdir):
   """Set up the VS build environment used by Chromium bots"""
 
   # Get the chromium-packaged toolchain directory info in a JSON file
-  proc.check_call([VS_TOOLCHAIN, 'get_toolchain_dir'], env=dummy_gyp_env)
+  proc.check_call([VS_TOOLCHAIN, 'get_toolchain_dir'])
   with open(WIN_TOOLCHAIN_JSON) as f:
     paths = json.load(f)
 
@@ -84,4 +82,4 @@ def SetUpEnv(outdir):
 
 def CopyDlls(dir, configuration):
   """ Copy MSVS Runtime dlls into a build directory"""
-  proc.check_call([VS_TOOLCHAIN, 'copy_dlls', dir, configuration, 'x64'], env=dummy_gyp_env)
+  proc.check_call([VS_TOOLCHAIN, 'copy_dlls', dir, configuration, 'x64'])
