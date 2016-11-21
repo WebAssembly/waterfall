@@ -23,12 +23,14 @@ import proc
 
 WORK_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'work')
 CR_BUILD_DIR = os.path.join(WORK_DIR, 'build')
-SETUP_TOOLCHAIN = os.path.join(CR_BUILD_DIR, 'toolchain', 'win', 'setup_toolchain.py')
+SETUP_TOOLCHAIN = os.path.join(CR_BUILD_DIR, 'toolchain', 'win',
+                               'setup_toolchain.py')
 V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
 VS_TOOLCHAIN = os.path.join(V8_SRC_DIR, 'gypfiles', 'vs_toolchain.py')
 WIN_TOOLCHAIN_JSON = os.path.join(V8_SRC_DIR, 'gypfiles', 'win_toolchain.json')
 
 os.environ['GYP_MSVS_VERSION'] = '2015'
+
 
 def SyncPrebuiltClang(name, src_dir, git_repo):
   """Update the prebuilt clang toolchain used by chromium bots"""

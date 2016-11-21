@@ -202,8 +202,6 @@ GCC_REVISION = 'b6125c702850488ac3bfb1079ae5c9db89989406'
 GCC_CLONE_DEPTH = 1000
 
 
-
-
 def CopyBinaryToArchive(binary, prefix=''):
   """All binaries are archived in the same tar file."""
   install_bin = os.path.join(INSTALL_DIR, prefix, 'bin')
