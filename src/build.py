@@ -576,6 +576,7 @@ ALL_SOURCES = [
     Source('host-toolchain', PREBUILT_CLANG,
            GIT_MIRROR_BASE + 'chromium/src/tools/clang',
            custom_sync=SyncToolchain),
+    Source('cr-buildtools', os.path.join(WORK_DIR, 'build'), GIT_MIRROR_BASE+'chromium/src/build'),
     Source('cmake', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltCMake),
     Source('nodejs', '', '',  # The source and git args are ignored.
@@ -830,12 +831,15 @@ def Wabt():
   cl = host_toolchains.GetToolchainPath('cc')
   buildbot.Step('WABT')
   Mkdir(WABT_OUT_DIR)
+  if IsWindows():
+    host_toolchains.CopyDlls(WABT_OUT_DIR, 'Release')
+    cc_env = host_toolchains.GetEnv(WABT_OUT_DIR)
   proc.check_call([PREBUILT_CMAKE_BIN, '-G', 'Ninja', WABT_SRC_DIR,
-                   '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR,
+                   '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR, '-DCMAKE_BUILD_TYPE=Release',
                    '-DBUILD_TESTS=OFF'] + OverrideCMakeCompiler(),
-                  cwd=WABT_OUT_DIR)
-  proc.check_call(['ninja'], cwd=WABT_OUT_DIR)
-  proc.check_call(['ninja', 'install'], cwd=WABT_OUT_DIR)
+                  cwd=WABT_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja'], cwd=WABT_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', 'install'], cwd=WABT_OUT_DIR, env=cc_env)
 
 
 def OCaml():
