@@ -20,21 +20,19 @@ import os
 
 import proc
 
-# Update 3 final with patches with 10.0.10586.0 SDK.
-# Taken from https://cs.chromium.org/chromium/src/build/vs_toolchain.py?rcl=0&l=304
-# and should periodically be updated as Chromium gets updated.
-WIN_TOOLCHAIN_HASH = 'd5dc33b15d1b2c086f2f6632e2fd15882f80dbd3'
-#PREBUILT_CLANG = os.path.join(WORK_DIR, 'chromium-clang')
-#PREBUILT_CLANG_TOOLS_CLANG = os.path.join(PREBUILT_CLANG, 'tools', 'clang')
-#PREBUILT_CLANG_BIN = os.path.join(
-#    PREBUILT_CLANG, 'third_party', 'llvm-build', 'Release+Asserts', 'bin')
-#CC = os.path.join(PREBUILT_CLANG_BIN, 'clang')
-#CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
 WORK_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'work')
-V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
-VS_TOOLCHAIN = os.path.join(V8_SRC_DIR, 'gypfiles', 'vs_toolchain.py')
+CR_BUILD_DIR = os.path.join(WORK_DIR, 'build')
+SETUP_TOOLCHAIN = os.path.join(CR_BUILD_DIR, 'toolchain', 'win', 'setup_toolchain.py')
+VS_TOOLCHAIN = os.path.join(CR_BUILD_DIR, 'vs_toolchain.py')
+WIN_TOOLCHAIN_JSON = os.path.join(CR_BUILD_DIR, 'win_toolchain.json')
+
+dummy_gyp_env = os.environ.copy()
+dummy_gyp_env['PYTHONPATH'] = os.path.dirname(os.path.abspath(__file__))
+dummy_gyp_env['GYP_MSVS_VERSION'] = '2015'
+
 
 def SyncPrebuiltClang(name, src_dir, git_repo):
+  """Update the prebuilt clang toolchain used by chromium bots"""
   tools_clang = os.path.join(src_dir, 'tools', 'clang')
   if os.path.isdir(tools_clang):
     print 'Prebuilt Chromium Clang directory already exists'
@@ -51,52 +49,39 @@ def SyncPrebuiltClang(name, src_dir, git_repo):
   return ('chromium-clang', tools_clang)
 
 
-def SyncWinToolchain(v8_src_dir):
-  print v8_src_dir
-  os.environ['GYP_MSVS_VERSION'] = '2015'
-  proc.check_call([os.path.join(v8_src_dir, 'gypfiles', 'vs_toolchain.py'), 'update'])
+def SyncWinToolchain():
+  """Update the VS toolchain used by Chromium bots"""
+  proc.check_call([VS_TOOLCHAIN, 'update'], env=dummy_gyp_env)
 
-
-def GetToolchainPath(cc):
-  os.environ['GYP_MSVS_VERSION'] = '2015'
-
-  proc.check_call(
-    [VS_TOOLCHAIN,
-     'get_toolchain_dir'])
-  
-  with open(os.path.join(V8_SRC_DIR, 'gypfiles', 'win_toolchain.json')) as f:
-    paths = json.load(f)
-  
-  toolbin = os.path.join(paths['path'], 'VC', 'bin', 'amd64')
-  return os.path.join(toolbin, 'cl.exe')
-
-
-def SetUpEnv(outdir):
-  proc.check_call(
-    [VS_TOOLCHAIN,
-     'get_toolchain_dir'])
-  
-  with open(os.path.join(V8_SRC_DIR, 'gypfiles', 'win_toolchain.json')) as f:
-    paths = json.load(f)
-  #print paths
-  runtime_dirs = os.pathsep.join(paths['runtime_dirs'])
-  proc.check_call([os.path.join(WORK_DIR, 'build', 'toolchain', 'win', 'setup_toolchain.py'),
-                   'foo', paths['win_sdk'], runtime_dirs, 'x64', ''], cwd=outdir)
-
-def CopyDlls(dir, configuration):
-  os.environ['GYP_MSVS_VERSION'] = '2015'
-  proc.check_call([VS_TOOLCHAIN, 'copy_dlls', dir, configuration, 'x64'])
-  SetUpEnv(dir)
 
 def GetEnv(dir):
+  """ Return the configured environment block as a python dict."""
   env = {}
   with open(os.path.join(dir, 'environment.x64'), 'rb') as f:
     entries = f.read().split('\0')
-    #print entries
     for e in entries:
       if not e: continue
-      print e + '\n'
-      print e.split('=', 1)
       var, val = e.split('=', 1)
       env[var] = val
   return env
+
+
+def SetUpEnv(outdir):
+  """Set up the VS build environment used by Chromium bots"""
+
+  # Get the chromium-packaged toolchain directory info in a JSON file
+  proc.check_call([VS_TOOLCHAIN, 'get_toolchain_dir'], env=dummy_gyp_env)
+  with open(WIN_TOOLCHAIN_JSON) as f:
+    paths = json.load(f)
+
+  # Write path information (usable by a non-chromium build) into an environment
+  # block
+  runtime_dirs = os.pathsep.join(paths['runtime_dirs'])
+  proc.check_call([SETUP_TOOLCHAIN,
+                   'foo', paths['win_sdk'], runtime_dirs, 'x64', ''], cwd=outdir)
+  return GetEnv(outdir)
+
+
+def CopyDlls(dir, configuration):
+  """ Copy MSVS Runtime dlls into a build directory"""
+  proc.check_call([VS_TOOLCHAIN, 'copy_dlls', dir, configuration, 'x64'], env=dummy_gyp_env)

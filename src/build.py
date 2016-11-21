@@ -481,7 +481,7 @@ def ChromiumFetchSync(name, work_dir, git_repo,
 
 def SyncToolchain(name, src_dir, git_repo):
   if IsWindows():
-    host_toolchains.SyncWinToolchain(V8_SRC_DIR)
+    host_toolchains.SyncWinToolchain()
   else:
     host_toolchains.SyncPrebuiltClang(name, src_dir, git_repo)
 
@@ -741,8 +741,7 @@ def GetRepoInfo():
 
 def OverrideCMakeCompiler():
   if IsWindows():
-      return ['-DCMAKE_C_COMPILER=%s' % host_toolchains.GetToolchainPath('cc').replace('\\', '/'),
-              '-DCMAKE_CXX_COMPILER=%s' % host_toolchains.GetToolchainPath('cc').replace('\\', '/')]
+    return []
   return ['-DCMAKE_C_COMPILER=' + CC,
           '-DCMAKE_CXX_COMPILER=' + CXX]
 
@@ -828,14 +827,18 @@ def V8():
 
 
 def Wabt():
-  cl = host_toolchains.GetToolchainPath('cc')
   buildbot.Step('WABT')
   Mkdir(WABT_OUT_DIR)
+  cc_env = None
   if IsWindows():
+    cc_env = host_toolchains.SetUpEnv(WABT_OUT_DIR)
     host_toolchains.CopyDlls(WABT_OUT_DIR, 'Release')
-    cc_env = host_toolchains.GetEnv(WABT_OUT_DIR)
+    # TODO(dschuff): Figure out how to make thise statically linked?
+    host_toolchains.CopyDlls(INSTALL_BIN, 'Release')
+
   proc.check_call([PREBUILT_CMAKE_BIN, '-G', 'Ninja', WABT_SRC_DIR,
-                   '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR, '-DCMAKE_BUILD_TYPE=Release',
+                   '-DCMAKE_BUILD_TYPE=Release',
+                   '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR,
                    '-DBUILD_TESTS=OFF'] + OverrideCMakeCompiler(),
                   cwd=WABT_OUT_DIR, env=cc_env)
   proc.check_call(['ninja'], cwd=WABT_OUT_DIR, env=cc_env)
