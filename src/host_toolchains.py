@@ -58,7 +58,8 @@ def GetEnv(dir):
   with open(os.path.join(dir, 'environment.x64'), 'rb') as f:
     entries = f.read().split('\0')
     for e in entries:
-      if not e: continue
+      if not e:
+        continue
       var, val = e.split('=', 1)
       env[var] = val
   return env
@@ -76,7 +77,8 @@ def SetUpEnv(outdir):
   # block
   runtime_dirs = os.pathsep.join(paths['runtime_dirs'])
   proc.check_call([SETUP_TOOLCHAIN,
-                   'foo', paths['win_sdk'], runtime_dirs, 'x64', ''], cwd=outdir)
+                   'foo', paths['win_sdk'], runtime_dirs, 'x64', ''],
+                  cwd=outdir)
   return GetEnv(outdir)
 
 

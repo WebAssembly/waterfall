@@ -485,6 +485,7 @@ def SyncToolchain(name, src_dir, git_repo):
   else:
     host_toolchains.SyncPrebuiltClang(name, src_dir, git_repo)
 
+
 def SyncArchive(out_dir, name, version, url):
   if os.path.isdir(out_dir):
     print '%s directory already exists' % name
@@ -576,7 +577,8 @@ ALL_SOURCES = [
     Source('host-toolchain', PREBUILT_CLANG,
            GIT_MIRROR_BASE + 'chromium/src/tools/clang',
            custom_sync=SyncToolchain),
-    Source('cr-buildtools', os.path.join(WORK_DIR, 'build'), GIT_MIRROR_BASE+'chromium/src/build'),
+    Source('cr-buildtools', os.path.join(WORK_DIR, 'build'),
+           GIT_MIRROR_BASE + 'chromium/src/build'),
     Source('cmake', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltCMake),
     Source('nodejs', '', '',  # The source and git args are ignored.
