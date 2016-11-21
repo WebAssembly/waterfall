@@ -770,7 +770,7 @@ def Wabt():
   Mkdir(WABT_OUT_DIR)
   cc_env = None
   if IsWindows():
-    cc_env = host_toolchains.SetUpEnv(WABT_OUT_DIR)
+    cc_env = host_toolchains.SetUpVSEnv(WABT_OUT_DIR)
     host_toolchains.CopyDlls(WABT_OUT_DIR, 'Release')
     # TODO(dschuff): Figure out how to make this statically linked?
     host_toolchains.CopyDlls(INSTALL_BIN, 'Release')
