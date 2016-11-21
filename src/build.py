@@ -15,7 +15,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-import errno
 import glob
 import json
 import multiprocessing
@@ -33,6 +32,7 @@ import buildbot
 import cloud
 import compile_torture_tests
 import execute_files
+from file_util import Chdir, CopyTree, Mkdir, Remove
 import host_toolchains
 import link_assembly_files
 import proc
@@ -202,69 +202,6 @@ GCC_REVISION = 'b6125c702850488ac3bfb1079ae5c9db89989406'
 GCC_CLONE_DEPTH = 1000
 
 
-# Shell utilities
-
-def Chdir(path):
-  print 'Change directory to: %s' % path
-  os.chdir(path)
-
-
-def Mkdir(path):
-  """Create a directory at a specified path.
-
-  Creates all intermediate directories along the way.
-  e.g.: Mkdir('a/b/c') when 'a/' is an empty directory will
-        cause the creation of directories 'a/b/' and 'a/b/c/'.
-
-  If the path already exists (and is already a directory), this does nothing.
-  """
-  try:
-    os.makedirs(path)
-  except OSError as e:
-    if not os.path.isdir(path):
-      raise Exception('Path %s is not a directory!' % path)
-    if not e.errno == errno.EEXIST:
-      raise e
-
-
-def Remove(path):
-  """Remove file or directory if it exists, do nothing otherwise."""
-  if os.path.exists(path):
-    print 'Removing %s' % path
-    if os.path.isdir(path):
-      shutil.rmtree(path)
-    else:
-      os.remove(path)
-
-
-def CopyTree(src, dst):
-  """Recursively copy the items in the src directory to the dst directory.
-
-  Unlike shutil.copytree, the destination directory and any subdirectories and
-  files may exist. Existing directories are left untouched, and existing files
-  are removed and copied from the source using shutil.copy2. It is also not
-  symlink-aware.
-
-  Args:
-    src: Source. Must be an existing directory.
-    dst: Destination directory. If it exists, must be a directory. Otherwise it
-         will be created, along with parent directories.
-  """
-  print 'Copying directory %s to %s' % (src, dst)
-  if not os.path.isdir(dst):
-    os.makedirs(dst)
-  for root, dirs, files in os.walk(src):
-    relroot = os.path.relpath(root, src)
-    dstroot = os.path.join(dst, relroot)
-    for d in dirs:
-      dstdir = os.path.join(dstroot, d)
-      if not os.path.isdir(dstdir):
-        os.mkdir(dstdir)
-    for f in files:
-      dstfile = os.path.join(dstroot, f)
-      if os.path.isfile(dstfile):
-        os.remove(dstfile)
-      shutil.copy2(os.path.join(root, f), dstfile)
 
 
 def CopyBinaryToArchive(binary, prefix=''):
@@ -484,6 +421,8 @@ def SyncToolchain(name, src_dir, git_repo):
     host_toolchains.SyncWinToolchain()
   else:
     host_toolchains.SyncPrebuiltClang(name, src_dir, git_repo)
+    assert os.path.isfile(CC), 'Expect clang at %s' % CC
+    assert os.path.isfile(CXX), 'Expect clang++ at %s' % CXX
 
 
 def SyncArchive(out_dir, name, version, url):
@@ -835,7 +774,7 @@ def Wabt():
   if IsWindows():
     cc_env = host_toolchains.SetUpEnv(WABT_OUT_DIR)
     host_toolchains.CopyDlls(WABT_OUT_DIR, 'Release')
-    # TODO(dschuff): Figure out how to make thise statically linked?
+    # TODO(dschuff): Figure out how to make this statically linked?
     host_toolchains.CopyDlls(INSTALL_BIN, 'Release')
 
   proc.check_call([PREBUILT_CMAKE_BIN, '-G', 'Ninja', WABT_SRC_DIR,

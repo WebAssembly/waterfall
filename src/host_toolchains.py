@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#   Copyright 2015 WebAssembly Community Group participants
+#   Copyright 2016 WebAssembly Community Group participants
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 import json
 import os
 
+import file_util
 import proc
 
 WORK_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'work')
@@ -36,14 +37,12 @@ def SyncPrebuiltClang(name, src_dir, git_repo):
     print 'Prebuilt Chromium Clang directory already exists'
   else:
     print 'Cloning Prebuilt Chromium Clang directory'
-    Mkdir(src_dir)
-    Mkdir(os.path.join(src_dir, 'tools'))
-    Git(['clone', git_repo, tools_clang])
-  Git(['fetch'], cwd=tools_clang)
+    file_util.Mkdir(src_dir)
+    file_util.Mkdir(os.path.join(src_dir, 'tools'))
+    proc.check_call(['git', 'clone', git_repo, tools_clang])
+  proc.check_call(['git', 'fetch'], cwd=tools_clang)
   proc.check_call(
       [os.path.join(tools_clang, 'scripts', 'update.py')])
-  assert os.path.isfile(CC), 'Expect clang at %s' % CC
-  assert os.path.isfile(CXX), 'Expect clang++ at %s' % CXX
   return ('chromium-clang', tools_clang)
 
 
@@ -52,8 +51,10 @@ def SyncWinToolchain():
   proc.check_call([VS_TOOLCHAIN, 'update'])
 
 
-def GetEnv(dir):
-  """ Return the configured environment block as a python dict."""
+def GetVSEnv(dir):
+  """ Return the configured VS build environment block as a python dict."""
+  # The format is a list of nul-terminated strings of the form var=val
+  # where 'var' is the environment variable name, and 'val' is its value
   env = {}
   with open(os.path.join(dir, 'environment.x64'), 'rb') as f:
     entries = f.read().split('\0')
@@ -65,7 +66,7 @@ def GetEnv(dir):
   return env
 
 
-def SetUpEnv(outdir):
+def SetUpVSEnv(outdir):
   """Set up the VS build environment used by Chromium bots"""
 
   # Get the chromium-packaged toolchain directory info in a JSON file
@@ -79,7 +80,7 @@ def SetUpEnv(outdir):
   proc.check_call([SETUP_TOOLCHAIN,
                    'foo', paths['win_sdk'], runtime_dirs, 'x64', ''],
                   cwd=outdir)
-  return GetEnv(outdir)
+  return GetVSEnv(outdir)
 
 
 def CopyDlls(dir, configuration):
