@@ -811,12 +811,20 @@ def Spec():
 def Binaryen():
   buildbot.Step('binaryen')
   Mkdir(BINARYEN_OUT_DIR)
+  cc_env = None
+  if IsWindows():
+    cc_env = host_toolchains.SetUpVSEnv(BINARYEN_OUT_DIR)
+    # Currently it's a bad idea to do a non-asserts build of Binaryen
+    binaryen_bin = os.path.join(BINARYEN_OUT_DIR, 'bin')
+    Mkdir(binaryen_bin)
+    host_toolchains.CopyDlls(binaryen_bin, 'Debug')
+    host_toolchains.CopyDlls(INSTALL_BIN, 'Debug')
   proc.check_call(
       [PREBUILT_CMAKE_BIN, '-G', 'Ninja', BINARYEN_SRC_DIR,
        '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR] + OverrideCMakeCompiler(),
-      cwd=BINARYEN_OUT_DIR)
-  proc.check_call(['ninja'], cwd=BINARYEN_OUT_DIR)
-  proc.check_call(['ninja', 'install'], cwd=BINARYEN_OUT_DIR)
+      cwd=BINARYEN_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja'], cwd=BINARYEN_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', 'install'], cwd=BINARYEN_OUT_DIR, env=cc_env)
 
 
 def Fastcomp():
