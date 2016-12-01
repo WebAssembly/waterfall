@@ -432,15 +432,18 @@ def SyncArchive(out_dir, name, version, url):
     f = urllib2.urlopen(url)
     print 'URL: %s' % f.geturl()
     print 'Info: %s' % f.info()
-    with tempfile.TemporaryFile()as t:
+    with tempfile.NamedTemporaryFile()as t:
       t.write(f.read())
-      t.seek(0)
+      t.flush()
       print 'Extracting...'
-      if url.endswith('zip'):
-        with zipfile.ZipFile(t, 'r') as zip:
+      ext = os.path.splitext(url)[-1]
+      if ext == '.zip':
+        with zipfile.ZipFile(t.name, 'r') as zip:
           zip.extractall(path=WORK_DIR)
+      elif ext == '.xz':
+        proc.check_call(['tar', '-xvf', t.name], cwd=WORK_DIR)
       else:
-        tarfile.open(mode='r', fileobj=t).extractall(path=WORK_DIR)
+        tarfile.open(t.name).extractall(path=WORK_DIR)
   except urllib2.URLError as e:
     print 'Error downloading %s: %s' % (url, e)
     raise
