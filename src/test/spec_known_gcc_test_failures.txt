@@ -147,3 +147,8 @@ printf-chk-1.c.s.wast # vprintf
 va-arg-21.c.s.wast # env.vprintf
 vprintf-1.c.s.wast # vprintf
 vprintf-chk-1.c.s.wast # vprintf
+fprintf-1.c.s.wast # env.stdout
+fprintf-chk-1.c.s.wast # env.stdout
+gofast.c.s.wast # env.stdout
+vfprintf-1.c.s.wast # env.stdout
+vfprintf-chk-1.c.s.wast # env.stdout
