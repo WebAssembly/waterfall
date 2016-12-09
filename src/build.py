@@ -743,9 +743,7 @@ def LLVM():
 
   proc.check_call(command, cwd=LLVM_OUT_DIR)
   proc.check_call(['ninja', '-v'] + jobs, cwd=LLVM_OUT_DIR)
-  if sys.platform != 'darwin':
-    # TODO(dschuff): remove this when https://reviews.llvm.org/D25304 lands
-    proc.check_call(['ninja', 'check-all'], cwd=LLVM_OUT_DIR)
+  proc.check_call(['ninja', 'check-all'], cwd=LLVM_OUT_DIR)
   proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR)
   CopyLLVMTools(LLVM_OUT_DIR)
 
