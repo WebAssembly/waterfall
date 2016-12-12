@@ -119,6 +119,8 @@ OCAML_DIR = os.path.join(WORK_DIR, OCAML_VERSION)
 OCAML_OUT_DIR = os.path.join(WORK_DIR, 'ocaml-out')
 OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 
+GNUWIN32_DIR = os.path.join(WORK_DIR, 'gnuwin32')
+GNUWIN32_ZIP = 'gnuwin32.zip'
 
 def IsWindows():
   return sys.platform == 'win32'
@@ -424,6 +426,12 @@ def SyncToolchain(name, src_dir, git_repo):
 
 
 def SyncArchive(out_dir, name, version, url):
+  """Download and extract an archive (zip, tar.gz or tar.xz) file from a URL.
+     The extraction happens in WORK_DIR and the convention for our archives is
+     that they contain a top-level directory containing all the files; this
+     is expected to be 'out_dir', so if 'out_dir' already exists then download
+     will be skipped.
+  """
   if os.path.isdir(out_dir):
     print '%s directory already exists' % name
     return
@@ -432,18 +440,18 @@ def SyncArchive(out_dir, name, version, url):
     f = urllib2.urlopen(url)
     print 'URL: %s' % f.geturl()
     print 'Info: %s' % f.info()
-    with tempfile.NamedTemporaryFile()as t:
+    with tempfile.NamedTemporaryFile() as t:
       t.write(f.read())
       t.flush()
       print 'Extracting...'
       ext = os.path.splitext(url)[-1]
       if ext == '.zip':
-        with zipfile.ZipFile(t.name, 'r') as zip:
+        with zipfile.ZipFile(t, 'r') as zip:
           zip.extractall(path=WORK_DIR)
       elif ext == '.xz':
         proc.check_call(['tar', '-xvf', t.name], cwd=WORK_DIR)
       else:
-        tarfile.open(t.name).extractall(path=WORK_DIR)
+        tarfile.open(t).extractall(path=WORK_DIR)
   except urllib2.URLError as e:
     print 'Error downloading %s: %s' % (url, e)
     raise
@@ -481,6 +489,15 @@ def SyncPrebuiltNodeJS(name, src_dir, git_repo):
   node_url = WASM_STORAGE_BASE + tarball
   return SyncArchive(out_dir, name, NODE_VERSION, node_url)
 
+
+# Utilities needed for running LLVM regression tests on Windows
+def SyncGNUWin32(name, src_dir, git_repo):
+  if not IsWindows():
+    return
+  zipfile = os.path.join(GNUWIN32_DIR, GNUWIN32_ZIP)
+  url = WASM_STORAGE_BASE + GNUWIN32_ZIP
+  print url
+  return SyncArchive(GNUWIN32_DIR, name, '1', url)
 
 def NoSync(*args):
   pass
@@ -523,6 +540,8 @@ ALL_SOURCES = [
            custom_sync=SyncPrebuiltCMake),
     Source('nodejs', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltNodeJS, no_windows=True),
+    Source('gnuwin32', '', '', # The source and git args are ignored.
+           custom_sync=SyncGNUWin32),
     Source('wabt', WABT_SRC_DIR,
            WASM_GIT_BASE + 'wabt.git'),
     Source('spec', SPEC_SRC_DIR,
@@ -708,6 +727,11 @@ def CopyLLVMTools(build_dir, prefix=''):
 def LLVM():
   buildbot.Step('LLVM')
   Mkdir(LLVM_OUT_DIR)
+  cc_env = None
+  if IsWindows():
+    cc_env = host_toolchains.SetUpVSEnv(LLVM_OUT_DIR)
+    host_toolchains.CopyDlls(os.path.join(LLVM_OUT_DIR, 'bin'), 'Release')
+  build_dylib = 'ON' if not IsWindows() else 'OFF'
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', LLVM_SRC_DIR,
              '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
              '-DLLVM_BUILD_TESTS=ON',
@@ -716,8 +740,8 @@ def LLVM():
              '-DLLVM_INCLUDE_EXAMPLES=OFF',
              '-DCOMPILER_RT_BUILD_XRAY=OFF',
              '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
-             '-DLLVM_BUILD_LLVM_DYLIB=ON',
-             '-DLLVM_LINK_LLVM_DYLIB=ON',
+             '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
+             '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
              '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
              '-DLLVM_ENABLE_ASSERTIONS=ON',
              '-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=WebAssembly',
@@ -741,12 +765,13 @@ def LLVM():
     command.extend(['-DCMAKE_%s_COMPILER_LAUNCHER=%s' %
                     (c, compiler_launcher) for c in ['C', 'CXX']])
 
-  proc.check_call(command, cwd=LLVM_OUT_DIR)
-  proc.check_call(['ninja', '-v'] + jobs, cwd=LLVM_OUT_DIR)
-  if sys.platform != 'darwin':
+  os.environ['PATH'] = os.environ['PATH'] + os.pathsep + os.path.join(GNUWIN32_DIR, 'bin')
+  proc.check_call(command, cwd=LLVM_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', '-v'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
+  if True or sys.platform.startswith('linux'):
     # TODO(dschuff): remove this when https://reviews.llvm.org/D25304 lands
     proc.check_call(['ninja', 'check-all'], cwd=LLVM_OUT_DIR)
-  proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR)
+  proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
   CopyLLVMTools(LLVM_OUT_DIR)
 
 
@@ -834,14 +859,15 @@ def Fastcomp():
   buildbot.Step('fastcomp')
   Mkdir(FASTCOMP_OUT_DIR)
   install_dir = os.path.join(INSTALL_DIR, 'fastcomp')
+  build_dylib = 'ON' if not IsWindows() else 'OFF'
   proc.check_call(
       [PREBUILT_CMAKE_BIN, '-G', 'Ninja', FASTCOMP_SRC_DIR,
        '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
        '-DCMAKE_BUILD_TYPE=Release',
        '-DCMAKE_INSTALL_PREFIX=' + install_dir,
        '-DLLVM_INCLUDE_EXAMPLES=OFF',
-       '-DLLVM_BUILD_LLVM_DYLIB=ON',
-       '-DLLVM_LINK_LLVM_DYLIB=ON',
+       '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
+       '-DLLVM_LINK_LLVM_DYLIB=%s' % buld_dylib,
        '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
        '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
        '-DLLVM_ENABLE_ASSERTIONS=ON'] + OverrideCMakeCompiler(),
@@ -1110,13 +1136,13 @@ def Summary(repos):
 def AllBuilds(use_asm=False):
   return [
       # Host tools
-      Build('llvm', LLVM),
+      Build('llvm', LLVM, no_windows=False),
       Build('v8', V8, no_windows=False),
       Build('wabt', Wabt, no_windows=False),
       Build('ocaml', OCaml),
       Build('spec', Spec),
       Build('binaryen', Binaryen, no_windows=False),
-      Build('fastcomp', Fastcomp),
+      Build('fastcomp', Fastcomp, no_windows=False),
       Build('emscripten', Emscripten, use_asm),
       # Target libs
       Build('musl', Musl),
