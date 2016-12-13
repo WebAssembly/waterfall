@@ -58,7 +58,7 @@ def GetVSEnv(dir):
   """ Return the configured VS build environment block as a python dict."""
   # The format is a list of nul-terminated strings of the form var=val
   # where 'var' is the environment variable name, and 'val' is its value
-  env = {}
+  env = os.environ.copy()
   with open(os.path.join(dir, 'environment.x64'), 'rb') as f:
     entries = f.read().split('\0')
     for e in entries:
@@ -66,6 +66,7 @@ def GetVSEnv(dir):
         continue
       var, val = e.split('=', 1)
       env[var] = val
+
   return env
 
 
