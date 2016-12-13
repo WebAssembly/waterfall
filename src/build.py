@@ -724,7 +724,7 @@ def CopyLLVMTools(build_dir, prefix=''):
       CopyLibraryToArchive(os.path.join(build_dir, 'lib', e), prefix)
 
 
-def WinBuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
+def BuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
                 runtime='Release'):
   if not IsWindows():
     return None
@@ -742,7 +742,7 @@ def WinBuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
 def LLVM():
   buildbot.Step('LLVM')
   Mkdir(LLVM_OUT_DIR)
-  cc_env = WinBuildEnv(LLVM_OUT_DIR, use_gnuwin32=True, bin_subdir=True)
+  cc_env = BuildEnv(LLVM_OUT_DIR, use_gnuwin32=True, bin_subdir=True)
   build_dylib = 'ON' if not IsWindows() else 'OFF'
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', LLVM_SRC_DIR,
              '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
@@ -806,7 +806,7 @@ def V8():
 def Wabt():
   buildbot.Step('WABT')
   Mkdir(WABT_OUT_DIR)
-  cc_env = WinBuildEnv(WABT_OUT_DIR)
+  cc_env = BuildEnv(WABT_OUT_DIR)
 
   proc.check_call([PREBUILT_CMAKE_BIN, '-G', 'Ninja', WABT_SRC_DIR,
                    '-DCMAKE_BUILD_TYPE=Release',
@@ -845,7 +845,7 @@ def Binaryen():
   buildbot.Step('binaryen')
   Mkdir(BINARYEN_OUT_DIR)
   # Currently it's a bad idea to do a non-asserts build of Binaryen
-  cc_env = WinBuildEnv(BINARYEN_OUT_DIR, bin_subdir=True, runtime='Debug')
+  cc_env = BuildEnv(BINARYEN_OUT_DIR, bin_subdir=True, runtime='Debug')
 
   proc.check_call(
       [PREBUILT_CMAKE_BIN, '-G', 'Ninja', BINARYEN_SRC_DIR,
@@ -860,7 +860,7 @@ def Fastcomp():
   Mkdir(FASTCOMP_OUT_DIR)
   install_dir = os.path.join(INSTALL_DIR, 'fastcomp')
   build_dylib = 'ON' if not IsWindows() else 'OFF'
-  cc_env = WinBuildEnv(FASTCOMP_OUT_DIR, use_gnuwin32=True, bin_subdir=True)
+  cc_env = BuildEnv(FASTCOMP_OUT_DIR, use_gnuwin32=True, bin_subdir=True)
   proc.check_call(
       [PREBUILT_CMAKE_BIN, '-G', 'Ninja', FASTCOMP_SRC_DIR,
        '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
