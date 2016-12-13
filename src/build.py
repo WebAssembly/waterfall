@@ -122,6 +122,7 @@ OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 GNUWIN32_DIR = os.path.join(WORK_DIR, 'gnuwin32')
 GNUWIN32_ZIP = 'gnuwin32.zip'
 
+
 def IsWindows():
   return sys.platform == 'win32'
 
@@ -494,9 +495,9 @@ def SyncPrebuiltNodeJS(name, src_dir, git_repo):
 def SyncGNUWin32(name, src_dir, git_repo):
   if not IsWindows():
     return
-  zipfile = os.path.join(GNUWIN32_DIR, GNUWIN32_ZIP)
   url = WASM_STORAGE_BASE + GNUWIN32_ZIP
   return SyncArchive(GNUWIN32_DIR, name, '1', url)
+
 
 def NoSync(*args):
   pass
@@ -539,7 +540,7 @@ ALL_SOURCES = [
            custom_sync=SyncPrebuiltCMake),
     Source('nodejs', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltNodeJS, no_windows=True),
-    Source('gnuwin32', '', '', # The source and git args are ignored.
+    Source('gnuwin32', '', '',  # The source and git args are ignored.
            custom_sync=SyncGNUWin32),
     Source('wabt', WABT_SRC_DIR,
            WASM_GIT_BASE + 'wabt.git'),
@@ -723,12 +724,14 @@ def CopyLLVMTools(build_dir, prefix=''):
       CopyLibraryToArchive(os.path.join(build_dir, 'lib', e), prefix)
 
 
-def WinBuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False, runtime='Release'):
+def WinBuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
+                runtime='Release'):
   if not IsWindows():
     return None
   cc_env = host_toolchains.SetUpVSEnv(build_dir)
   if use_gnuwin32:
-    cc_env['PATH'] = cc_env['PATH'] + os.pathsep + os.path.join(GNUWIN32_DIR, 'bin')
+    cc_env['PATH'] = cc_env['PATH'] + os.pathsep + os.path.join(GNUWIN32_DIR, 
+                                                                'bin')
   bin_dir = build_dir if not bin_subdir else os.path.join(build_dir, 'bin')
   Mkdir(bin_dir)
   assert runtime in ['Release', 'Debug']
