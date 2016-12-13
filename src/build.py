@@ -725,12 +725,12 @@ def CopyLLVMTools(build_dir, prefix=''):
 
 
 def BuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
-                runtime='Release'):
+             runtime='Release'):
   if not IsWindows():
     return None
   cc_env = host_toolchains.SetUpVSEnv(build_dir)
   if use_gnuwin32:
-    cc_env['PATH'] = cc_env['PATH'] + os.pathsep + os.path.join(GNUWIN32_DIR, 
+    cc_env['PATH'] = cc_env['PATH'] + os.pathsep + os.path.join(GNUWIN32_DIR,
                                                                 'bin')
   bin_dir = build_dir if not bin_subdir else os.path.join(build_dir, 'bin')
   Mkdir(bin_dir)
