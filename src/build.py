@@ -119,6 +119,9 @@ OCAML_DIR = os.path.join(WORK_DIR, OCAML_VERSION)
 OCAML_OUT_DIR = os.path.join(WORK_DIR, 'ocaml-out')
 OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 
+GNUWIN32_DIR = os.path.join(WORK_DIR, 'gnuwin32')
+GNUWIN32_ZIP = 'gnuwin32.zip'
+
 
 def IsWindows():
   return sys.platform == 'win32'
@@ -424,6 +427,12 @@ def SyncToolchain(name, src_dir, git_repo):
 
 
 def SyncArchive(out_dir, name, version, url):
+  """Download and extract an archive (zip, tar.gz or tar.xz) file from a URL.
+     The extraction happens in WORK_DIR and the convention for our archives is
+     that they contain a top-level directory containing all the files; this
+     is expected to be 'out_dir', so if 'out_dir' already exists then download
+     will be skipped.
+  """
   if os.path.isdir(out_dir):
     print '%s directory already exists' % name
     return
@@ -432,18 +441,19 @@ def SyncArchive(out_dir, name, version, url):
     f = urllib2.urlopen(url)
     print 'URL: %s' % f.geturl()
     print 'Info: %s' % f.info()
-    with tempfile.NamedTemporaryFile()as t:
+    with tempfile.NamedTemporaryFile() as t:
       t.write(f.read())
       t.flush()
+      t.seek(0)
       print 'Extracting...'
       ext = os.path.splitext(url)[-1]
       if ext == '.zip':
-        with zipfile.ZipFile(t.name, 'r') as zip:
+        with zipfile.ZipFile(t, 'r') as zip:
           zip.extractall(path=WORK_DIR)
       elif ext == '.xz':
         proc.check_call(['tar', '-xvf', t.name], cwd=WORK_DIR)
       else:
-        tarfile.open(t.name).extractall(path=WORK_DIR)
+        tarfile.open(fileobj=t).extractall(path=WORK_DIR)
   except urllib2.URLError as e:
     print 'Error downloading %s: %s' % (url, e)
     raise
@@ -480,6 +490,14 @@ def SyncPrebuiltNodeJS(name, src_dir, git_repo):
   tarball = NODE_BASE_NAME + NodePlatformName() + '.tar.' + extension
   node_url = WASM_STORAGE_BASE + tarball
   return SyncArchive(out_dir, name, NODE_VERSION, node_url)
+
+
+# Utilities needed for running LLVM regression tests on Windows
+def SyncGNUWin32(name, src_dir, git_repo):
+  if not IsWindows():
+    return
+  url = WASM_STORAGE_BASE + GNUWIN32_ZIP
+  return SyncArchive(GNUWIN32_DIR, name, '1', url)
 
 
 def NoSync(*args):
@@ -523,6 +541,8 @@ ALL_SOURCES = [
            custom_sync=SyncPrebuiltCMake),
     Source('nodejs', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltNodeJS, no_windows=True),
+    Source('gnuwin32', '', '',  # The source and git args are ignored.
+           custom_sync=SyncGNUWin32),
     Source('wabt', WABT_SRC_DIR,
            WASM_GIT_BASE + 'wabt.git'),
     Source('spec', SPEC_SRC_DIR,
@@ -705,9 +725,26 @@ def CopyLLVMTools(build_dir, prefix=''):
       CopyLibraryToArchive(os.path.join(build_dir, 'lib', e), prefix)
 
 
+def BuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
+             runtime='Release'):
+  if not IsWindows():
+    return None
+  cc_env = host_toolchains.SetUpVSEnv(build_dir)
+  if use_gnuwin32:
+    cc_env['PATH'] = cc_env['PATH'] + os.pathsep + os.path.join(GNUWIN32_DIR,
+                                                                'bin')
+  bin_dir = build_dir if not bin_subdir else os.path.join(build_dir, 'bin')
+  Mkdir(bin_dir)
+  assert runtime in ['Release', 'Debug']
+  host_toolchains.CopyDlls(bin_dir, runtime)
+  return cc_env
+
+
 def LLVM():
   buildbot.Step('LLVM')
   Mkdir(LLVM_OUT_DIR)
+  cc_env = BuildEnv(LLVM_OUT_DIR, use_gnuwin32=True, bin_subdir=True)
+  build_dylib = 'ON' if not IsWindows() else 'OFF'
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', LLVM_SRC_DIR,
              '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
              '-DLLVM_BUILD_TESTS=ON',
@@ -716,8 +753,8 @@ def LLVM():
              '-DLLVM_INCLUDE_EXAMPLES=OFF',
              '-DCOMPILER_RT_BUILD_XRAY=OFF',
              '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
-             '-DLLVM_BUILD_LLVM_DYLIB=ON',
-             '-DLLVM_LINK_LLVM_DYLIB=ON',
+             '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
+             '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
              '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
              '-DLLVM_ENABLE_ASSERTIONS=ON',
              '-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=WebAssembly',
@@ -741,10 +778,11 @@ def LLVM():
     command.extend(['-DCMAKE_%s_COMPILER_LAUNCHER=%s' %
                     (c, compiler_launcher) for c in ['C', 'CXX']])
 
-  proc.check_call(command, cwd=LLVM_OUT_DIR)
-  proc.check_call(['ninja', '-v'] + jobs, cwd=LLVM_OUT_DIR)
-  proc.check_call(['ninja', 'check-all'], cwd=LLVM_OUT_DIR)
-  proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR)
+  proc.check_call(command, cwd=LLVM_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', '-v'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', 'check-all'], cwd=LLVM_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
+
   CopyLLVMTools(LLVM_OUT_DIR)
 
 
@@ -769,12 +807,7 @@ def V8():
 def Wabt():
   buildbot.Step('WABT')
   Mkdir(WABT_OUT_DIR)
-  cc_env = None
-  if IsWindows():
-    cc_env = host_toolchains.SetUpVSEnv(WABT_OUT_DIR)
-    host_toolchains.CopyDlls(WABT_OUT_DIR, 'Release')
-    # TODO(dschuff): Figure out how to make this statically linked?
-    host_toolchains.CopyDlls(INSTALL_BIN, 'Release')
+  cc_env = BuildEnv(WABT_OUT_DIR)
 
   proc.check_call([PREBUILT_CMAKE_BIN, '-G', 'Ninja', WABT_SRC_DIR,
                    '-DCMAKE_BUILD_TYPE=Release',
@@ -812,14 +845,9 @@ def Spec():
 def Binaryen():
   buildbot.Step('binaryen')
   Mkdir(BINARYEN_OUT_DIR)
-  cc_env = None
-  if IsWindows():
-    cc_env = host_toolchains.SetUpVSEnv(BINARYEN_OUT_DIR)
-    # Currently it's a bad idea to do a non-asserts build of Binaryen
-    binaryen_bin = os.path.join(BINARYEN_OUT_DIR, 'bin')
-    Mkdir(binaryen_bin)
-    host_toolchains.CopyDlls(binaryen_bin, 'Debug')
-    host_toolchains.CopyDlls(INSTALL_BIN, 'Debug')
+  # Currently it's a bad idea to do a non-asserts build of Binaryen
+  cc_env = BuildEnv(BINARYEN_OUT_DIR, bin_subdir=True, runtime='Debug')
+
   proc.check_call(
       [PREBUILT_CMAKE_BIN, '-G', 'Ninja', BINARYEN_SRC_DIR,
        '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR] + OverrideCMakeCompiler(),
@@ -832,20 +860,22 @@ def Fastcomp():
   buildbot.Step('fastcomp')
   Mkdir(FASTCOMP_OUT_DIR)
   install_dir = os.path.join(INSTALL_DIR, 'fastcomp')
+  build_dylib = 'ON' if not IsWindows() else 'OFF'
+  cc_env = BuildEnv(FASTCOMP_OUT_DIR, use_gnuwin32=True, bin_subdir=True)
   proc.check_call(
       [PREBUILT_CMAKE_BIN, '-G', 'Ninja', FASTCOMP_SRC_DIR,
        '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
        '-DCMAKE_BUILD_TYPE=Release',
        '-DCMAKE_INSTALL_PREFIX=' + install_dir,
        '-DLLVM_INCLUDE_EXAMPLES=OFF',
-       '-DLLVM_BUILD_LLVM_DYLIB=ON',
-       '-DLLVM_LINK_LLVM_DYLIB=ON',
+       '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
+       '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
        '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
        '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
        '-DLLVM_ENABLE_ASSERTIONS=ON'] + OverrideCMakeCompiler(),
-      cwd=FASTCOMP_OUT_DIR)
-  proc.check_call(['ninja'], cwd=FASTCOMP_OUT_DIR)
-  proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR)
+      cwd=FASTCOMP_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja'], cwd=FASTCOMP_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR, env=cc_env)
   CopyLLVMTools(FASTCOMP_OUT_DIR, 'fastcomp')
 
 
@@ -1108,13 +1138,13 @@ def Summary(repos):
 def AllBuilds(use_asm=False):
   return [
       # Host tools
-      Build('llvm', LLVM),
+      Build('llvm', LLVM, no_windows=False),
       Build('v8', V8, no_windows=False),
       Build('wabt', Wabt, no_windows=False),
       Build('ocaml', OCaml),
       Build('spec', Spec),
       Build('binaryen', Binaryen, no_windows=False),
-      Build('fastcomp', Fastcomp),
+      Build('fastcomp', Fastcomp, no_windows=False),
       Build('emscripten', Emscripten, use_asm),
       # Target libs
       Build('musl', Musl),
@@ -1341,6 +1371,11 @@ def run(sync_filter, build_filter, test_filter, options):
   # Add prebuilt cmake to PATH so any subprocesses use a consistent cmake.
   os.environ['PATH'] = (os.path.join(PREBUILT_CMAKE_DIR, 'bin') +
                         os.pathsep + os.environ['PATH'])
+
+  # TODO(dschuff): Figure out how to make these statically linked?
+  if IsWindows():
+    host_toolchains.CopyDlls(INSTALL_BIN, 'Release')
+    host_toolchains.CopyDlls(INSTALL_BIN, 'Debug')
 
   try:
     BuildRepos(build_filter,
