@@ -444,6 +444,7 @@ def SyncArchive(out_dir, name, version, url):
     with tempfile.NamedTemporaryFile() as t:
       t.write(f.read())
       t.flush()
+      t.seek(0)
       print 'Extracting...'
       ext = os.path.splitext(url)[-1]
       if ext == '.zip':
@@ -452,7 +453,7 @@ def SyncArchive(out_dir, name, version, url):
       elif ext == '.xz':
         proc.check_call(['tar', '-xvf', t.name], cwd=WORK_DIR)
       else:
-        tarfile.open(t).extractall(path=WORK_DIR)
+        tarfile.open(fileobj=t).extractall(path=WORK_DIR)
   except urllib2.URLError as e:
     print 'Error downloading %s: %s' % (url, e)
     raise
