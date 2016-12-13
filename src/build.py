@@ -496,7 +496,6 @@ def SyncGNUWin32(name, src_dir, git_repo):
     return
   zipfile = os.path.join(GNUWIN32_DIR, GNUWIN32_ZIP)
   url = WASM_STORAGE_BASE + GNUWIN32_ZIP
-  print url
   return SyncArchive(GNUWIN32_DIR, name, '1', url)
 
 def NoSync(*args):
