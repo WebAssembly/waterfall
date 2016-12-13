@@ -724,13 +724,23 @@ def CopyLLVMTools(build_dir, prefix=''):
       CopyLibraryToArchive(os.path.join(build_dir, 'lib', e), prefix)
 
 
+def WinBuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False, runtime='Release'):
+  if not IsWindows():
+    return None
+  cc_env = host_toolchains.SetUpVSEnv(build_dir)
+  if use_gnuwin32:
+    cc_env['PATH'] = cc_env['PATH'] + os.pathsep + os.path.join(GNUWIN32_DIR, 'bin')
+  bin_dir = build_dir if not bin_subdir else os.path.join(build_dir, 'bin')
+  Mkdir(bin_dir)
+  assert runtime in ['Release', 'Debug']
+  host_toolchains.CopyDlls(bin_dir, runtime)
+  return cc_env
+
+
 def LLVM():
   buildbot.Step('LLVM')
   Mkdir(LLVM_OUT_DIR)
-  cc_env = None
-  if IsWindows():
-    cc_env = host_toolchains.SetUpVSEnv(LLVM_OUT_DIR)
-    host_toolchains.CopyDlls(os.path.join(LLVM_OUT_DIR, 'bin'), 'Release')
+  cc_env = WinBuildEnv(LLVM_OUT_DIR, use_gnuwin32=True, bin_subdir=True)
   build_dylib = 'ON' if not IsWindows() else 'OFF'
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', LLVM_SRC_DIR,
              '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
@@ -765,12 +775,12 @@ def LLVM():
     command.extend(['-DCMAKE_%s_COMPILER_LAUNCHER=%s' %
                     (c, compiler_launcher) for c in ['C', 'CXX']])
 
-  os.environ['PATH'] = os.environ['PATH'] + os.pathsep + os.path.join(GNUWIN32_DIR, 'bin')
+
   proc.check_call(command, cwd=LLVM_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', '-v'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
   if True or sys.platform.startswith('linux'):
     # TODO(dschuff): remove this when https://reviews.llvm.org/D25304 lands
-    proc.check_call(['ninja', 'check-all'], cwd=LLVM_OUT_DIR)
+    proc.check_call(['ninja', 'check-all'], cwd=LLVM_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
   CopyLLVMTools(LLVM_OUT_DIR)
 
@@ -796,12 +806,7 @@ def V8():
 def Wabt():
   buildbot.Step('WABT')
   Mkdir(WABT_OUT_DIR)
-  cc_env = None
-  if IsWindows():
-    cc_env = host_toolchains.SetUpVSEnv(WABT_OUT_DIR)
-    host_toolchains.CopyDlls(WABT_OUT_DIR, 'Release')
-    # TODO(dschuff): Figure out how to make this statically linked?
-    host_toolchains.CopyDlls(INSTALL_BIN, 'Release')
+  cc_env = WinBuildEnv(WABT_OUT_DIR)
 
   proc.check_call([PREBUILT_CMAKE_BIN, '-G', 'Ninja', WABT_SRC_DIR,
                    '-DCMAKE_BUILD_TYPE=Release',
@@ -839,14 +844,9 @@ def Spec():
 def Binaryen():
   buildbot.Step('binaryen')
   Mkdir(BINARYEN_OUT_DIR)
-  cc_env = None
-  if IsWindows():
-    cc_env = host_toolchains.SetUpVSEnv(BINARYEN_OUT_DIR)
-    # Currently it's a bad idea to do a non-asserts build of Binaryen
-    binaryen_bin = os.path.join(BINARYEN_OUT_DIR, 'bin')
-    Mkdir(binaryen_bin)
-    host_toolchains.CopyDlls(binaryen_bin, 'Debug')
-    host_toolchains.CopyDlls(INSTALL_BIN, 'Debug')
+  # Currently it's a bad idea to do a non-asserts build of Binaryen
+  cc_env = WinBuildEnv(BINARYEN_OUT_DIR, bin_subdir=True, runtime='Debug')
+
   proc.check_call(
       [PREBUILT_CMAKE_BIN, '-G', 'Ninja', BINARYEN_SRC_DIR,
        '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR] + OverrideCMakeCompiler(),
@@ -860,6 +860,7 @@ def Fastcomp():
   Mkdir(FASTCOMP_OUT_DIR)
   install_dir = os.path.join(INSTALL_DIR, 'fastcomp')
   build_dylib = 'ON' if not IsWindows() else 'OFF'
+  cc_env = WinBuildEnv(FASTCOMP_OUT_DIR, use_gnuwin32=True, bin_subdir=True)
   proc.check_call(
       [PREBUILT_CMAKE_BIN, '-G', 'Ninja', FASTCOMP_SRC_DIR,
        '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
@@ -867,13 +868,13 @@ def Fastcomp():
        '-DCMAKE_INSTALL_PREFIX=' + install_dir,
        '-DLLVM_INCLUDE_EXAMPLES=OFF',
        '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
-       '-DLLVM_LINK_LLVM_DYLIB=%s' % buld_dylib,
+       '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
        '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
        '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
        '-DLLVM_ENABLE_ASSERTIONS=ON'] + OverrideCMakeCompiler(),
-      cwd=FASTCOMP_OUT_DIR)
-  proc.check_call(['ninja'], cwd=FASTCOMP_OUT_DIR)
-  proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR)
+      cwd=FASTCOMP_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja'], cwd=FASTCOMP_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR, env=cc_env)
   CopyLLVMTools(FASTCOMP_OUT_DIR, 'fastcomp')
 
 
@@ -1369,6 +1370,11 @@ def run(sync_filter, build_filter, test_filter, options):
   # Add prebuilt cmake to PATH so any subprocesses use a consistent cmake.
   os.environ['PATH'] = (os.path.join(PREBUILT_CMAKE_DIR, 'bin') +
                         os.pathsep + os.environ['PATH'])
+
+  # TODO(dschuff): Figure out how to make these statically linked?
+  if IsWindows():
+    host_toolchains.CopyDlls(INSTALL_BIN, 'Release')
+    host_toolchains.CopyDlls(INSTALL_BIN, 'Debug')
 
   try:
     BuildRepos(build_filter,
