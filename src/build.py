@@ -775,13 +775,11 @@ def LLVM():
     command.extend(['-DCMAKE_%s_COMPILER_LAUNCHER=%s' %
                     (c, compiler_launcher) for c in ['C', 'CXX']])
 
-
   proc.check_call(command, cwd=LLVM_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', '-v'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
-  if True or sys.platform.startswith('linux'):
-    # TODO(dschuff): remove this when https://reviews.llvm.org/D25304 lands
-    proc.check_call(['ninja', 'check-all'], cwd=LLVM_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', 'check-all'], cwd=LLVM_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
+
   CopyLLVMTools(LLVM_OUT_DIR)
 
 
