@@ -753,6 +753,7 @@ def LLVM():
              '-DLLVM_INCLUDE_EXAMPLES=OFF',
              '-DCOMPILER_RT_BUILD_XRAY=OFF',
              '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
+             '-DCOMPILER_RT_ENABLE_IOS=OFF',
              '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
              '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
              # Our mac bot's toolchain's ld64 is too old for trunk libLTO.
