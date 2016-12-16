@@ -36,7 +36,7 @@ def Which(filename, cwd, require_executable=True):
   to_search = [cwd] + os.environ.get('PATH', '').split(os.pathsep)
   exe_suffixes = ['']
   if sys.platform == 'win32':
-    exe_suffixes += ['.exe', '.bat']
+    exe_suffixes = ['.exe', '.bat'] + exe_suffixes
   for path in to_search:
     abs_path = os.path.abspath(os.path.join(path, filename))
     for suffix in exe_suffixes:
