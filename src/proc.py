@@ -36,7 +36,7 @@ def Which(filename, cwd, require_executable=True):
   to_search = [cwd] + os.environ.get('PATH', '').split(os.pathsep)
   exe_suffixes = ['']
   if sys.platform == 'win32':
-    exe_suffixes += ['.exe', '.bat']
+    exe_suffixes = ['.exe', '.bat'] + exe_suffixes
   for path in to_search:
     abs_path = os.path.abspath(os.path.join(path, filename))
     for suffix in exe_suffixes:
@@ -48,32 +48,33 @@ def Which(filename, cwd, require_executable=True):
                   (filename, cwd, os.environ['PATH']))
 
 
-def FixPython(cmd, cwd):
-  script = cmd[0]
-  if script.endswith('.py'):
-    abs_script = Which(script, cwd, require_executable=False)
-    return [sys.executable, abs_script] + cmd[1:]
+def SpecialCases(cmd, cwd):
+  exe = cmd[0]
+  if exe.endswith('.py'):
+    script = Which(exe, cwd, require_executable=False)
+    return [sys.executable, script] + cmd[1:]
+  if exe == 'git' or exe == 'gclient':
+    return [Which(exe, cwd)] + cmd[1:]
   return cmd
 
 
 # Now we can override any parts of subprocess we want, while leaving the rest.
 def check_call(cmd, **kwargs):
   cwd = kwargs.get('cwd', os.getcwd())
-  cmd = FixPython(cmd, cwd)
+  cmd = SpecialCases(cmd, cwd)
   c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
   print 'subprocess.check_call(`%s`, cwd=`%s`)' % (c, cwd)
   sys.stdout.flush()
-  subprocess.check_call(cmd, **kwargs)
-  sys.stdout.flush()
+  try:
+    subprocess.check_call(cmd, **kwargs)
+  finally:
+    sys.stdout.flush()
 
 
 def check_output(cmd, **kwargs):
   cwd = kwargs.get('cwd', os.getcwd())
-  cmd = FixPython(cmd, cwd)
+  cmd = SpecialCases(cmd, cwd)
   c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
   print 'subprocess.check_output(`%s`, cwd=`%s`)' % (c, cwd)
   sys.stdout.flush()
-  try:
-    return subprocess.check_output(cmd, **kwargs)
-  finally:
-    sys.stdout.flush()
+  return subprocess.check_output(cmd, **kwargs)
