@@ -770,7 +770,7 @@ def LLVM():
 
   def RunWithUnixUtils(cmd, **kwargs):
     if IsWindows():
-      return Git(['bash'] + cmd, **kwargs)
+      return proc.check_call(['git', 'bash'] + cmd, **kwargs)
     else:
       return proc.check_call(cmd, **kwargs)
 
