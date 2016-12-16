@@ -767,12 +767,14 @@ def LLVM():
 
   proc.check_call(command, cwd=LLVM_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', '-v'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
+
   def RunWithUnixUtils(cmd, **kwargs):
-    if IsWindows:
+    if IsWindows():
       return Git(['bash'] + cmd, **kwargs)
     else:
       return proc.check_call(cmd, **kwargs)
-  RunWithUnixUtils('ninja', 'check-all'], cwd=LLVM_OUT_DIR, env=cc_env)
+
+  RunWithUnixUtils(['ninja', 'check-all'], cwd=LLVM_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
 
   CopyLLVMTools(LLVM_OUT_DIR)
