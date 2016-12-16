@@ -218,7 +218,6 @@ def CopyLibraryToArchive(library, prefix=''):
   shutil.copy2(library, install_lib)
 
 
-
 def Tar(directory, print_content=False):
   """Create a tar file from directory."""
   if not IsBuildbot():
@@ -254,7 +253,8 @@ def Archive(name, tar):
 
 def GitRemoteUrl(cwd, remote):
   """Get the URL of a remote."""
-  return proc.check_output(['git', 'config', '--get', 'remote.%s.url' % remote], cwd=cwd).strip()
+  return proc.check_output(
+      ['git', 'config', '--get', 'remote.%s.url' % remote], cwd=cwd).strip()
 
 
 def HasRemote(cwd, remote):
@@ -300,11 +300,13 @@ def IsBuildbot():
 
 def GitUpdateRemote(src_dir, git_repo, remote_name):
   try:
-    proc.check_call(['git', 'remote', 'set-url', remote_name, git_repo], cwd=src_dir)
+    proc.check_call(
+        ['git', 'remote', 'set-url', remote_name, git_repo], cwd=src_dir)
   except proc.CalledProcessError:
     # If proc.check_call fails it throws an exception. 'git remote set-url'
     # fails when the remote doesn't exist, so we should try to add it.
-    proc.check_call(['git', 'remote', 'add', remote_name, git_repo], cwd=src_dir)
+    proc.check_call(
+        ['git', 'remote', 'add', remote_name, git_repo], cwd=src_dir)
 
 
 class Source(object):
