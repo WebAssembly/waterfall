@@ -54,6 +54,8 @@ GCC_TEST_DIR = os.path.join(GCC_SRC_DIR, 'gcc', 'testsuite')
 
 V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
 
+JSC_SRC_DIR = os.path.join(WORK_DIR, 'jsc')
+
 WABT_SRC_DIR = os.path.join(WORK_DIR, 'wabt')
 
 SPEC_SRC_DIR = os.path.join(WORK_DIR, 'spec')
@@ -75,6 +77,7 @@ PREBUILT_CMAKE_BIN = os.path.join(PREBUILT_CMAKE_DIR, 'bin', 'cmake')
 
 LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out.gn', 'x64.release')
+JSC_OUT_DIR = os.path.join(JSC_SRC_DIR, 'current-release')
 WABT_OUT_DIR = os.path.join(WORK_DIR, 'wabt-out')
 BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
 FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
@@ -103,6 +106,7 @@ LLVM_GITHUB_MIRROR_BASE = GITHUB_MIRROR_BASE + 'llvm-mirror/'
 WASM_GIT_BASE = GITHUB_MIRROR_BASE + 'WebAssembly/'
 EMSCRIPTEN_GIT_BASE = GITHUB_MIRROR_BASE + 'kripken/'
 MUSL_GIT_BASE = 'https://github.com/jfbastien/'
+WEBKIT_GIT_BASE = 'https://github.com/WebKit/'
 
 # Name of remote for build script to use. Don't touch origin to avoid
 # clobbering any local development.
@@ -122,6 +126,10 @@ OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 
 def IsWindows():
   return sys.platform == 'win32'
+
+
+def IsLinux():
+  return sys.platform == 'linux2'
 
 
 def IsMac():
@@ -161,6 +169,10 @@ V8_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
                                          'd8_' + IT_IS_KNOWN)
 V8_MUSL_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
                                               'd8_musl_' + IT_IS_KNOWN)
+JSC_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
+                                          'jsc_' + IT_IS_KNOWN)
+JSC_MUSL_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
+                                               'jsc_musl_' + IT_IS_KNOWN)
 WAST2WASM_KNOWN_TORTURE_FAILURES = os.path.join(WABT_SRC_DIR, 's2wasm_' +
                                                 IT_IS_KNOWN)
 SPEC_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
@@ -313,20 +325,24 @@ class Source(object):
   """Metadata about a sync-able source repo on the waterfall"""
   def __init__(self, name, src_dir, git_repo,
                checkout=RemoteBranch('master'), depth=None,
-               custom_sync=None, no_windows=False):
+               custom_sync=None, no_windows=False, no_linux=False):
     self.name = name
     self.src_dir = src_dir
     self.git_repo = git_repo
     self.checkout = checkout
     self.depth = depth
     self.custom_sync = custom_sync
-    # Several of these steps have not been made to work on windows yet.
+    # Several of these steps have not been made to work on other platforms yet.
     # Temporarily disable them.
     self.no_windows = no_windows
+    self.no_linux = no_linux
 
   def Sync(self, good_hashes=None):
     if IsWindows() and self.no_windows:
       print "Skipping %s: Doesn't work on Windows" % self.name
+      return
+    if IsLinux() and self.no_linux:
+      print "Skipping %s: Doesn't work on Linux" % self.name
       return
     if good_hashes and good_hashes.get(self.name):
       self.checkout = good_hashes[self.name]
@@ -512,6 +528,8 @@ ALL_SOURCES = [
     Source('v8', V8_SRC_DIR,
            GIT_MIRROR_BASE + 'v8/v8',
            custom_sync=ChromiumFetchSync),
+    Source('jsc', JSC_SRC_DIR,
+           WEBKIT_GIT_BASE + 'webkit', depth=1000),
     Source('host-toolchain', PREBUILT_CLANG,
            GIT_MIRROR_BASE + 'chromium/src/tools/clang',
            custom_sync=SyncToolchain),
@@ -787,6 +805,27 @@ def V8():
   to_archive = [Executable('d8'), 'natives_blob.bin', 'snapshot_blob.bin']
   for a in to_archive:
     CopyBinaryToArchive(os.path.join(V8_OUT_DIR, a))
+
+
+def Jsc():
+  buildbot.Step('JSC')
+  Mkdir(JSC_OUT_DIR)
+
+  proc.check_call(['xcrun', PREBUILT_CMAKE_BIN, '-Wno-dev',
+                   '..', '-G', 'Ninja',
+                   '-DCMAKE_BUILD_TYPE="Release"',
+                   '-DPORT=Mac',
+                   '-DENABLE_WEBASSEMBLY=ON'],
+                  cwd=JSC_OUT_DIR)
+  proc.check_call(['ninja', 'jsc'], cwd=JSC_OUT_DIR)
+  proc.check_call(['../Tools/Scripts/run-javascriptcore-tests',
+                   '--root=bin',
+                   '--filter', 'wasm',
+                   '--no-build', '--no-testapi'],
+                  cwd=JSC_OUT_DIR)
+  to_archive = [Executable(os.path.join('bin', 'jsc'))]
+  for a in to_archive:
+    CopyBinaryToArchive(os.path.join(JSC_OUT_DIR, a))
 
 
 def Wabt():
@@ -1073,7 +1112,7 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, outdir='',
 
 
 class Build(object):
-  def __init__(self, name_, runnable_, no_windows=True, *args, **kwargs):
+  def __init__(self, name_, runnable_, no_windows=True, no_linux=False, *args, **kwargs):
     self.name = name_
     self.runnable = runnable_
     self.args = args
@@ -1081,10 +1120,14 @@ class Build(object):
     # Almost all of these steps depend directly or indirectly on CMake.
     # Temporarily disable them.
     self.no_windows = no_windows
+    self.no_linux = no_linux
 
   def Run(self):
     if IsWindows() and self.no_windows:
       print "Skipping %s: Doesn't work on windows" % self.runnable.__name__
+      return
+    if IsLinux() and self.no_linux:
+      print "Skipping %s: Doesn't work on Linux" % self.runnable.__name__
       return
     self.runnable(*self.args, **self.kwargs)
 
@@ -1125,6 +1168,7 @@ def AllBuilds(use_asm=False):
       # Host tools
       Build('llvm', LLVM, no_windows=False),
       Build('v8', V8, no_windows=False),
+      Build('jsc', Jsc, no_windows=True, no_linux=True),
       Build('wabt', Wabt, no_windows=False),
       Build('ocaml', OCaml),
       Build('spec', Spec),
@@ -1190,6 +1234,23 @@ def TestBare():
       runner=os.path.join(INSTALL_BIN, 'd8'),
       indir=wast2wasm_out,
       fails=V8_MUSL_KNOWN_TORTURE_FAILURES,
+      extension='wasm',
+      warn_only=True,
+      wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
+      extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
+  ExecuteLLVMTorture(
+      name='jsc',
+      runner=os.path.join(INSTALL_BIN, 'jsc'),
+      indir=wast2wasm_out,
+      fails=JSC_KNOWN_TORTURE_FAILURES,
+      extension='wasm',
+      warn_only=True,
+      wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
+  ExecuteLLVMTorture(
+      name='jsc-musl',
+      runner=os.path.join(INSTALL_BIN, 'jsc'),
+      indir=wast2wasm_out,
+      fails=JSC_MUSL_KNOWN_TORTURE_FAILURES,
       extension='wasm',
       warn_only=True,
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
