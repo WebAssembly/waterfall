@@ -23,14 +23,12 @@ pr47237.c.js
 pr60960.c.js
 va-arg-pack-1.c.js
 
+930608-1.c.js # abort(), new with FixFunctionBitcasts pass
+
 complex-5.c.js # missing fmaxf, presumably needed by compiler-rt
 
 ## The following work using wasm-clang without emcc
 	pr23135.c.js # OOB trap (works without emcc)
-	20051012-1.c.js # error reading binary
-	921208-2.c.js # error reading binary
-	920501-1.c.js # error reading binary
-	call-trap-1.c.js # error reading binary
 	pr44942.c.js # error reading binary
 
 ## The following fail using wasm-clang without emcc
