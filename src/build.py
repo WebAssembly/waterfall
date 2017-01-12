@@ -270,7 +270,7 @@ def UploadFile(local_name, remote_name):
 
 
 def UploadArchive(name, archive):
-  """Archive the tar/zip file with the given name, and with the build number."""
+  """Archive the tar/zip file with the given name and the build number."""
   if not IsBuildbot():
     return
   extension = os.path.splitext(archive)[1]
