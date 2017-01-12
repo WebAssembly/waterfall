@@ -690,8 +690,9 @@ def CopyLLVMTools(build_dir, prefix=''):
   # The following isn't useful for now, and takes up space.
   Remove(os.path.join(INSTALL_DIR, prefix, 'bin', 'clang-check'))
   # The following are useful, LLVM_INSTALL_TOOLCHAIN_ONLY did away with them.
-  extra_bins = ['FileCheck', 'lli', 'llc', 'llvm-as', 'llvm-dis', 'llvm-link',
-                'llvm-mc', 'llvm-nm', 'llvm-objdump', 'llvm-readobj', 'opt']
+  extra_bins = map(Executable,
+                   ['FileCheck', 'lli', 'llc', 'llvm-as', 'llvm-dis', 'llvm-link',
+                    'llvm-mc', 'llvm-nm', 'llvm-objdump', 'llvm-readobj', 'opt'])
   extra_libs = ['libLLVM*.%s' % ext for ext in ['so', 'dylib', 'dll']]
   for p in [glob.glob(os.path.join(build_dir, 'bin', b)) for b in
             extra_bins]:
@@ -925,7 +926,18 @@ def Emscripten(use_asm=True):
 def Musl():
   buildbot.Step('musl')
   Mkdir(MUSL_OUT_DIR)
+  path = os.environ['PATH']
   try:
+    if IsWindows():
+      # Musl's build uses a shell script and a sed script to generate some
+      # headers. For the LLVM regression tests, we run ninja under 'git bash'
+      # (see above) but that doesn't work here for some reason. It turns out
+      # that the V8 build has some cygwin utils, so add them to the path.
+      # TODO(dschuff): see if this can be unified with the 'git bash' method
+      # for LLVM.
+      os.environ['PATH'] = (path + os.pathsep +
+                            os.path.join(
+                              V8_SRC_DIR, 'third_party', 'cygwin', 'bin'))
     proc.check_call([
         os.path.join(MUSL_SRC_DIR, 'libc.py'),
         '--clang_dir', INSTALL_BIN,
@@ -943,6 +955,8 @@ def Musl():
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
     buildbot.Fail()
+  finally:
+    os.environ['PATH'] = path
 
 
 def ArchiveBinaries():
@@ -1073,7 +1087,7 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, outdir='',
 
 
 class Build(object):
-  def __init__(self, name_, runnable_, no_windows=True, *args, **kwargs):
+  def __init__(self, name_, runnable_, no_windows=False, *args, **kwargs):
     self.name = name_
     self.runnable = runnable_
     self.args = args
@@ -1123,18 +1137,18 @@ def Summary(repos):
 def AllBuilds(use_asm=False):
   return [
       # Host tools
-      Build('llvm', LLVM, no_windows=False),
-      Build('v8', V8, no_windows=False),
-      Build('wabt', Wabt, no_windows=False),
-      Build('ocaml', OCaml),
-      Build('spec', Spec),
-      Build('binaryen', Binaryen, no_windows=False),
-      Build('fastcomp', Fastcomp, no_windows=False),
-      Build('emscripten', Emscripten, use_asm),
+      Build('llvm', LLVM),
+      Build('v8', V8),
+      Build('wabt', Wabt),
+      Build('ocaml', OCaml, no_windows=True),
+      Build('spec', Spec, no_windows=True),
+      Build('binaryen', Binaryen),
+      Build('fastcomp', Fastcomp),
+      Build('emscripten', Emscripten, True, use_asm),
       # Target libs
       Build('musl', Musl),
       # Archive
-      Build('archive', ArchiveBinaries),
+      Build('archive', ArchiveBinaries, no_windows=True),
       Build('debian', DebianPackage),
   ]
 
@@ -1145,11 +1159,15 @@ def BuildRepos(filter, use_asm=False):
 
 
 class Test(object):
-  def __init__(self, name_, runnable_):
+  def __init__(self, name_, runnable_, no_windows=False):
     self.name = name_
     self.runnable = runnable_
+    self.no_windows = no_windows
 
   def Test(self):
+    if IsWindows() and self.no_windows:
+      print "Skipping %s: Doesn't work on windows" % self.runnable.__name__
+      return
     self.runnable()
 
 
@@ -1157,29 +1175,30 @@ def TestBare():
   CompileLLVMTorture()
   s2wasm_out = LinkLLVMTorture(
       name='s2wasm',
-      linker=os.path.join(INSTALL_BIN, 's2wasm'),
+      linker=Executable(os.path.join(INSTALL_BIN, 's2wasm')),
       fails=S2WASM_KNOWN_TORTURE_FAILURES)
   wast2wasm_out = AssembleLLVMTorture(
       name='wast2wasm',
-      assembler=os.path.join(INSTALL_BIN, 'wast2wasm'),
+      assembler=Executable(os.path.join(INSTALL_BIN, 'wast2wasm')),
       indir=s2wasm_out,
       fails=WAST2WASM_KNOWN_TORTURE_FAILURES)
   ExecuteLLVMTorture(
       name='wasm-shell',
-      runner=os.path.join(INSTALL_BIN, 'wasm-shell'),
+      runner=Executable(os.path.join(INSTALL_BIN, 'wasm-shell')),
       indir=s2wasm_out,
       fails=BINARYEN_SHELL_KNOWN_TORTURE_FAILURES,
       extension='wast',
       warn_only=True)  # TODO wasm-shell is flaky when running tests.
-  ExecuteLLVMTorture(
+  if not IsWindows():
+    ExecuteLLVMTorture(
       name='spec',
-      runner=os.path.join(INSTALL_BIN, 'wasm.opt'),
+      runner=Executable(os.path.join(INSTALL_BIN, 'wasm.opt')),
       indir=s2wasm_out,
       fails=SPEC_KNOWN_TORTURE_FAILURES,
       extension='wast')
   ExecuteLLVMTorture(
       name='d8',
-      runner=os.path.join(INSTALL_BIN, 'd8'),
+      runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=wast2wasm_out,
       fails=V8_KNOWN_TORTURE_FAILURES,
       extension='wasm',
@@ -1187,7 +1206,7 @@ def TestBare():
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
   ExecuteLLVMTorture(
       name='d8-musl',
-      runner=os.path.join(INSTALL_BIN, 'd8'),
+      runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=wast2wasm_out,
       fails=V8_MUSL_KNOWN_TORTURE_FAILURES,
       extension='wasm',
@@ -1256,10 +1275,10 @@ def TestEmtestAsm2Wasm():
 
 ALL_TESTS = [
     Test('bare', TestBare),
-    Test('asm', TestAsm),
-    Test('emwasm', TestEmwasm),
-    Test('emtest', TestEmtest),
-    Test('emtest-asm', TestEmtestAsm2Wasm),
+    Test('asm', TestAsm, no_windows=True),
+    Test('emwasm', TestEmwasm, no_windows=True),
+    Test('emtest', TestEmtest, no_windows=True),
+    Test('emtest-asm', TestEmtestAsm2Wasm, no_windows=True),
 ]
 
 
@@ -1374,10 +1393,8 @@ def run(sync_filter, build_filter, test_filter, options):
     Summary(repos)
     return 1
 
-  if not IsWindows():
-    # None of the tests work on windows yet
-    for t in test_filter.Apply(ALL_TESTS):
-      t.Test()
+  for t in test_filter.Apply(ALL_TESTS):
+    t.Test()
 
   # Keep the summary step last: it'll be marked as red if the return code is
   # non-zero. Individual steps are marked as red with buildbot.Fail().
