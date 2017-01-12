@@ -34,8 +34,8 @@ def assemble(infile, outfile, extras):
   assembler = extras['assembler']
   basename = os.path.splitext(os.path.basename(assembler))[0]
   commands = {
-      'wast2wasm': [extras['assembler'], infile, '-o', outfile],
-      'wasm-as': [extras['assembler'], infile, '-o', outfile]
+      'wast2wasm': [assembler, infile, '-o', outfile],
+      'wasm-as': [assembler, infile, '-o', outfile]
   }
   return commands[basename]
 

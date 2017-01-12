@@ -997,8 +997,8 @@ def DebianPackage():
 def CompileLLVMTorture():
   name = 'Compile LLVM Torture'
   buildbot.Step(name)
-  c = os.path.join(INSTALL_BIN, 'clang')
-  cxx = os.path.join(INSTALL_BIN, 'clang++')
+  c = Executable(os.path.join(INSTALL_BIN, 'clang'))
+  cxx = Executable(os.path.join(INSTALL_BIN, 'clang++'))
   Remove(TORTURE_S_OUT_DIR)
   Mkdir(TORTURE_S_OUT_DIR)
   unexpected_result_count = compile_torture_tests.run(

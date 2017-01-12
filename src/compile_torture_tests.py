@@ -58,6 +58,8 @@ def run(c, cxx, testsuite, sysroot_dir, fails, out, config='wasm'):
                              'BINARYEN_METHOD="interpret-binary"'],
   }
 
+  assert os.path.isfile(c), 'Cannot find C compiler at %s' % c
+  assert os.path.isfile(cxx), 'Cannot find C++ compiler at %s' % cxx
   assert os.path.isdir(testsuite), 'Cannot find testsuite at %s' % testsuite
   # TODO(jfb) Also compile other C tests, as well as C++ tests under g++.dg.
   c_torture = os.path.join(testsuite, 'gcc.c-torture', 'execute')
