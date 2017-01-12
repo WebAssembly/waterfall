@@ -691,8 +691,9 @@ def CopyLLVMTools(build_dir, prefix=''):
   Remove(os.path.join(INSTALL_DIR, prefix, 'bin', 'clang-check'))
   # The following are useful, LLVM_INSTALL_TOOLCHAIN_ONLY did away with them.
   extra_bins = map(Executable,
-                   ['FileCheck', 'lli', 'llc', 'llvm-as', 'llvm-dis', 'llvm-link',
-                    'llvm-mc', 'llvm-nm', 'llvm-objdump', 'llvm-readobj', 'opt'])
+                   ['FileCheck', 'lli', 'llc', 'llvm-as', 'llvm-dis',
+                    'llvm-link', 'llvm-mc', 'llvm-nm', 'llvm-objdump',
+                    'llvm-readobj', 'opt'])
   extra_libs = ['libLLVM*.%s' % ext for ext in ['so', 'dylib', 'dll']]
   for p in [glob.glob(os.path.join(build_dir, 'bin', b)) for b in
             extra_bins]:
@@ -937,7 +938,7 @@ def Musl():
       # for LLVM.
       os.environ['PATH'] = (path + os.pathsep +
                             os.path.join(
-                              V8_SRC_DIR, 'third_party', 'cygwin', 'bin'))
+                                V8_SRC_DIR, 'third_party', 'cygwin', 'bin'))
     proc.check_call([
         os.path.join(MUSL_SRC_DIR, 'libc.py'),
         '--clang_dir', INSTALL_BIN,
@@ -1191,11 +1192,11 @@ def TestBare():
       warn_only=True)  # TODO wasm-shell is flaky when running tests.
   if not IsWindows():
     ExecuteLLVMTorture(
-      name='spec',
-      runner=Executable(os.path.join(INSTALL_BIN, 'wasm.opt')),
-      indir=s2wasm_out,
-      fails=SPEC_KNOWN_TORTURE_FAILURES,
-      extension='wast')
+        name='spec',
+        runner=Executable(os.path.join(INSTALL_BIN, 'wasm.opt')),
+        indir=s2wasm_out,
+        fails=SPEC_KNOWN_TORTURE_FAILURES,
+        extension='wast')
   ExecuteLLVMTorture(
       name='d8',
       runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
