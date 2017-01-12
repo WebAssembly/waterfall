@@ -32,7 +32,7 @@ def create_outname(outdir, infile):
 def link(infile, outfile, extras):
   """Create the command-line for a linker invocation."""
   linker = extras['linker']
-  basename = os.path.basename(linker)
+  basename = os.path.splitext(os.path.basename(linker))[0]
   commands = {
       's2wasm': [linker, '--allocate-stack', '1048576', '-o', outfile, infile],
       'wasm-as': [linker, '-o', outfile, infile],

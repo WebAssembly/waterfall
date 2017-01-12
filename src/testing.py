@@ -80,7 +80,8 @@ class Tester(object):
       output = proc.check_output(
           self.command_ctor(test_file, outfile, self.extras),
           stderr=proc.STDOUT, cwd=self.outdir or os.getcwd(),
-          preexec_fn=Tester.setlimits)
+          # preexec_fn is not supported on Windows
+          preexec_fn=Tester.setlimits if sys.platform != 'win32' else None)
       # Flush the logged command so buildbots don't think the script is dead.
       sys.stdout.flush()
       return Result(test=basename, success=True, output=output)
