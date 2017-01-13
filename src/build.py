@@ -218,10 +218,17 @@ def CopyLibraryToArchive(library, prefix=''):
   shutil.copy2(library, install_lib)
 
 
-def Tar(directory, print_content=False):
-  """Create a tar file from directory."""
+def Archive(directory, print_content=False):
+  """Create an archive file from directory."""
+  # Use the format "native" to the platform
   if not IsBuildbot():
     return
+  if IsWindows():
+    return Zip(directory, print_content)
+  return Tar(directory, print_content)
+
+
+def Tar(directory, print_content=False):
   assert os.path.isdir(directory), 'Must tar a directory to avoid tarbombs'
   (up_directory, basename) = os.path.split(directory)
   tar = os.path.join(up_directory, basename + '.tbz2')
@@ -234,6 +241,23 @@ def Tar(directory, print_content=False):
   return tar
 
 
+def Zip(directory, print_content=False):
+  assert os.path.isdir(directory), 'Must be a directory'
+  dirname, basename = os.path.split(directory)
+  archive = os.path.join(dirname, basename + '.zip')
+  print 'Creating zip archive', archive
+  with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
+    for root, dirs, files in os.walk(directory):
+      for name in files:
+        fs_path = os.path.join(root, name)
+        zip_path = os.path.relpath(fs_path, os.path.dirname(directory))
+        if print_content:
+          print 'Adding', fs_path
+        z.write(fs_path, zip_path)
+  print 'Size:', os.stat(archive).st_size
+  return archive
+
+
 def UploadFile(local_name, remote_name):
   """Archive the file with the given name, and with the LLVM git hash."""
   if not IsBuildbot():
@@ -242,11 +266,12 @@ def UploadFile(local_name, remote_name):
       BUILDBOT_BUILDERNAME, BUILDBOT_BUILDNUMBER, remote_name)))
 
 
-def Archive(name, tar):
-  """Archive the tar file with the given name, and with the LLVM git hash."""
+def UploadArchive(name, archive):
+  """Archive the tar/zip file with the given name and the build number."""
   if not IsBuildbot():
     return
-  UploadFile(tar, 'wasm-%s-%s.tbz2' % (name, BUILDBOT_BUILDNUMBER))
+  extension = os.path.splitext(archive)[1]
+  UploadFile(archive, 'wasm-%s-%s%s' % (name, BUILDBOT_BUILDNUMBER, extension))
 
 
 # Repo and subproject utilities
@@ -963,7 +988,7 @@ def Musl():
 def ArchiveBinaries():
   buildbot.Step('Archive binaries')
   # All relevant binaries were copied to the LLVM directory.
-  Archive('binaries', Tar(INSTALL_DIR, print_content=True))
+  UploadArchive('binaries', Archive(INSTALL_DIR, print_content=True))
 
 
 def DebianPackage():
@@ -1006,8 +1031,8 @@ def CompileLLVMTorture():
       sysroot_dir=INSTALL_SYSROOT,
       fails=LLVM_KNOWN_TORTURE_FAILURES,
       out=TORTURE_S_OUT_DIR)
-  Archive('torture-c', Tar(GCC_TEST_DIR))
-  Archive('torture-s', Tar(TORTURE_S_OUT_DIR))
+  UploadArchive('torture-c', Archive(GCC_TEST_DIR))
+  UploadArchive('torture-s', Archive(TORTURE_S_OUT_DIR))
   if 0 != unexpected_result_count:
     buildbot.Fail()
 
@@ -1025,7 +1050,7 @@ def CompileLLVMTortureBinaryen(name, em_config, outdir, fails):
       fails=fails,
       out=outdir,
       config='binaryen-native')
-  Archive('torture-' + name, Tar(outdir))
+  UploadArchive('torture-' + name, Archive(outdir))
   if 0 != unexpected_result_count:
     buildbot.Fail()
   return outdir
@@ -1040,7 +1065,7 @@ def LinkLLVMTorture(name, linker, fails):
   Mkdir(out)
   unexpected_result_count = link_assembly_files.run(
       linker=linker, files=assembly_files, fails=fails, out=out)
-  Archive('torture-%s' % name, Tar(out))
+  UploadArchive('torture-%s' % name, Archive(out))
   if 0 != unexpected_result_count:
     buildbot.Fail()
   return out
@@ -1058,7 +1083,7 @@ def AssembleLLVMTorture(name, assembler, indir, fails):
       files=files,
       fails=fails,
       out=out)
-  Archive('torture-%s' % name, Tar(out))
+  UploadArchive('torture-%s' % name, Archive(out))
   if 0 != unexpected_result_count:
     buildbot.Fail()
   return out
@@ -1149,7 +1174,7 @@ def AllBuilds(use_asm=False):
       # Target libs
       Build('musl', Musl),
       # Archive
-      Build('archive', ArchiveBinaries, no_windows=True),
+      Build('archive', ArchiveBinaries),
       Build('debian', DebianPackage),
   ]
 
