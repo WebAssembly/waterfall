@@ -886,9 +886,10 @@ def Binaryen():
 
   proc.check_call(
       [PREBUILT_CMAKE_BIN, '-G', 'Ninja', BINARYEN_SRC_DIR,
+       '-DCMAKE_BUILD_TYPE=Release',
        '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR] + OverrideCMakeCompiler(),
       cwd=BINARYEN_OUT_DIR, env=cc_env)
-  proc.check_call(['ninja'], cwd=BINARYEN_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', '-v'], cwd=BINARYEN_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=BINARYEN_OUT_DIR, env=cc_env)
 
 
@@ -911,6 +912,8 @@ def Fastcomp():
        '-DLLVM_ENABLE_ASSERTIONS=ON'] + OverrideCMakeCompiler(),
       cwd=FASTCOMP_OUT_DIR, env=cc_env)
   proc.check_call(['ninja'], cwd=FASTCOMP_OUT_DIR, env=cc_env)
+  # Fastcomp has a different install location than the rest of the tools
+  BuildEnv(install_dir, bin_subdir=True)
   proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR, env=cc_env)
   CopyLLVMTools(FASTCOMP_OUT_DIR, 'fastcomp')
 
@@ -1429,10 +1432,7 @@ def run(sync_filter, build_filter, test_filter, options):
 
   # TODO(dschuff): Figure out how to make these statically linked?
   if IsWindows():
-    host_toolchains.CopyDlls(INSTALL_BIN, 'Release')
     host_toolchains.CopyDlls(INSTALL_BIN, 'Debug')
-    host_toolchains.CopyDlls(
-        os.path.join(INSTALL_DIR, 'fastcomp', 'bin'), 'Release')
 
   try:
     BuildRepos(build_filter,
