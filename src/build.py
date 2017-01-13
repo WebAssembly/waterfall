@@ -144,7 +144,7 @@ NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
 def NodePlatformName():
   return {'darwin': 'darwin-x64',
           'linux2': 'linux-x64',
-          'win32':'win32'}[sys.platform]
+          'win32': 'win32'}[sys.platform]
 
 
 NODE_BIN = Executable(os.path.join(WORK_DIR,
@@ -514,7 +514,7 @@ def SyncWindowsNode():
     with open(NODE_BIN, 'wb') as n:
       n.write(f.read())
   except urllib2.URLError as e:
-    print 'Error downloading %s: %s' % (url, e)
+    print 'Error downloading %s: %s' % (node_url, e)
     raise
   return
 
@@ -1431,7 +1431,8 @@ def run(sync_filter, build_filter, test_filter, options):
   if IsWindows():
     host_toolchains.CopyDlls(INSTALL_BIN, 'Release')
     host_toolchains.CopyDlls(INSTALL_BIN, 'Debug')
-    host_toolchains.CopyDlls(os.path.join(INSTALL_DIR, 'fastcomp', 'bin'), 'Release')
+    host_toolchains.CopyDlls(
+        os.path.join(INSTALL_DIR, 'fastcomp', 'bin'), 'Release')
 
   try:
     BuildRepos(build_filter,
