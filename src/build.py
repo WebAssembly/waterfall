@@ -569,7 +569,7 @@ ALL_SOURCES = [
     Source('cmake', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltCMake),
     Source('nodejs', '', '',  # The source and git args are ignored.
-           custom_sync=SyncPrebuiltNodeJS, no_windows=False),
+           custom_sync=SyncPrebuiltNodeJS),
     Source('wabt', WABT_SRC_DIR,
            WASM_GIT_BASE + 'wabt.git'),
     Source('spec', SPEC_SRC_DIR,
@@ -1195,7 +1195,7 @@ def AllBuilds(use_asm=False):
       Build('spec', Spec, no_windows=True),
       Build('binaryen', Binaryen),
       Build('fastcomp', Fastcomp),
-      Build('emscripten', Emscripten, False, use_asm),
+      Build('emscripten', Emscripten, use_asm=use_asm),
       # Target libs
       Build('musl', Musl),
       # Archive
