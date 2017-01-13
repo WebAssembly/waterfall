@@ -132,6 +132,10 @@ def Executable(name, extension='.exe'):
   return name + extension if IsWindows() else name
 
 
+def WindowsFSEscape(path):
+  return os.path.normpath(path).replace('\\', '/')
+
+
 # Use prebuilt Node.js because the buildbots don't have node preinstalled
 NODE_VERSION = '7.0.0'
 NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
@@ -927,8 +931,9 @@ def Emscripten(use_asm=True):
 
   def WriteEmscriptenConfig(infile, outfile):
     with open(infile) as config:
-      text = config.read().replace('{{WASM_INSTALL}}', INSTALL_DIR)
-      text = text.replace('{{PREBUILT_NODE}}', NODE_BIN)
+      text = config.read().replace('{{WASM_INSTALL}}',
+                                   WindowsFSEscape(INSTALL_DIR))
+      text = text.replace('{{PREBUILT_NODE}}', WindowsFSEscape(NODE_BIN))
     with open(outfile, 'w') as config:
       config.write(text)
 
