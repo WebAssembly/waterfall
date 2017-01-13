@@ -243,20 +243,17 @@ def Tar(directory, print_content=False):
 
 def Zip(directory, print_content=False):
   assert os.path.isdir(directory), 'Must be a directory'
-  (dir, basename) = os.path.split(directory)
-  archive = os.path.join(dir, basename + '.zip')
+  dirname, basename = os.path.split(directory)
+  archive = os.path.join(dirname, basename + '.zip')
   print 'Creating zip archive', archive
-  with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as zip:
-    def Add(path, zippath):
-      if os.path.isfile(path):
-        zip.write(path, zippath)
-      elif os.path.isdir(path):
+  with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
+    for root, dirs, files in os.walk(directory):
+      for name in files:
+        fs_path = os.path.join(root, name)
+        zip_path = os.path.relpath(fs_path, os.path.dirname(directory))
         if print_content:
-          print 'Adding', path
-        for name in os.listdir(path):
-          Add(os.path.join(path, name),
-              os.path.join(zippath, name))
-    Add(directory, basename)
+          print 'Adding', fs_path
+        z.write(fs_path, zip_path)
   print 'Size:', os.stat(archive).st_size
   return archive
 
