@@ -1065,8 +1065,8 @@ def CompileLLVMTorture():
 def CompileLLVMTortureBinaryen(name, em_config, outdir, fails):
   buildbot.Step('Compile LLVM Torture (%s)' % name)
   os.environ['EM_CONFIG'] = em_config
-  c = os.path.join(INSTALL_DIR, 'emscripten', 'emcc')
-  cxx = os.path.join(INSTALL_DIR, 'emscripten', 'em++')
+  c = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'emcc'), '.bat')
+  cxx = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'em++'), '.bat')
   Remove(outdir)
   Mkdir(outdir)
   unexpected_result_count = compile_torture_tests.run(
@@ -1274,7 +1274,7 @@ def TestAsm():
       ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES)
   ExecuteLLVMTorture(
       name='asm2wasm',
-      runner=os.path.join(INSTALL_BIN, 'd8'),
+      runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=asm2wasm_out,
       fails=ASM2WASM_KNOWN_TORTURE_FAILURES,
       extension='c.js',
@@ -1289,7 +1289,7 @@ def TestEmwasm():
       EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES)
   ExecuteLLVMTorture(
       name='emwasm',
-      runner=os.path.join(INSTALL_BIN, 'd8'),
+      runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=emscripten_wasm_out,
       fails=EMSCRIPTENWASM_KNOWN_TORTURE_FAILURES,
       extension='c.js',
@@ -1326,8 +1326,8 @@ def TestEmtestAsm2Wasm():
 
 ALL_TESTS = [
     Test('bare', TestBare),
-    Test('asm', TestAsm, no_windows=True),
-    Test('emwasm', TestEmwasm, no_windows=True),
+    Test('asm', TestAsm),
+    Test('emwasm', TestEmwasm),
     Test('emtest', TestEmtest, no_windows=True),
     Test('emtest-asm', TestEmtestAsm2Wasm, no_windows=True),
 ]
@@ -1431,6 +1431,7 @@ def run(sync_filter, build_filter, test_filter, options):
   if IsWindows():
     host_toolchains.CopyDlls(INSTALL_BIN, 'Release')
     host_toolchains.CopyDlls(INSTALL_BIN, 'Debug')
+    host_toolchains.CopyDlls(os.path.join(INSTALL_DIR, 'fastcomp', 'bin'), 'Release')
 
   try:
     BuildRepos(build_filter,
