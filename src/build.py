@@ -128,10 +128,8 @@ def IsMac():
   return sys.platform == 'darwin'
 
 
-def Executable(name):
-  if IsWindows():
-    return name + '.exe'
-  return name
+def Executable(name, extension='.exe'):
+  return name + extension if IsWindows() else name
 
 
 # Use prebuilt Node.js because the buildbots don't have node preinstalled
@@ -140,13 +138,14 @@ NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
 
 
 def NodePlatformName():
-  if IsWindows():
-    return ''
-  return {'darwin': 'darwin-x64', 'linux2': 'linux-x64'}[sys.platform]
+  return {'darwin': 'darwin-x64',
+          'linux2': 'linux-x64',
+          'win32':'win32'}[sys.platform]
 
 
-NODE_BIN = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName(),
-                        'bin', 'node')
+NODE_BIN = Executable(os.path.join(WORK_DIR,
+                                   NODE_BASE_NAME + NodePlatformName(),
+                                   'bin', 'node'))
 
 # Known failures.
 IT_IS_KNOWN = 'known_gcc_test_failures.txt'
@@ -497,7 +496,28 @@ def SyncOCaml(name, src_dir, git_repo):
   return SyncArchive(src_dir, 'OCaml', OCAML_VERSION, OCAML_URL)
 
 
+def SyncWindowsNode():
+  if os.path.isfile(NODE_BIN):
+    print NODE_BIN, 'already exists'
+    return
+  Mkdir(os.path.dirname(NODE_BIN))
+  node_url = WASM_STORAGE_BASE + 'node.exe'
+  print 'Downloading node.js %s from %s' % (NODE_VERSION, node_url)
+  try:
+    f = urllib2.urlopen(node_url)
+    print 'URL: %s' % f.geturl()
+    print 'Info: %s' % f.info()
+    with open(NODE_BIN, 'wb') as n:
+      n.write(f.read())
+  except urllib2.URLError as e:
+    print 'Error downloading %s: %s' % (url, e)
+    raise
+  return
+
+
 def SyncPrebuiltNodeJS(name, src_dir, git_repo):
+  if IsWindows():
+    return SyncWindowsNode()
   extension = {'darwin': 'gz', 'linux2': 'xz'}[sys.platform]
   out_dir = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName())
   tarball = NODE_BASE_NAME + NodePlatformName() + '.tar.' + extension
@@ -545,7 +565,7 @@ ALL_SOURCES = [
     Source('cmake', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltCMake),
     Source('nodejs', '', '',  # The source and git args are ignored.
-           custom_sync=SyncPrebuiltNodeJS, no_windows=True),
+           custom_sync=SyncPrebuiltNodeJS, no_windows=False),
     Source('wabt', WABT_SRC_DIR,
            WASM_GIT_BASE + 'wabt.git'),
     Source('spec', SPEC_SRC_DIR,
@@ -931,7 +951,7 @@ def Emscripten(use_asm=True):
       os.environ['EMCC_DEBUG'] = '2'
       os.environ['EM_CONFIG'] = config
       proc.check_call([
-          os.path.join(emscripten_dir, 'em++'),
+          Executable(os.path.join(emscripten_dir, 'em++'), '.bat'),
           os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'hello_libcxx.cpp'),
           '-O2', '-s', 'BINARYEN=1', '-s', 'BINARYEN_METHOD="native-wasm"'])
 
@@ -1170,7 +1190,7 @@ def AllBuilds(use_asm=False):
       Build('spec', Spec, no_windows=True),
       Build('binaryen', Binaryen),
       Build('fastcomp', Fastcomp),
-      Build('emscripten', Emscripten, True, use_asm),
+      Build('emscripten', Emscripten, False, use_asm),
       # Target libs
       Build('musl', Musl),
       # Archive
