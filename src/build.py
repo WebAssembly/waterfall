@@ -912,9 +912,9 @@ def Fastcomp():
        '-DLLVM_ENABLE_ASSERTIONS=ON'] + OverrideCMakeCompiler(),
       cwd=FASTCOMP_OUT_DIR, env=cc_env)
   proc.check_call(['ninja'], cwd=FASTCOMP_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR, env=cc_env)
   # Fastcomp has a different install location than the rest of the tools
   BuildEnv(install_dir, bin_subdir=True)
-  proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR, env=cc_env)
   CopyLLVMTools(FASTCOMP_OUT_DIR, 'fastcomp')
 
 
