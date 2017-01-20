@@ -23,8 +23,6 @@ pr47237.c.js
 pr60960.c.js
 va-arg-pack-1.c.js
 
-930608-1.c.js # abort(), new with FixFunctionBitcasts pass
-
 complex-5.c.js # missing fmaxf, presumably needed by compiler-rt
 
 ## The following work using wasm-clang without emcc
