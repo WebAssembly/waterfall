@@ -35,6 +35,8 @@ fprintf-1.c.s.wast.wasm
 fprintf-chk-1.c.s.wast.wasm
 vfprintf-1.c.s.wast.wasm
 vfprintf-chk-1.c.s.wast.wasm
+# env.stderr
+gofast.c.s.wast.wasm
 
 # These compiler-rt functions are for long doubles. Also NYI.
 20020413-1.c.s.wast.wasm # __lttf2
