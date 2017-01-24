@@ -31,6 +31,8 @@ fprintf-1.c.s.wast.wasm
 fprintf-chk-1.c.s.wast.wasm
 vfprintf-1.c.s.wast.wasm
 vfprintf-chk-1.c.s.wast.wasm
+# env.stderr
+gofast.c.s.wast.wasm
 
 # Trying to import function 'bar'. The test is likely wrong.
 va-arg-pack-1.c.s.wast.wasm
