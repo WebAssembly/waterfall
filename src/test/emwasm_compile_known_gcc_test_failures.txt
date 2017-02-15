@@ -74,8 +74,4 @@
 	pr17377.c # __builtin_return_address
 
 # wasm-validation errors
-        call-trap-1.c # call param number must match
-        pr44942.c # call param number must match
-        921208-2.c # call param number must match
-        920501-1.c # call param number must match
-        20051012-1.c # call param number must match
+        pr44942.c # call param number must match (works in asm2wasm)

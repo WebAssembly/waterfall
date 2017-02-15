@@ -136,10 +136,12 @@ def IsMac():
   return sys.platform == 'darwin'
 
 
-def Executable(name):
-  if IsWindows():
-    return name + '.exe'
-  return name
+def Executable(name, extension='.exe'):
+  return name + extension if IsWindows() else name
+
+
+def WindowsFSEscape(path):
+  return os.path.normpath(path).replace('\\', '/')
 
 
 # Use prebuilt Node.js because the buildbots don't have node preinstalled
@@ -148,13 +150,14 @@ NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
 
 
 def NodePlatformName():
-  if IsWindows():
-    return ''
-  return {'darwin': 'darwin-x64', 'linux2': 'linux-x64'}[sys.platform]
+  return {'darwin': 'darwin-x64',
+          'linux2': 'linux-x64',
+          'win32': 'win32'}[sys.platform]
 
 
-NODE_BIN = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName(),
-                        'bin', 'node')
+NODE_BIN = Executable(os.path.join(WORK_DIR,
+                                   NODE_BASE_NAME + NodePlatformName(),
+                                   'bin', 'node'))
 
 # Known failures.
 IT_IS_KNOWN = 'known_gcc_test_failures.txt'
@@ -230,10 +233,17 @@ def CopyLibraryToArchive(library, prefix=''):
   shutil.copy2(library, install_lib)
 
 
-def Tar(directory, print_content=False):
-  """Create a tar file from directory."""
+def Archive(directory, print_content=False):
+  """Create an archive file from directory."""
+  # Use the format "native" to the platform
   if not IsBuildbot():
     return
+  if IsWindows():
+    return Zip(directory, print_content)
+  return Tar(directory, print_content)
+
+
+def Tar(directory, print_content=False):
   assert os.path.isdir(directory), 'Must tar a directory to avoid tarbombs'
   (up_directory, basename) = os.path.split(directory)
   tar = os.path.join(up_directory, basename + '.tbz2')
@@ -246,6 +256,23 @@ def Tar(directory, print_content=False):
   return tar
 
 
+def Zip(directory, print_content=False):
+  assert os.path.isdir(directory), 'Must be a directory'
+  dirname, basename = os.path.split(directory)
+  archive = os.path.join(dirname, basename + '.zip')
+  print 'Creating zip archive', archive
+  with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
+    for root, dirs, files in os.walk(directory):
+      for name in files:
+        fs_path = os.path.join(root, name)
+        zip_path = os.path.relpath(fs_path, os.path.dirname(directory))
+        if print_content:
+          print 'Adding', fs_path
+        z.write(fs_path, zip_path)
+  print 'Size:', os.stat(archive).st_size
+  return archive
+
+
 def UploadFile(local_name, remote_name):
   """Archive the file with the given name, and with the LLVM git hash."""
   if not IsBuildbot():
@@ -254,11 +281,12 @@ def UploadFile(local_name, remote_name):
       BUILDBOT_BUILDERNAME, BUILDBOT_BUILDNUMBER, remote_name)))
 
 
-def Archive(name, tar):
-  """Archive the tar file with the given name, and with the LLVM git hash."""
+def UploadArchive(name, archive):
+  """Archive the tar/zip file with the given name and the build number."""
   if not IsBuildbot():
     return
-  UploadFile(tar, 'wasm-%s-%s.tbz2' % (name, BUILDBOT_BUILDNUMBER))
+  extension = os.path.splitext(archive)[1]
+  UploadFile(archive, 'wasm-%s-%s%s' % (name, BUILDBOT_BUILDNUMBER, extension))
 
 
 # Repo and subproject utilities
@@ -488,7 +516,28 @@ def SyncOCaml(name, src_dir, git_repo):
   return SyncArchive(src_dir, 'OCaml', OCAML_VERSION, OCAML_URL)
 
 
+def SyncWindowsNode():
+  if os.path.isfile(NODE_BIN):
+    print NODE_BIN, 'already exists'
+    return
+  Mkdir(os.path.dirname(NODE_BIN))
+  node_url = WASM_STORAGE_BASE + 'node.exe'
+  print 'Downloading node.js %s from %s' % (NODE_VERSION, node_url)
+  try:
+    f = urllib2.urlopen(node_url)
+    print 'URL: %s' % f.geturl()
+    print 'Info: %s' % f.info()
+    with open(NODE_BIN, 'wb') as n:
+      n.write(f.read())
+  except urllib2.URLError as e:
+    print 'Error downloading %s: %s' % (node_url, e)
+    raise
+  return
+
+
 def SyncPrebuiltNodeJS(name, src_dir, git_repo):
+  if IsWindows():
+    return SyncWindowsNode()
   extension = {'darwin': 'gz', 'linux2': 'xz'}[sys.platform]
   out_dir = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName())
   tarball = NODE_BASE_NAME + NodePlatformName() + '.tar.' + extension
@@ -538,7 +587,7 @@ ALL_SOURCES = [
     Source('cmake', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltCMake),
     Source('nodejs', '', '',  # The source and git args are ignored.
-           custom_sync=SyncPrebuiltNodeJS, no_windows=True),
+           custom_sync=SyncPrebuiltNodeJS),
     Source('wabt', WABT_SRC_DIR,
            WASM_GIT_BASE + 'wabt.git'),
     Source('spec', SPEC_SRC_DIR,
@@ -708,8 +757,10 @@ def CopyLLVMTools(build_dir, prefix=''):
   # The following isn't useful for now, and takes up space.
   Remove(os.path.join(INSTALL_DIR, prefix, 'bin', 'clang-check'))
   # The following are useful, LLVM_INSTALL_TOOLCHAIN_ONLY did away with them.
-  extra_bins = ['FileCheck', 'lli', 'llc', 'llvm-as', 'llvm-dis', 'llvm-link',
-                'llvm-mc', 'llvm-nm', 'llvm-objdump', 'llvm-readobj', 'opt']
+  extra_bins = map(Executable,
+                   ['FileCheck', 'lli', 'llc', 'llvm-as', 'llvm-dis',
+                    'llvm-link', 'llvm-mc', 'llvm-nm', 'llvm-objdump',
+                    'llvm-readobj', 'opt'])
   extra_libs = ['libLLVM*.%s' % ext for ext in ['so', 'dylib', 'dll']]
   for p in [glob.glob(os.path.join(build_dir, 'bin', b)) for b in
             extra_bins]:
@@ -874,9 +925,10 @@ def Binaryen():
 
   proc.check_call(
       [PREBUILT_CMAKE_BIN, '-G', 'Ninja', BINARYEN_SRC_DIR,
+       '-DCMAKE_BUILD_TYPE=Release',
        '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR] + OverrideCMakeCompiler(),
       cwd=BINARYEN_OUT_DIR, env=cc_env)
-  proc.check_call(['ninja'], cwd=BINARYEN_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', '-v'], cwd=BINARYEN_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=BINARYEN_OUT_DIR, env=cc_env)
 
 
@@ -900,6 +952,8 @@ def Fastcomp():
       cwd=FASTCOMP_OUT_DIR, env=cc_env)
   proc.check_call(['ninja'], cwd=FASTCOMP_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR, env=cc_env)
+  # Fastcomp has a different install location than the rest of the tools
+  BuildEnv(install_dir, bin_subdir=True)
   CopyLLVMTools(FASTCOMP_OUT_DIR, 'fastcomp')
 
 
@@ -919,8 +973,9 @@ def Emscripten(use_asm=True):
 
   def WriteEmscriptenConfig(infile, outfile):
     with open(infile) as config:
-      text = config.read().replace('{{WASM_INSTALL}}', INSTALL_DIR)
-      text = text.replace('{{PREBUILT_NODE}}', NODE_BIN)
+      text = config.read().replace('{{WASM_INSTALL}}',
+                                   WindowsFSEscape(INSTALL_DIR))
+      text = text.replace('{{PREBUILT_NODE}}', WindowsFSEscape(NODE_BIN))
     with open(outfile, 'w') as config:
       config.write(text)
 
@@ -943,7 +998,7 @@ def Emscripten(use_asm=True):
       os.environ['EMCC_DEBUG'] = '2'
       os.environ['EM_CONFIG'] = config
       proc.check_call([
-          os.path.join(emscripten_dir, 'em++'),
+          Executable(os.path.join(emscripten_dir, 'em++'), '.bat'),
           os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'hello_libcxx.cpp'),
           '-O2', '-s', 'BINARYEN=1', '-s', 'BINARYEN_METHOD="native-wasm"'])
 
@@ -964,7 +1019,18 @@ def Emscripten(use_asm=True):
 def Musl():
   buildbot.Step('musl')
   Mkdir(MUSL_OUT_DIR)
+  path = os.environ['PATH']
   try:
+    if IsWindows():
+      # Musl's build uses a shell script and a sed script to generate some
+      # headers. For the LLVM regression tests, we run ninja under 'git bash'
+      # (see above) but that doesn't work here for some reason. It turns out
+      # that the V8 build has some cygwin utils, so add them to the path.
+      # TODO(dschuff): see if this can be unified with the 'git bash' method
+      # for LLVM.
+      os.environ['PATH'] = (path + os.pathsep +
+                            os.path.join(
+                                V8_SRC_DIR, 'third_party', 'cygwin', 'bin'))
     proc.check_call([
         os.path.join(MUSL_SRC_DIR, 'libc.py'),
         '--clang_dir', INSTALL_BIN,
@@ -982,12 +1048,14 @@ def Musl():
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
     buildbot.Fail()
+  finally:
+    os.environ['PATH'] = path
 
 
 def ArchiveBinaries():
   buildbot.Step('Archive binaries')
   # All relevant binaries were copied to the LLVM directory.
-  Archive('binaries', Tar(INSTALL_DIR, print_content=True))
+  UploadArchive('binaries', Archive(INSTALL_DIR, print_content=True))
 
 
 def DebianPackage():
@@ -1021,8 +1089,8 @@ def DebianPackage():
 def CompileLLVMTorture():
   name = 'Compile LLVM Torture'
   buildbot.Step(name)
-  c = os.path.join(INSTALL_BIN, 'clang')
-  cxx = os.path.join(INSTALL_BIN, 'clang++')
+  c = Executable(os.path.join(INSTALL_BIN, 'clang'))
+  cxx = Executable(os.path.join(INSTALL_BIN, 'clang++'))
   Remove(TORTURE_S_OUT_DIR)
   Mkdir(TORTURE_S_OUT_DIR)
   unexpected_result_count = compile_torture_tests.run(
@@ -1030,8 +1098,8 @@ def CompileLLVMTorture():
       sysroot_dir=INSTALL_SYSROOT,
       fails=LLVM_KNOWN_TORTURE_FAILURES,
       out=TORTURE_S_OUT_DIR)
-  Archive('torture-c', Tar(GCC_TEST_DIR))
-  Archive('torture-s', Tar(TORTURE_S_OUT_DIR))
+  UploadArchive('torture-c', Archive(GCC_TEST_DIR))
+  UploadArchive('torture-s', Archive(TORTURE_S_OUT_DIR))
   if 0 != unexpected_result_count:
     buildbot.Fail()
 
@@ -1039,8 +1107,8 @@ def CompileLLVMTorture():
 def CompileLLVMTortureBinaryen(name, em_config, outdir, fails):
   buildbot.Step('Compile LLVM Torture (%s)' % name)
   os.environ['EM_CONFIG'] = em_config
-  c = os.path.join(INSTALL_DIR, 'emscripten', 'emcc')
-  cxx = os.path.join(INSTALL_DIR, 'emscripten', 'em++')
+  c = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'emcc'), '.bat')
+  cxx = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'em++'), '.bat')
   Remove(outdir)
   Mkdir(outdir)
   unexpected_result_count = compile_torture_tests.run(
@@ -1049,7 +1117,7 @@ def CompileLLVMTortureBinaryen(name, em_config, outdir, fails):
       fails=fails,
       out=outdir,
       config='binaryen-native')
-  Archive('torture-' + name, Tar(outdir))
+  UploadArchive('torture-' + name, Archive(outdir))
   if 0 != unexpected_result_count:
     buildbot.Fail()
   return outdir
@@ -1064,7 +1132,7 @@ def LinkLLVMTorture(name, linker, fails):
   Mkdir(out)
   unexpected_result_count = link_assembly_files.run(
       linker=linker, files=assembly_files, fails=fails, out=out)
-  Archive('torture-%s' % name, Tar(out))
+  UploadArchive('torture-%s' % name, Archive(out))
   if 0 != unexpected_result_count:
     buildbot.Fail()
   return out
@@ -1082,7 +1150,7 @@ def AssembleLLVMTorture(name, assembler, indir, fails):
       files=files,
       fails=fails,
       out=out)
-  Archive('torture-%s' % name, Tar(out))
+  UploadArchive('torture-%s' % name, Archive(out))
   if 0 != unexpected_result_count:
     buildbot.Fail()
   return out
@@ -1112,7 +1180,7 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, outdir='',
 
 
 class Build(object):
-  def __init__(self, name_, runnable_, no_windows=True, no_linux=False, *args, **kwargs):
+  def __init__(self, name_, runnable_, no_windows=False, no_linux=False, *args, **kwargs):
     self.name = name_
     self.runnable = runnable_
     self.args = args
@@ -1166,15 +1234,15 @@ def Summary(repos):
 def AllBuilds(use_asm=False):
   return [
       # Host tools
-      Build('llvm', LLVM, no_windows=False),
-      Build('v8', V8, no_windows=False),
+      Build('llvm', LLVM),
+      Build('v8', V8),
       Build('jsc', Jsc, no_windows=True, no_linux=True),
-      Build('wabt', Wabt, no_windows=False),
-      Build('ocaml', OCaml),
-      Build('spec', Spec),
-      Build('binaryen', Binaryen, no_windows=False),
-      Build('fastcomp', Fastcomp, no_windows=False),
-      Build('emscripten', Emscripten, use_asm),
+      Build('wabt', Wabt),
+      Build('ocaml', OCaml, no_windows=True),
+      Build('spec', Spec, no_windows=True),
+      Build('binaryen', Binaryen),
+      Build('fastcomp', Fastcomp),
+      Build('emscripten', Emscripten, use_asm=use_asm),
       # Target libs
       Build('musl', Musl),
       # Archive
@@ -1189,11 +1257,15 @@ def BuildRepos(filter, use_asm=False):
 
 
 class Test(object):
-  def __init__(self, name_, runnable_):
+  def __init__(self, name_, runnable_, no_windows=False):
     self.name = name_
     self.runnable = runnable_
+    self.no_windows = no_windows
 
   def Test(self):
+    if IsWindows() and self.no_windows:
+      print "Skipping %s: Doesn't work on windows" % self.runnable.__name__
+      return
     self.runnable()
 
 
@@ -1201,29 +1273,30 @@ def TestBare():
   CompileLLVMTorture()
   s2wasm_out = LinkLLVMTorture(
       name='s2wasm',
-      linker=os.path.join(INSTALL_BIN, 's2wasm'),
+      linker=Executable(os.path.join(INSTALL_BIN, 's2wasm')),
       fails=S2WASM_KNOWN_TORTURE_FAILURES)
   wast2wasm_out = AssembleLLVMTorture(
       name='wast2wasm',
-      assembler=os.path.join(INSTALL_BIN, 'wast2wasm'),
+      assembler=Executable(os.path.join(INSTALL_BIN, 'wast2wasm')),
       indir=s2wasm_out,
       fails=WAST2WASM_KNOWN_TORTURE_FAILURES)
   ExecuteLLVMTorture(
       name='wasm-shell',
-      runner=os.path.join(INSTALL_BIN, 'wasm-shell'),
+      runner=Executable(os.path.join(INSTALL_BIN, 'wasm-shell')),
       indir=s2wasm_out,
       fails=BINARYEN_SHELL_KNOWN_TORTURE_FAILURES,
       extension='wast',
       warn_only=True)  # TODO wasm-shell is flaky when running tests.
-  ExecuteLLVMTorture(
-      name='spec',
-      runner=os.path.join(INSTALL_BIN, 'wasm.opt'),
-      indir=s2wasm_out,
-      fails=SPEC_KNOWN_TORTURE_FAILURES,
-      extension='wast')
+  if not IsWindows():
+    ExecuteLLVMTorture(
+        name='spec',
+        runner=Executable(os.path.join(INSTALL_BIN, 'wasm.opt')),
+        indir=s2wasm_out,
+        fails=SPEC_KNOWN_TORTURE_FAILURES,
+        extension='wast')
   ExecuteLLVMTorture(
       name='d8',
-      runner=os.path.join(INSTALL_BIN, 'd8'),
+      runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=wast2wasm_out,
       fails=V8_KNOWN_TORTURE_FAILURES,
       extension='wasm',
@@ -1231,7 +1304,7 @@ def TestBare():
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
   ExecuteLLVMTorture(
       name='d8-musl',
-      runner=os.path.join(INSTALL_BIN, 'd8'),
+      runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=wast2wasm_out,
       fails=V8_MUSL_KNOWN_TORTURE_FAILURES,
       extension='wasm',
@@ -1265,7 +1338,7 @@ def TestAsm():
       ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES)
   ExecuteLLVMTorture(
       name='asm2wasm',
-      runner=os.path.join(INSTALL_BIN, 'd8'),
+      runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=asm2wasm_out,
       fails=ASM2WASM_KNOWN_TORTURE_FAILURES,
       extension='c.js',
@@ -1280,7 +1353,7 @@ def TestEmwasm():
       EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES)
   ExecuteLLVMTorture(
       name='emwasm',
-      runner=os.path.join(INSTALL_BIN, 'd8'),
+      runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=emscripten_wasm_out,
       fails=EMSCRIPTENWASM_KNOWN_TORTURE_FAILURES,
       extension='c.js',
@@ -1319,8 +1392,8 @@ ALL_TESTS = [
     Test('bare', TestBare),
     Test('asm', TestAsm),
     Test('emwasm', TestEmwasm),
-    Test('emtest', TestEmtest),
-    Test('emtest-asm', TestEmtestAsm2Wasm),
+    Test('emtest', TestEmtest, no_windows=True),
+    Test('emtest-asm', TestEmtestAsm2Wasm, no_windows=True),
 ]
 
 
@@ -1420,7 +1493,6 @@ def run(sync_filter, build_filter, test_filter, options):
 
   # TODO(dschuff): Figure out how to make these statically linked?
   if IsWindows():
-    host_toolchains.CopyDlls(INSTALL_BIN, 'Release')
     host_toolchains.CopyDlls(INSTALL_BIN, 'Debug')
 
   try:
@@ -1435,10 +1507,8 @@ def run(sync_filter, build_filter, test_filter, options):
     Summary(repos)
     return 1
 
-  if not IsWindows():
-    # None of the tests work on windows yet
-    for t in test_filter.Apply(ALL_TESTS):
-      t.Test()
+  for t in test_filter.Apply(ALL_TESTS):
+    t.Test()
 
   # Keep the summary step last: it'll be marked as red if the return code is
   # non-zero. Individual steps are marked as red with buildbot.Fail().
