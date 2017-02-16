@@ -1,4 +1,4 @@
-# Expected failures from running the assembled GCC torture tests with d8.
+# Expected failures from running the assembled GCC torture tests with jsc.
 
 # Toolchain problem: need some libc support.
 # Not yet implemented.
