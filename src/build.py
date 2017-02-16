@@ -1180,7 +1180,9 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, outdir='',
 
 
 class Build(object):
-  def __init__(self, name_, runnable_, no_windows=False, no_linux=False, *args, **kwargs):
+  def __init__(self, name_, runnable_,
+               no_windows=False, no_linux=False,
+               *args, **kwargs):
     self.name = name_
     self.runnable = runnable_
     self.args = args
