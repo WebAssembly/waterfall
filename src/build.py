@@ -862,13 +862,32 @@ def Jsc():
   buildbot.Step('JSC')
   Mkdir(JSC_OUT_DIR)
 
-  proc.check_call(['xcrun', PREBUILT_CMAKE_BIN, '-Wno-dev',
-                   '..', '-G', 'Ninja',
-                   '-DCMAKE_BUILD_TYPE="Release"',
-                   '-DPORT=Mac',
-                   '-DENABLE_WEBASSEMBLY=ON'],
-                  cwd=JSC_OUT_DIR)
-  proc.check_call(['ninja', 'jsc'], cwd=JSC_OUT_DIR)
+  command = ['xcrun', PREBUILT_CMAKE_BIN, '-Wno-dev',
+             '..', '-G', 'Ninja',
+             '-DCMAKE_BUILD_TYPE="Release"',
+             '-DPORT=Mac',
+             '-DENABLE_WEBASSEMBLY=ON']
+
+  command.extend(OverrideCMakeCompiler())
+
+  jobs = []
+  if 'GOMA_DIR' in os.environ:
+    compiler_launcher = os.path.join(os.environ['GOMA_DIR'], 'gomacc')
+    jobs = ['-j', '50']
+  else:
+    try:
+      compiler_launcher = proc.Which('ccache', WORK_DIR)
+      command.extend(['-DCMAKE_%s_FLAGS=-Qunused-arguments' %
+                      c for c in ['C', 'CXX']])
+    except:
+      compiler_launcher = None
+
+  if compiler_launcher:
+    command.extend(['-DCMAKE_%s_COMPILER_LAUNCHER=%s' %
+                    (c, compiler_launcher) for c in ['C', 'CXX']])
+
+  proc.check_call(command, cwd=JSC_OUT_DIR)
+  proc.check_call(['ninja', 'jsc'] + jobs, cwd=JSC_OUT_DIR)
   proc.check_call(['../Tools/Scripts/run-javascriptcore-tests',
                    '--root=bin',
                    '--filter', 'wasm',
