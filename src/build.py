@@ -63,7 +63,7 @@ MUSL_SRC_DIR = os.path.join(WORK_DIR, 'musl')
 
 FIND_SVN_REV = os.path.join(SCRIPT_DIR, 'find_svn_rev.py')
 
-PREBUILT_CLANG = os.path.join(WORK_DIR, 'chromium-clang')
+PREBUILT_CLANG = os.path.join(WORK_DIR)
 PREBUILT_CLANG_TOOLS_CLANG = os.path.join(PREBUILT_CLANG, 'tools', 'clang')
 PREBUILT_CLANG_BIN = os.path.join(
     PREBUILT_CLANG, 'third_party', 'llvm-build', 'Release+Asserts', 'bin')
