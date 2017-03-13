@@ -63,7 +63,7 @@ MUSL_SRC_DIR = os.path.join(WORK_DIR, 'musl')
 
 FIND_SVN_REV = os.path.join(SCRIPT_DIR, 'find_svn_rev.py')
 
-PREBUILT_CLANG = os.path.join(WORK_DIR)
+PREBUILT_CLANG = WORK_DIR
 PREBUILT_CLANG_TOOLS_CLANG = os.path.join(PREBUILT_CLANG, 'tools', 'clang')
 PREBUILT_CLANG_BIN = os.path.join(
     PREBUILT_CLANG, 'third_party', 'llvm-build', 'Release+Asserts', 'bin')
@@ -561,11 +561,11 @@ ALL_SOURCES = [
     Source('v8', V8_SRC_DIR,
            GIT_MIRROR_BASE + 'v8/v8',
            custom_sync=ChromiumFetchSync),
+    Source('cr-buildtools', os.path.join(WORK_DIR, 'build'),
+           GIT_MIRROR_BASE + 'chromium/src/build'),
     Source('host-toolchain', PREBUILT_CLANG,
            GIT_MIRROR_BASE + 'chromium/src/tools/clang',
            custom_sync=SyncToolchain),
-    Source('cr-buildtools', os.path.join(WORK_DIR, 'build'),
-           GIT_MIRROR_BASE + 'chromium/src/build'),
     Source('cmake', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltCMake),
     Source('nodejs', '', '',  # The source and git args are ignored.
