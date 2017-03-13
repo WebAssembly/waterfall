@@ -14,6 +14,6 @@ before_script:
   - flake8 --version
 script:
   - flake8
-  - ./src/build.py --sync-include=host-toolchain,cmake,wabt --build-include=wabt,debian --no-test
+  - ./src/build.py --sync-include=cr-buildtools,host-toolchain,cmake,wabt --build-include=wabt,debian --no-test
 notifications:
   email: false
