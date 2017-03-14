@@ -38,13 +38,16 @@ def execute(infile, outfile, extras):
   extra_files = extras['extra_files']
   config = basename
   wasmjs = [extras['wasmjs']] if extras['wasmjs'] else []
-  if basename == 'd8':
+  if basename == 'd8' or basename == 'jsc':
     config = basename + ('-wasm' if wasmjs else '-asm2wasm')
   commands = {
       'wasm-shell': [runner, '--entry=main', infile] + out_opt,
       'd8-wasm': [runner, '--expose-wasm'] + wasmjs + [
           '--', infile] + extra_files,
       'd8-asm2wasm': [runner, '--expose-wasm', infile],
+      'jsc-wasm': [runner, '--useWebAssembly=1'] + wasmjs + [
+          '--', infile] + extra_files,
+      'jsc-asm2wasm': [runner, '--useWebAssembly=1', infile],
       'wasm.opt': [runner, infile]
   }
   return commands[config]
