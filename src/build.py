@@ -578,7 +578,7 @@ ALL_SOURCES = [
            GIT_MIRROR_BASE + 'v8/v8',
            custom_sync=ChromiumFetchSync),
     Source('jsc', JSC_SRC_DIR,
-           WEBKIT_GIT_BASE + 'webkit', depth=1000),
+           WEBKIT_GIT_BASE + 'webkit.git', depth=1000),
     Source('host-toolchain', PREBUILT_CLANG,
            GIT_MIRROR_BASE + 'chromium/src/tools/clang',
            custom_sync=SyncToolchain),
