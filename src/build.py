@@ -578,7 +578,8 @@ ALL_SOURCES = [
            GIT_MIRROR_BASE + 'v8/v8',
            custom_sync=ChromiumFetchSync),
     Source('jsc', JSC_SRC_DIR,
-           WEBKIT_GIT_BASE + 'webkit.git', depth=1000),
+           WEBKIT_GIT_BASE + 'webkit.git', depth=1000,
+           no_windows=True, no_linux=True),
     Source('host-toolchain', PREBUILT_CLANG,
            GIT_MIRROR_BASE + 'chromium/src/tools/clang',
            custom_sync=SyncToolchain),
@@ -1332,23 +1333,24 @@ def TestBare():
       warn_only=True,
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
       extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
-  ExecuteLLVMTorture(
-      name='jsc',
-      runner=os.path.join(INSTALL_BIN, 'jsc'),
-      indir=wast2wasm_out,
-      fails=JSC_KNOWN_TORTURE_FAILURES,
-      extension='wasm',
-      warn_only=True,
-      wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
-  ExecuteLLVMTorture(
-      name='jsc-musl',
-      runner=os.path.join(INSTALL_BIN, 'jsc'),
-      indir=wast2wasm_out,
-      fails=JSC_MUSL_KNOWN_TORTURE_FAILURES,
-      extension='wasm',
-      warn_only=True,
-      wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
-      extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
+  if IsMac():
+    ExecuteLLVMTorture(
+        name='jsc',
+        runner=os.path.join(INSTALL_BIN, 'jsc'),
+        indir=wast2wasm_out,
+        fails=JSC_KNOWN_TORTURE_FAILURES,
+        extension='wasm',
+        warn_only=True,
+        wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
+    ExecuteLLVMTorture(
+        name='jsc-musl',
+        runner=os.path.join(INSTALL_BIN, 'jsc'),
+        indir=wast2wasm_out,
+        fails=JSC_MUSL_KNOWN_TORTURE_FAILURES,
+        extension='wasm',
+        warn_only=True,
+        wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
+        extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
 
 
 def TestAsm():
