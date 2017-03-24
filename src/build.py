@@ -899,6 +899,14 @@ def Jsc():
     CopyBinaryToArchive(os.path.join(JSC_OUT_DIR, a))
 
 
+def JscSafe():
+  try:
+    Jsc()
+  except proc.CalledProcessError:
+    # Note the failure but allow the build to continue.
+    buildbot.Fail()
+
+
 def Wabt():
   buildbot.Step('WABT')
   Mkdir(WABT_OUT_DIR)
@@ -1258,7 +1266,7 @@ def AllBuilds(use_asm=False):
       # Host tools
       Build('llvm', LLVM),
       Build('v8', V8),
-      Build('jsc', Jsc, no_windows=True, no_linux=True),
+      Build('jsc', JscSafe, no_windows=True, no_linux=True),
       Build('wabt', Wabt),
       Build('ocaml', OCaml, no_windows=True),
       Build('spec', Spec, no_windows=True),
