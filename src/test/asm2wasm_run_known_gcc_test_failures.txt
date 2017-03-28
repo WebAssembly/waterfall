@@ -18,7 +18,10 @@ pr49279.c.js
 20031003-1.c.js
 20071018-1.c.js
 20071120-1.c.js
-alloca-1.c.js
+# This seems to be spuriously passing for now because the stack below it
+# happens to align it to 32 byte alignment. Will probably need to toggle this
+# in the future.
+# alloca-1.c.js
 bitfld-3.c.js
 bitfld-5.c.js
 builtin-bitops-1.c.js
