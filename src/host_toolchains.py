@@ -90,3 +90,35 @@ def SetUpVSEnv(outdir):
 def CopyDlls(dir, configuration):
   """ Copy MSVS Runtime dlls into a build directory"""
   proc.check_call([VS_TOOLCHAIN, 'copy_dlls', dir, configuration, 'x64'])
+
+
+def UsingGoma():
+  return 'GOMA_DIR' in os.environ
+
+
+def GomaDir():
+  return os.environ['GOMA_DIR']
+
+
+def CmakeLauncherFlags():
+  flags = []
+  if UsingGoma():
+    compiler_launcher = os.path.join(GomaDir(), 'gomacc')
+  else:
+    try:
+      compiler_launcher = proc.Which('ccache', WORK_DIR)
+      flags.extend(['-DCMAKE_%s_FLAGS=-Qunused-arguments' %
+                    c for c in ['C', 'CXX']])
+    except:
+      compiler_launcher = None
+
+  if compiler_launcher:
+    flags.extend(['-DCMAKE_%s_COMPILER_LAUNCHER=%s' %
+                  (c, compiler_launcher) for c in ['C', 'CXX']])
+  return flags
+
+
+def NinjaJobs():
+  if UsingGoma():
+    return ['-j', '50']
+  return []

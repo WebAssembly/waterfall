@@ -809,21 +809,8 @@ def LLVM():
 
   command.extend(OverrideCMakeCompiler())
 
-  jobs = []
-  if 'GOMA_DIR' in os.environ:
-    compiler_launcher = os.path.join(os.environ['GOMA_DIR'], 'gomacc')
-    jobs = ['-j', '50']
-  else:
-    try:
-      compiler_launcher = proc.Which('ccache', WORK_DIR)
-      command.extend(['-DCMAKE_%s_FLAGS=-Qunused-arguments' %
-                      c for c in ['C', 'CXX']])
-    except:
-      compiler_launcher = None
-
-  if compiler_launcher:
-    command.extend(['-DCMAKE_%s_COMPILER_LAUNCHER=%s' %
-                    (c, compiler_launcher) for c in ['C', 'CXX']])
+  command.extend(host_toolchains.CmakeLauncherFlags())
+  jobs = host_toolchains.NinjaJobs()
 
   proc.check_call(command, cwd=LLVM_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', '-v'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
@@ -845,9 +832,7 @@ def V8():
   proc.check_call([os.path.join(V8_SRC_DIR, 'tools', 'dev', 'v8gen.py'),
                    'x64.release'],
                   cwd=V8_SRC_DIR)
-  jobs = []
-  if 'GOMA_DIR' in os.environ:
-    jobs = ['-j', '50']
+  jobs = host_toolchains.NinjaJobs()
   proc.check_call(['ninja', '-v', '-C', V8_OUT_DIR, 'd8', 'unittests'] + jobs,
                   cwd=V8_SRC_DIR)
   proc.check_call(['tools/run-tests.py', 'unittests', '--no-presubmit',
@@ -870,21 +855,8 @@ def Jsc():
 
   command.extend(OverrideCMakeCompiler())
 
-  jobs = []
-  if 'GOMA_DIR' in os.environ:
-    compiler_launcher = os.path.join(os.environ['GOMA_DIR'], 'gomacc')
-    jobs = ['-j', '50']
-  else:
-    try:
-      compiler_launcher = proc.Which('ccache', WORK_DIR)
-      command.extend(['-DCMAKE_%s_FLAGS=-Qunused-arguments' %
-                      c for c in ['C', 'CXX']])
-    except:
-      compiler_launcher = None
-
-  if compiler_launcher:
-    command.extend(['-DCMAKE_%s_COMPILER_LAUNCHER=%s' %
-                    (c, compiler_launcher) for c in ['C', 'CXX']])
+  jobs = host_toolchains.NinjaJobs()
+  command.extend(host_toolchains.CmakeLauncherFlags())
 
   proc.check_call(command, cwd=JSC_OUT_DIR)
   proc.check_call(['ninja', 'jsc'] + jobs, cwd=JSC_OUT_DIR)
