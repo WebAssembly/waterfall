@@ -930,19 +930,22 @@ def Fastcomp():
   install_dir = os.path.join(INSTALL_DIR, 'fastcomp')
   build_dylib = 'ON' if not IsWindows() else 'OFF'
   cc_env = BuildEnv(FASTCOMP_OUT_DIR, bin_subdir=True)
-  proc.check_call(
-      [PREBUILT_CMAKE_BIN, '-G', 'Ninja', FASTCOMP_SRC_DIR,
-       '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
-       '-DCMAKE_BUILD_TYPE=Release',
-       '-DCMAKE_INSTALL_PREFIX=' + install_dir,
-       '-DLLVM_INCLUDE_EXAMPLES=OFF',
-       '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
-       '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
-       '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
-       '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
-       '-DLLVM_ENABLE_ASSERTIONS=ON'] + OverrideCMakeCompiler(),
-      cwd=FASTCOMP_OUT_DIR, env=cc_env)
-  proc.check_call(['ninja'], cwd=FASTCOMP_OUT_DIR, env=cc_env)
+  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', FASTCOMP_SRC_DIR,
+             '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
+             '-DCMAKE_BUILD_TYPE=Release',
+             '-DCMAKE_INSTALL_PREFIX=' + install_dir,
+             '-DLLVM_INCLUDE_EXAMPLES=OFF',
+             '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
+             '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
+             '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
+             '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
+             '-DLLVM_ENABLE_ASSERTIONS=ON'] + OverrideCMakeCompiler()
+
+  command.extend(host_toolchains.CmakeLauncherFlags())
+  proc.check_call(command, cwd=FASTCOMP_OUT_DIR, env=cc_env)
+
+  jobs = host_toolchains.NinjaJobs()
+  proc.check_call(['ninja'] + jobs, cwd=FASTCOMP_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR, env=cc_env)
   # Fastcomp has a different install location than the rest of the tools
   BuildEnv(install_dir, bin_subdir=True)
