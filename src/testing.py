@@ -89,6 +89,46 @@ class Tester(object):
       return Result(test=basename, success=False, output=e.output)
 
 
+def ParseExcludeFiles(fails, config_attributes):
+  ''' Parse the files containing tests to exclude (i.e. expected fails).
+  Each line may contain a comma-separated list of attributes restricting
+  the test configurations which are expected to fail. (e.g. JS engine
+  or optimization level). A test is only excluded if the configuration
+  has all the attributes specified in the exclude line. Lines which
+  have no attributes will match everything, and lines which specify only
+  one attribute (e.g. engine) will match all configurations with that
+  attribute (e.g. both opt levels with that engine)
+  '''
+  excludes = {} # maps name of excluded test to file from whence it came
+  print 'PARSE!', fails, config_attributes
+  if not config_attributes:
+    config_attributes = set()
+  for excludefile in fails:
+    f = open(excludefile)
+    for line in f:
+      line = line.strip()
+      if '#' in line:
+        line = line[:line.index('#')].strip()
+      if not line: continue
+      tokens = line.split()
+      if len(tokens) > 1:
+        attributes = set(tokens[1].split(','))
+        print 'attrs', attributes
+        if not attributes.issubset(config_attributes):
+          continue
+        test = tokens[0]
+      else:
+        test = line
+      if test in excludes:
+        print 'ERROR: duplicate exclude: [%s]' % line
+        print 'Files: %s and %s' % (excludes[test], excludefile)
+      excludes[test] = excludefile
+    f.close()
+    print 'Size of excludes now: %d' % len(excludes)
+    print excludes
+  return sorted(excludes.keys())
+
+
 def get_expected_failures(fails):
   """One failure per line, some whitespace, Python-style comments."""
   assert os.path.isfile(fails), 'Cannot find known failures at %s' % fails
@@ -181,9 +221,10 @@ def similarity(results, cutoff):
   return similar_groups
 
 
-def execute(tester, inputs, fails):
+def execute(tester, inputs, fails, attributes=None):
   """Execute tests in parallel, output results, return failure count."""
-  input_expected_failures = get_expected_failures(fails) if fails else []
+  input_expected_failures = ParseExcludeFiles(fails, attributes) if fails else []
+  print input_expected_failures
   pool = multiprocessing.Pool()
   sys.stdout.write('Executing tests.')
   results = sorted(pool.map(tester, inputs))

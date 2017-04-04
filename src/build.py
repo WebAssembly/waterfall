@@ -161,35 +161,35 @@ NODE_BIN = Executable(os.path.join(WORK_DIR,
 
 # Known failures.
 IT_IS_KNOWN = 'known_gcc_test_failures.txt'
-LLVM_KNOWN_TORTURE_FAILURES = os.path.join(LLVM_SRC_DIR, 'lib', 'Target',
-                                           'WebAssembly', IT_IS_KNOWN)
-ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES = os.path.join(
-    SCRIPT_DIR, 'test', 'asm2wasm_compile_' + IT_IS_KNOWN)
-EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES = os.path.join(
-    SCRIPT_DIR, 'test', 'emwasm_compile_' + IT_IS_KNOWN)
+LLVM_KNOWN_TORTURE_FAILURES = [os.path.join(LLVM_SRC_DIR, 'lib', 'Target',
+                                           'WebAssembly', IT_IS_KNOWN)]
+ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
+    SCRIPT_DIR, 'test', 'asm2wasm_compile_' + IT_IS_KNOWN)]
+EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
+    SCRIPT_DIR, 'test', 'emwasm_compile_' + IT_IS_KNOWN)]
 
-V8_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
-                                         'd8_' + IT_IS_KNOWN)
-V8_MUSL_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
-                                              'd8_musl_' + IT_IS_KNOWN)
-JSC_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
-                                          'jsc_' + IT_IS_KNOWN)
-JSC_MUSL_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
-                                               'jsc_musl_' + IT_IS_KNOWN)
-WAST2WASM_KNOWN_TORTURE_FAILURES = os.path.join(WABT_SRC_DIR, 's2wasm_' +
-                                                IT_IS_KNOWN)
-SPEC_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
-                                           'spec_' + IT_IS_KNOWN)
-S2WASM_KNOWN_TORTURE_FAILURES = os.path.join(BINARYEN_SRC_DIR, 'test',
-                                             's2wasm_' + IT_IS_KNOWN)
-BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = (
+V8_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
+                                         'd8_' + IT_IS_KNOWN)]
+V8_MUSL_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
+                                              'd8_musl_' + IT_IS_KNOWN)]
+JSC_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
+                                          'jsc_' + IT_IS_KNOWN)]
+JSC_MUSL_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
+                                               'jsc_musl_' + IT_IS_KNOWN)]
+WAST2WASM_KNOWN_TORTURE_FAILURES = [os.path.join(WABT_SRC_DIR, 's2wasm_' +
+                                                IT_IS_KNOWN)]
+SPEC_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
+                                           'spec_' + IT_IS_KNOWN)]
+S2WASM_KNOWN_TORTURE_FAILURES = [os.path.join(BINARYEN_SRC_DIR, 'test',
+                                             's2wasm_' + IT_IS_KNOWN)]
+BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = [
     os.path.join(BINARYEN_SRC_DIR, 'test',
-                 's2wasm_known_binaryen_shell_test_failures.txt'))
+                 's2wasm_known_binaryen_shell_test_failures.txt')]
 
-ASM2WASM_KNOWN_TORTURE_FAILURES = os.path.join(
-    SCRIPT_DIR, 'test', 'asm2wasm_run_' + IT_IS_KNOWN)
-EMSCRIPTENWASM_KNOWN_TORTURE_FAILURES = os.path.join(
-    SCRIPT_DIR, 'test', 'emwasm_run_' + IT_IS_KNOWN)
+ASM2WASM_KNOWN_TORTURE_FAILURES = [os.path.join(
+    SCRIPT_DIR, 'test', 'asm2wasm_run_' + IT_IS_KNOWN)]
+EMSCRIPTENWASM_KNOWN_TORTURE_FAILURES = [os.path.join(
+    SCRIPT_DIR, 'test', 'emwasm_run_' + IT_IS_KNOWN)]
 
 
 NPROC = multiprocessing.cpu_count()
@@ -1151,7 +1151,7 @@ def AssembleLLVMTorture(name, assembler, indir, fails):
   return out
 
 
-def ExecuteLLVMTorture(name, runner, indir, fails, extension, outdir='',
+def ExecuteLLVMTorture(name, runner, indir, fails, attributes, extension, outdir='',
                        wasmjs='', extra_files=None, warn_only=False):
   extra_files = [] if extra_files is None else extra_files
 
@@ -1166,6 +1166,7 @@ def ExecuteLLVMTorture(name, runner, indir, fails, extension, outdir='',
       runner=runner,
       files=files,
       fails=fails,
+      attributes=attributes,
       out=outdir,
       wasmjs=wasmjs,
       extra_files=extra_files)
@@ -1277,11 +1278,13 @@ def TestBare():
       assembler=Executable(os.path.join(INSTALL_BIN, 'wast2wasm')),
       indir=s2wasm_out,
       fails=WAST2WASM_KNOWN_TORTURE_FAILURES)
+  common_attrs = ['bare', 'O0']
   ExecuteLLVMTorture(
       name='wasm-shell',
       runner=Executable(os.path.join(INSTALL_BIN, 'wasm-shell')),
       indir=s2wasm_out,
       fails=BINARYEN_SHELL_KNOWN_TORTURE_FAILURES,
+      attributes=common_attrs + ['wasm-shell'],
       extension='wast',
       warn_only=True)  # TODO wasm-shell is flaky when running tests.
   if not IsWindows():
@@ -1290,12 +1293,14 @@ def TestBare():
         runner=Executable(os.path.join(INSTALL_BIN, 'wasm.opt')),
         indir=s2wasm_out,
         fails=SPEC_KNOWN_TORTURE_FAILURES,
+        attributes=common_attrs + ['spec'],
         extension='wast')
   ExecuteLLVMTorture(
       name='d8',
       runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=wast2wasm_out,
       fails=V8_KNOWN_TORTURE_FAILURES,
+      attributes=common_attrs + ['d8'],
       extension='wasm',
       warn_only=True,
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
@@ -1304,6 +1309,7 @@ def TestBare():
       runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=wast2wasm_out,
       fails=V8_MUSL_KNOWN_TORTURE_FAILURES,
+      attributes=['bare-musl', 'O0', 'd8'],
       extension='wasm',
       warn_only=True,
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
@@ -1314,6 +1320,7 @@ def TestBare():
         runner=os.path.join(INSTALL_BIN, 'jsc'),
         indir=wast2wasm_out,
         fails=JSC_KNOWN_TORTURE_FAILURES,
+        attributes=common_attrs +['jsc'],
         extension='wasm',
         warn_only=True,
         wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
@@ -1322,6 +1329,7 @@ def TestBare():
         runner=os.path.join(INSTALL_BIN, 'jsc'),
         indir=wast2wasm_out,
         fails=JSC_MUSL_KNOWN_TORTURE_FAILURES,
+        attributes=['bare-musl', 'O0', 'jsc',],
         extension='wasm',
         warn_only=True,
         wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
@@ -1339,6 +1347,7 @@ def TestAsm():
       runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=asm2wasm_out,
       fails=ASM2WASM_KNOWN_TORTURE_FAILURES,
+      attributes=['asm2wasm', 'O0', 'd8'],
       extension='c.js',
       outdir=asm2wasm_out)  # emscripten's wasm.js expects all files in cwd.
 
@@ -1354,6 +1363,7 @@ def TestEmwasm():
       runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=emscripten_wasm_out,
       fails=EMSCRIPTENWASM_KNOWN_TORTURE_FAILURES,
+      attributes=['emwasm', 'O0', 'd8'],
       extension='c.js',
       outdir=emscripten_wasm_out)
 
