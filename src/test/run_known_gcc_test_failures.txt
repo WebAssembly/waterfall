@@ -1,0 +1,194 @@
+# Expected failures from running the assembled GCC torture tests.
+
+### bare wasm.js tests: need some libc support.
+# Not yet implemented.
+# See wasm.js for the list of libc functions which are missing.
+# The right place to put libc functionality would really be libc anyways.
+20020406-1.c.s.wast.wasm bare # printf
+20020406-1.c.s.wast.wasm bare-musl # printf
+20021120-3.c.s.wast.wasm bare # sprintf
+20070201-1.c.s.wast.wasm bare # sprintf
+20101011-1.c.s.wast.wasm bare # signal
+20101011-1.c.s.wast.wasm bare-musl # signal
+20121108-1.c.s.wast.wasm bare # printf
+920501-8.c.s.wast.wasm bare # sprintf
+920501-9.c.s.wast.wasm bare # sprintf
+930513-1.c.s.wast.wasm bare # sprintf
+930513-1.c.s.wast.wasm bare-musl # sprintf
+920726-1.c.s.wast.wasm bare # sprintf
+980605-1.c.s.wast.wasm bare # sprintf
+builtin-bitops-1.c.s.wast.wasm bare # __builtin_clrsb
+builtin-bitops-1.c.s.wast.wasm bare-musl # __builtin_clrsb
+complex-5.c.s.wast.wasm bare # __divsc3
+ipa-sra-2.c.s.wast.wasm bare # free
+ipa-sra-2.c.s.wast.wasm bare-musl # free
+loop-2f.c.s.wast.wasm bare # mmap addr 2147450880
+loop-2g.c.s.wast.wasm bare # mmap addr 2147450880
+pr34456.c.s.wast.wasm bare # qsort
+pr34456.c.s.wast.wasm bare-musl # qsort
+pr47237.c.s.wast.wasm bare # __builtin_apply_args
+pr47237.c.s.wast.wasm bare-musl # __builtin_apply_args
+pr56982.c.s.wast.wasm bare # _setjmp
+printf-1.c.s.wast.wasm bare # printf
+printf-1.c.s.wast.wasm bare-musl # printf
+printf-chk-1.c.s.wast.wasm bare # vprintf
+printf-chk-1.c.s.wast.wasm bare-musl # vprintf
+pr39228.c.s.wast.wasm bare # isinfl
+struct-ret-1.c.s.wast.wasm bare # sprintf
+va-arg-21.c.s.wast.wasm bare # vprintf
+va-arg-21.c.s.wast.wasm bare-musl # vprintf
+vprintf-1.c.s.wast.wasm bare # vprintf
+vprintf-1.c.s.wast.wasm bare-musl # vprintf
+vprintf-chk-1.c.s.wast.wasm bare # vprintf
+vprintf-chk-1.c.s.wast.wasm bare-musl # vprintf
+
+# Need to add an import for env.stdout
+fprintf-1.c.s.wast.wasm bare
+fprintf-1.c.s.wast.wasm bare-musl
+fprintf-chk-1.c.s.wast.wasm bare
+fprintf-chk-1.c.s.wast.wasm bare-musl
+vfprintf-1.c.s.wast.wasm bare
+vfprintf-1.c.s.wast.wasm bare-musl
+vfprintf-chk-1.c.s.wast.wasm bare
+vfprintf-chk-1.c.s.wast.wasm bare-musl
+
+
+# These compiler-rt functions are for long doubles. Also NYI.
+# TODO: These probably need re-triage, as not all of them are link failures.
+20020413-1.c.s.wast.wasm bare  # __lttf2
+20020413-1.c.s.wast.wasm bare-musl  # __lttf2
+20080502-1.c.s.wast.wasm bare # __eqtf2
+960215-1.c.s.wast.wasm bare # __addtf3
+960215-1.c.s.wast.wasm bare-musl # __addtf3
+960405-1.c.s.wast.wasm bare  # __eqtf2
+960405-1.c.s.wast.wasm bare-musl  # __eqtf2
+align-2.c.s.wast.wasm bare # __eqtf2
+align-2.c.s.wast.wasm bare-musl # __eqtf2
+complex-7.c.s.wast.wasm bare # __netf2
+pr49218.c.s.wast.wasm bare  # __fixsfti
+pr49218.c.s.wast.wasm bare-musl  # __fixsfti
+pr54471.c.s.wast.wasm bare  # __multi3
+pr54471.c.s.wast.wasm bare-musl  # __multi3
+regstack-1.c.s.wast.wasm bare # __addtf3
+regstack-1.c.s.wast.wasm bare-musl # __addtf3
+stdarg-1.c.s.wast.wasm bare  # __netf2
+stdarg-2.c.s.wast.wasm bare # __floatsitf
+stdarg-2.c.s.wast.wasm bare-musl # __floatsitf
+va-arg-5.c.s.wast.wasm bare  # __eqtf2
+va-arg-6.c.s.wast.wasm bare  # __eqtf2
+
+# Trying to import function 'bar'. The test is likely wrong.
+va-arg-pack-1.c.s.wast.wasm bare
+va-arg-pack-1.c.s.wast.wasm bare-musl
+
+# Program terminated with: Terminating wasm: abort()
+# This could be a problem in any part of the toolchain (not just d8).
+# It should never happen (the torture tests are self-validating).
+strcmp-1.c.s.wast.wasm bare # abort()
+strcmp-1.c.s.wast.wasm bare-musl # abort()
+string-opt-5.c.s.wast.wasm bare # abort()
+string-opt-5.c.s.wast.wasm bare-musl # abort()
+strncmp-1.c.s.wast.wasm bare # abort()
+strncmp-1.c.s.wast.wasm bare-musl # abort()
+
+# The following failures go away when disabling LLVM IR optimizations only:
+20000910-2.c.s.wast.wasm bare # abort()
+20000910-2.c.s.wast.wasm bare-musl # abort()
+
+# Additionally there are a bunch of unexpected failures when disabling IR
+# optimization, which this margin is too small to contain.
+# (a lot of them are unsupported features and missing libcalls which are
+# eliminated by IR optzns)
+
+# Untriaged (this one broke at rev e5b9c73, r269252)
+20030125-1.c.s.wast.wasm bare # abort()
+
+# Don't care/won't fix:
+920612-1.c.s.wast.wasm bare # abort() # UB
+920612-1.c.s.wast.wasm bare-musl # abort() # UB
+920711-1.c.s.wast.wasm bare # abort() # UB for 32-bit longs
+920711-1.c.s.wast.wasm bare-musl # abort() # UB for 32-bit longs
+bcp-1.c.s.wast.wasm bare # abort() # builtin_constant_p depends on opt setting
+bcp-1.c.s.wast.wasm bare-musl # abort() # builtin_constant_p depends on opt setting
+builtin-constant.c.s.wast.wasm bare # abort() # builtin_constant_p depends on opt setting
+builtin-constant.c.s.wast.wasm bare-musl # abort() # builtin_constant_p depends on opt setting
+pr22493-1.c.s.wast.wasm bare # abort() # UB
+pr22493-1.c.s.wast.wasm bare-musl # abort() # UB
+eeprof-1.c.s.wast.wasm bare # tests -finstrument-functions
+eeprof-1.c.s.wast.wasm bare-musl # tests -finstrument-functions
+
+# Low priority
+# Bitfield tests
+bitfld-3.c.s.wast.wasm bare # abort()
+bitfld-3.c.s.wast.wasm bare-musl # abort()
+bitfld-5.c.s.wast.wasm bare # memory access out of bounds
+bitfld-5.c.s.wast.wasm bare-musl # memory access out of bounds
+pr32244-1.c.s.wast.wasm bare # abort()
+pr32244-1.c.s.wast.wasm bare-musl # abort()
+pr34971.c.s.wast.wasm bare # abort()
+pr34971.c.s.wast.wasm bare-musl # abort()
+
+# struct-vararg tests (recently started compiling, not yet triaged vs. opt level).
+# A few of them pass, but most still fail.
+920625-1.c.s.wast.wasm bare # abort()
+920625-1.c.s.wast.wasm bare-musl # abort()
+931004-10.c.s.wast.wasm bare # abort()
+931004-10.c.s.wast.wasm bare-musl # abort()
+931004-12.c.s.wast.wasm bare # abort()
+931004-12.c.s.wast.wasm bare-musl # abort()
+931004-14.c.s.wast.wasm bare # abort()
+931004-14.c.s.wast.wasm bare-musl # abort()
+931004-6.c.s.wast.wasm bare # abort()
+931004-6.c.s.wast.wasm bare-musl # abort()
+pr38151.c.s.wast.wasm bare # abort()
+pr38151.c.s.wast.wasm bare-musl # abort()
+pr44575.c.s.wast.wasm bare # abort()
+pr44575.c.s.wast.wasm bare-musl # abort()
+stdarg-3.c.s.wast.wasm bare # abort()
+stdarg-3.c.s.wast.wasm bare-musl # abort()
+strct-stdarg-1.c.s.wast.wasm bare # abort()
+strct-stdarg-1.c.s.wast.wasm bare-musl # abort()
+strct-varg-1.c.s.wast.wasm bare # abort()
+strct-varg-1.c.s.wast.wasm bare-musl # abort()
+va-arg-22.c.s.wast.wasm bare # abort()
+va-arg-22.c.s.wast.wasm bare-musl # abort()
+
+# LLVM emits a divide by zero:
+#   https://llvm.org/bugs/show_bug.cgi?id=26452
+pr60960.c.s.wast.wasm bare # divide by zero
+
+
+### Failures specific to hacky-linking musl (aka bare-musl)
+
+# Unknown exception: memory access out of bounds. There is a suspcious amount
+# of overlap here with the list above of functions missing sprintf and friends.
+# Probably the code or linking is bad in this case.
+# TODO: re-triage these too
+20021120-3.c.s.wast.wasm bare-musl
+20070201-1.c.s.wast.wasm bare-musl
+20080502-1.c.s.wast.wasm bare-musl
+20121108-1.c.s.wast.wasm bare-musl
+920501-8.c.s.wast.wasm bare-musl
+920501-9.c.s.wast.wasm bare-musl
+920726-1.c.s.wast.wasm bare-musl
+980605-1.c.s.wast.wasm bare-musl
+complex-5.c.s.wast.wasm bare-musl
+pr56982.c.s.wast.wasm bare-musl
+pr60960.c.s.wast.wasm bare-musl
+struct-ret-1.c.s.wast.wasm bare-musl
+
+# TypeError
+complex-7.c.s.wast.wasm bare-musl
+loop-2f.c.s.wast.wasm bare-musl
+loop-2g.c.s.wast.wasm bare-musl
+pr39228.c.s.wast.wasm bare-musl # isinfl
+stdarg-1.c.s.wast.wasm bare-musl
+va-arg-5.c.s.wast.wasm bare-musl
+va-arg-6.c.s.wast.wasm bare-musl
+
+# Untriaged (this one broke at rev e5b9c73, r269252)
+20030125-1.c.s.wast.wasm bare-musl # abort()
+
+
+### D8-specific failures
+gofast.c.s.wast.wasm d8

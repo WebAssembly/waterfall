@@ -122,6 +122,7 @@ def ParseExcludeFiles(fails, config_attributes):
       if test in excludes:
         print 'ERROR: duplicate exclude: [%s]' % line
         print 'Files: %s and %s' % (excludes[test], excludefile)
+        sys.exit(1)
       excludes[test] = excludefile
     f.close()
     print 'Size of excludes now: %d' % len(excludes)

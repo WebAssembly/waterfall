@@ -168,10 +168,8 @@ ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
 EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
     SCRIPT_DIR, 'test', 'emwasm_compile_' + IT_IS_KNOWN)]
 
-V8_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
-                                         'd8_' + IT_IS_KNOWN)]
-V8_MUSL_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
-                                              'd8_musl_' + IT_IS_KNOWN)]
+RUN_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
+                                           'run_' + IT_IS_KNOWN)]
 JSC_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
                                           'jsc_' + IT_IS_KNOWN)]
 JSC_MUSL_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
@@ -1299,7 +1297,7 @@ def TestBare():
       name='d8',
       runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=wast2wasm_out,
-      fails=V8_KNOWN_TORTURE_FAILURES,
+      fails=RUN_KNOWN_TORTURE_FAILURES,
       attributes=common_attrs + ['d8'],
       extension='wasm',
       warn_only=True,
@@ -1308,7 +1306,7 @@ def TestBare():
       name='d8-musl',
       runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=wast2wasm_out,
-      fails=V8_MUSL_KNOWN_TORTURE_FAILURES,
+      fails=RUN_KNOWN_TORTURE_FAILURES,
       attributes=['bare-musl', 'O0', 'd8'],
       extension='wasm',
       warn_only=True,
@@ -1319,7 +1317,7 @@ def TestBare():
         name='jsc',
         runner=os.path.join(INSTALL_BIN, 'jsc'),
         indir=wast2wasm_out,
-        fails=JSC_KNOWN_TORTURE_FAILURES,
+        fails=RUN_KNOWN_TORTURE_FAILURES,
         attributes=common_attrs +['jsc'],
         extension='wasm',
         warn_only=True,
@@ -1328,7 +1326,7 @@ def TestBare():
         name='jsc-musl',
         runner=os.path.join(INSTALL_BIN, 'jsc'),
         indir=wast2wasm_out,
-        fails=JSC_MUSL_KNOWN_TORTURE_FAILURES,
+        fails=RUN_KNOWN_TORTURE_FAILURES,
         attributes=['bare-musl', 'O0', 'jsc',],
         extension='wasm',
         warn_only=True,

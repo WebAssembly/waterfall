@@ -12,7 +12,6 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 # abort / exit are supported by the spec interpreter, the other will come by
 # linking in a libc and runtime.
 20000815-1.c.s.wast # env.memset
-20000815-1.c.s.wast # env.memset
 20000910-2.c.s.wast # env.strchr
 20000914-1.c.s.wast # env.malloc
 20001011-1.c.s.wast # env.strcmp
@@ -44,7 +43,6 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 20071029-1.c.s.wast # env.memset
 20071030-1.c.s.wast # env.memset
 20071120-1.c.s.wast # env.__builtin_malloc
-20071120-1.c.s.wast # env.__builtin_malloc
 20071202-1.c.s.wast # env.memcpy
 20080502-1.c.s.wast # env.__eqtf2
 20081218-1.c.s.wast # env.memset
@@ -52,7 +50,6 @@ pr44942.c.s.wast # arity mismatch: toolchain problem.
 20100708-1.c.s.wast # env.memset
 20101011-1.c.s.wast # env.signal
 20111208-1.c.s.wast # env.strlen
-20121108-1.c.s.wast # env.printf
 20121108-1.c.s.wast # env.printf
 920501-8.c.s.wast # env.sprintf
 920501-9.c.s.wast # env.sprintf
@@ -75,7 +72,6 @@ align-2.c.s.wast # env.__eqtf2
 builtin-bitops-1.c.s.wast # env.__builtin_clrsb
 complex-5.c.s.wast # env.__divsc3
 complex-6.c.s.wast # env.__subtf3
-complex-7.c.s.wast # env.__netf2
 complex-7.c.s.wast # env.__netf2
 conversion.c.s.wast # env.__floatunsitf
 ipa-sra-2.c.s.wast # env.calloc
