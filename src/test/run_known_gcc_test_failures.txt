@@ -10,6 +10,8 @@
 20070201-1.c.s.wast.wasm bare # sprintf
 20101011-1.c.s.wast.wasm bare # signal
 20101011-1.c.s.wast.wasm bare-musl # signal
+20101011-1.c.js asm2wasm # signal
+20101011-1.c.js emwasm # signal
 20121108-1.c.s.wast.wasm bare # printf
 920501-8.c.s.wast.wasm bare # sprintf
 920501-9.c.s.wast.wasm bare # sprintf
@@ -19,6 +21,7 @@
 980605-1.c.s.wast.wasm bare # sprintf
 builtin-bitops-1.c.s.wast.wasm bare # __builtin_clrsb
 builtin-bitops-1.c.s.wast.wasm bare-musl # __builtin_clrsb
+builtin-bitops-1.c.js # __builtin_clrsb
 complex-5.c.s.wast.wasm bare # __divsc3
 ipa-sra-2.c.s.wast.wasm bare # free
 ipa-sra-2.c.s.wast.wasm bare-musl # free
@@ -28,12 +31,14 @@ pr34456.c.s.wast.wasm bare # qsort
 pr34456.c.s.wast.wasm bare-musl # qsort
 pr47237.c.s.wast.wasm bare # __builtin_apply_args
 pr47237.c.s.wast.wasm bare-musl # __builtin_apply_args
+pr47237.c.js # __builtin_apply_args
 pr56982.c.s.wast.wasm bare # _setjmp
 printf-1.c.s.wast.wasm bare # printf
 printf-1.c.s.wast.wasm bare-musl # printf
 printf-chk-1.c.s.wast.wasm bare # vprintf
 printf-chk-1.c.s.wast.wasm bare-musl # vprintf
 pr39228.c.s.wast.wasm bare # isinfl
+pr39228.c.js #  __builtin_isinff/isinfl
 struct-ret-1.c.s.wast.wasm bare # sprintf
 va-arg-21.c.s.wast.wasm bare # vprintf
 va-arg-21.c.s.wast.wasm bare-musl # vprintf
@@ -47,10 +52,13 @@ fprintf-1.c.s.wast.wasm bare
 fprintf-1.c.s.wast.wasm bare-musl
 fprintf-chk-1.c.s.wast.wasm bare
 fprintf-chk-1.c.s.wast.wasm bare-musl
+gofast.c.s.wast.wasm bare
+gofast.c.s.wast.wasm bare-musl
 vfprintf-1.c.s.wast.wasm bare
 vfprintf-1.c.s.wast.wasm bare-musl
 vfprintf-chk-1.c.s.wast.wasm bare
 vfprintf-chk-1.c.s.wast.wasm bare-musl
+
 
 
 # These compiler-rt functions are for long doubles. Also NYI.
@@ -80,6 +88,8 @@ va-arg-6.c.s.wast.wasm bare  # __eqtf2
 # Trying to import function 'bar'. The test is likely wrong.
 va-arg-pack-1.c.s.wast.wasm bare
 va-arg-pack-1.c.s.wast.wasm bare-musl
+va-arg-pack-1.c.js # missing __builtin_va_arg_pack
+
 
 # Program terminated with: Terminating wasm: abort()
 # This could be a problem in any part of the toolchain (not just d8).
@@ -116,42 +126,61 @@ pr22493-1.c.s.wast.wasm bare # abort() # UB
 pr22493-1.c.s.wast.wasm bare-musl # abort() # UB
 eeprof-1.c.s.wast.wasm bare # tests -finstrument-functions
 eeprof-1.c.s.wast.wasm bare-musl # tests -finstrument-functions
+eeprof-1.c.js # tests -finstrument-functions
 
 # Low priority
 # Bitfield tests
 bitfld-3.c.s.wast.wasm bare # abort()
 bitfld-3.c.s.wast.wasm bare-musl # abort()
+bitfld-3.c.js
 bitfld-5.c.s.wast.wasm bare # memory access out of bounds
 bitfld-5.c.s.wast.wasm bare-musl # memory access out of bounds
+bitfld-5.c.js
 pr32244-1.c.s.wast.wasm bare # abort()
 pr32244-1.c.s.wast.wasm bare-musl # abort()
+pr32244-1.c.js
 pr34971.c.s.wast.wasm bare # abort()
 pr34971.c.s.wast.wasm bare-musl # abort()
+pr34971.c.js
 
-# struct-vararg tests (recently started compiling, not yet triaged vs. opt level).
+# struct-vararg tests (they work in asm2wasm, not yet triaged vs. opt level).
 # A few of them pass, but most still fail.
 920625-1.c.s.wast.wasm bare # abort()
 920625-1.c.s.wast.wasm bare-musl # abort()
+920625-1.c.js emwasm # abort()
 931004-10.c.s.wast.wasm bare # abort()
 931004-10.c.s.wast.wasm bare-musl # abort()
+931004-10.c.js emwasm # abort()
 931004-12.c.s.wast.wasm bare # abort()
 931004-12.c.s.wast.wasm bare-musl # abort()
+931004-12.c.js emwasm # abort()
 931004-14.c.s.wast.wasm bare # abort()
 931004-14.c.s.wast.wasm bare-musl # abort()
+931004-14.c.js emwasm # abort()
 931004-6.c.s.wast.wasm bare # abort()
 931004-6.c.s.wast.wasm bare-musl # abort()
+931004-6.c.js emwasm # abort()
 pr38151.c.s.wast.wasm bare # abort()
 pr38151.c.s.wast.wasm bare-musl # abort()
+pr38151.c.js emwasm # abort()
 pr44575.c.s.wast.wasm bare # abort()
 pr44575.c.s.wast.wasm bare-musl # abort()
+pr44575.c.js emwasm # abort()
+stdarg-1.c.js emwasm # abort()
+stdarg-2.c.js emwasm # abort()
 stdarg-3.c.s.wast.wasm bare # abort()
 stdarg-3.c.s.wast.wasm bare-musl # abort()
+stdarg-3.c.js emwasm # abort()
 strct-stdarg-1.c.s.wast.wasm bare # abort()
 strct-stdarg-1.c.s.wast.wasm bare-musl # abort()
+strct-stdarg-1.c.js emwasm # abort()
 strct-varg-1.c.s.wast.wasm bare # abort()
 strct-varg-1.c.s.wast.wasm bare-musl # abort()
+strct-varg-1.c.js emwasm # abort()
 va-arg-22.c.s.wast.wasm bare # abort()
 va-arg-22.c.s.wast.wasm bare-musl # abort()
+va-arg-22.c.js emwasm # abort()
+va-arg-6.c.js emwasm # abort()
 
 # LLVM emits a divide by zero:
 #   https://llvm.org/bugs/show_bug.cgi?id=26452
@@ -190,5 +219,50 @@ va-arg-6.c.s.wast.wasm bare-musl
 20030125-1.c.s.wast.wasm bare-musl # abort()
 
 
-### D8-specific failures
-gofast.c.s.wast.wasm d8
+### Failures specific to emscripten
+# no builtin returnaddress or frameaddress
+20010122-1.c.js asm2wasm
+frame-address.c.js asm2wasm
+pr17377.c.js
+
+# inline assembly tricks
+20030222-1.c.js asm2wasm
+20071220-1.c.js
+20071220-2.c.js
+pr38533.c.js asm2wasm
+pr41239.c.js asm2wasm
+pr49279.c.js asm2wasm
+
+# aborts in native clang
+20031003-1.c.js # abort() in emwasm
+
+pr23135.c.js emwasm # compile failure in asm2wasm (vector legalization), OOB trap in emwasm, works in bare
+
+# This seems to be spuriously passing for now because the stack below it
+# happens to align it to 32 byte alignment. Will probably need to toggle this
+# in the future.
+# alloca-1.c.js
+
+20071018-1.c.js # missing __builtin_malloc
+20071120-1.c.js # missing __builtin_malloc
+pr36765.c.js # missing __builtin_malloc
+pr43008.c.js # missing __builtin_malloc
+
+
+# SIMD
+20050316-2.c.js asm2wasm
+20050604-1.c.js asm2wasm
+20050607-1.c.js asm2wasm
+20060420-1.c.js asm2wasm
+simd-1.c.js asm2wasm
+simd-2.c.js asm2wasm
+simd-4.c.js asm2wasm
+simd-5.c.js asm2wasm
+simd-6.c.js asm2wasm
+pr53645-2.c.js asm2wasm
+pr53645.c.js asm2wasm
+pr60960.c.js asm2wasm # actually fails in asm2wasm, but JS file is still there
+
+### Failures specific to emwasm
+pr60960.c.js emwasm # throws. SIMD, but see also https://llvm.org/bugs/show_bug.cgi?id=26452
+complex-5.c.js emwasm # missing fmaxf, presumably needed by compiler-rt

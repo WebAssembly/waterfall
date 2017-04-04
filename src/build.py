@@ -184,8 +184,6 @@ BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = [
     os.path.join(BINARYEN_SRC_DIR, 'test',
                  's2wasm_known_binaryen_shell_test_failures.txt')]
 
-ASM2WASM_KNOWN_TORTURE_FAILURES = [os.path.join(
-    SCRIPT_DIR, 'test', 'asm2wasm_run_' + IT_IS_KNOWN)]
 EMSCRIPTENWASM_KNOWN_TORTURE_FAILURES = [os.path.join(
     SCRIPT_DIR, 'test', 'emwasm_run_' + IT_IS_KNOWN)]
 
@@ -1344,7 +1342,7 @@ def TestAsm():
       name='asm2wasm',
       runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=asm2wasm_out,
-      fails=ASM2WASM_KNOWN_TORTURE_FAILURES,
+      fails=RUN_KNOWN_TORTURE_FAILURES,
       attributes=['asm2wasm', 'O0', 'd8'],
       extension='c.js',
       outdir=asm2wasm_out)  # emscripten's wasm.js expects all files in cwd.
@@ -1360,7 +1358,7 @@ def TestEmwasm():
       name='emwasm',
       runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=emscripten_wasm_out,
-      fails=EMSCRIPTENWASM_KNOWN_TORTURE_FAILURES,
+      fails=RUN_KNOWN_TORTURE_FAILURES,
       attributes=['emwasm', 'O0', 'd8'],
       extension='c.js',
       outdir=emscripten_wasm_out)
