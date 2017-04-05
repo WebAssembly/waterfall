@@ -176,8 +176,8 @@ JSC_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
                                           'jsc_' + IT_IS_KNOWN)
 JSC_MUSL_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
                                                'jsc_musl_' + IT_IS_KNOWN)
-WAST2WASM_KNOWN_TORTURE_FAILURES = os.path.join(WABT_SRC_DIR, 's2wasm_' +
-                                                IT_IS_KNOWN)
+WAST2WASM_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
+                                                'wast2wasm_' + IT_IS_KNOWN)
 SPEC_KNOWN_TORTURE_FAILURES = os.path.join(SCRIPT_DIR, 'test',
                                            'spec_' + IT_IS_KNOWN)
 S2WASM_KNOWN_TORTURE_FAILURES = os.path.join(BINARYEN_SRC_DIR, 'test',
