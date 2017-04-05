@@ -1,109 +1,104 @@
 # Expected failures from running the assembled GCC torture tests.
 
+# Syntax: Each line has a single test to be marked as a 'known failure' (or
+# 'exclusion'. Known failures are expected to fail, and will cause an error if
+# they pass. (Known failures that do not run at all will not cause an
+# error). The format is
+# <name> <attributes> # comment
+# where <name> matches the file name (no directory) passed to the test runner,
+# and <attributes> is a comma-separated list of filter attributes. Each run of
+# the test runner is said to have " a set of "attributes" that represent the
+# configuration: e.g. which compiler, optimization level, JS engine etc is used
+# for that run. A test will be excluded if the configuration has all of the
+# attributes in the exclusion line. For example if a configuration has
+# ['asm2wasm', 'O2', 'd8'] then the exclusion will apply if it has the
+# attributes 'asm2wasm' or 'O2,d8' or no attributes, but not if it has 'bare' or
+# 'asm2wasm,d8'. A test can be listed multiple times with different attribute
+# sets, but not with the same (or a subset).
+
+# Files ending with .c.s.wast.wasm are 'bare' tests run without emscripten; they
+# come with 'bare' or 'bare-musl' attributes (based on whether they use the
+# hacky JS libc or the hacky linking of musl). The failures are mostly the same
+# for those. These tests also are run with d8 and JSC ('d8' and 'jsc' attributes).
+# Files with a .js extension are emscripten builds, which come in 'asm2wasm' or
+# 'emwasm' (aka LLVM upstream wasm backend) attributes.
+# Near-term TODO: Add different optimization levels, with their own attributes.
+# A possible TODO: Allow wildcard matching to combine the corresponding bare and
+# emscripten entry into a single line. This may not be worth it, as there isn't
+# a huge amount of overlap.
+
 ### bare wasm.js tests: need some libc support.
 # Not yet implemented.
 # See wasm.js for the list of libc functions which are missing.
 # The right place to put libc functionality would really be libc anyways.
-20020406-1.c.s.wast.wasm bare # printf
-20020406-1.c.s.wast.wasm bare-musl # printf
+20020406-1.c.s.wast.wasm # printf
 20021120-3.c.s.wast.wasm bare # sprintf
 20070201-1.c.s.wast.wasm bare # sprintf
-20101011-1.c.s.wast.wasm bare # signal
-20101011-1.c.s.wast.wasm bare-musl # signal
-20101011-1.c.js asm2wasm # signal
-20101011-1.c.js emwasm # signal
+20101011-1.c.s.wast.wasm # signal
+20101011-1.c.js # signal
 20121108-1.c.s.wast.wasm bare # printf
 920501-8.c.s.wast.wasm bare # sprintf
 920501-9.c.s.wast.wasm bare # sprintf
-930513-1.c.s.wast.wasm bare # sprintf
-930513-1.c.s.wast.wasm bare-musl # sprintf
+930513-1.c.s.wast.wasm # sprintf
 920726-1.c.s.wast.wasm bare # sprintf
 980605-1.c.s.wast.wasm bare # sprintf
-builtin-bitops-1.c.s.wast.wasm bare # __builtin_clrsb
-builtin-bitops-1.c.s.wast.wasm bare-musl # __builtin_clrsb
+builtin-bitops-1.c.s.wast.wasm # __builtin_clrsb
 builtin-bitops-1.c.js # __builtin_clrsb
 complex-5.c.s.wast.wasm bare # __divsc3
-ipa-sra-2.c.s.wast.wasm bare # free
-ipa-sra-2.c.s.wast.wasm bare-musl # free
+ipa-sra-2.c.s.wast.wasm # free
 loop-2f.c.s.wast.wasm bare # mmap addr 2147450880
 loop-2g.c.s.wast.wasm bare # mmap addr 2147450880
-pr34456.c.s.wast.wasm bare # qsort
-pr34456.c.s.wast.wasm bare-musl # qsort
-pr47237.c.s.wast.wasm bare # __builtin_apply_args
-pr47237.c.s.wast.wasm bare-musl # __builtin_apply_args
+pr34456.c.s.wast.wasm # qsort
+pr47237.c.s.wast.wasm # __builtin_apply_args
 pr47237.c.js # __builtin_apply_args
 pr56982.c.s.wast.wasm bare # _setjmp
-printf-1.c.s.wast.wasm bare # printf
-printf-1.c.s.wast.wasm bare-musl # printf
-printf-chk-1.c.s.wast.wasm bare # vprintf
-printf-chk-1.c.s.wast.wasm bare-musl # vprintf
+printf-1.c.s.wast.wasm # printf
+printf-chk-1.c.s.wast.wasm # vprintf
 pr39228.c.s.wast.wasm bare # isinfl
 pr39228.c.js #  __builtin_isinff/isinfl
 struct-ret-1.c.s.wast.wasm bare # sprintf
-va-arg-21.c.s.wast.wasm bare # vprintf
-va-arg-21.c.s.wast.wasm bare-musl # vprintf
-vprintf-1.c.s.wast.wasm bare # vprintf
-vprintf-1.c.s.wast.wasm bare-musl # vprintf
-vprintf-chk-1.c.s.wast.wasm bare # vprintf
-vprintf-chk-1.c.s.wast.wasm bare-musl # vprintf
+va-arg-21.c.s.wast.wasm # vprintf
+vprintf-1.c.s.wast.wasm # vprintf
+vprintf-chk-1.c.s.wast.wasm # vprintf
 
 # Need to add an import for env.stdout
-fprintf-1.c.s.wast.wasm bare
-fprintf-1.c.s.wast.wasm bare-musl
-fprintf-chk-1.c.s.wast.wasm bare
-fprintf-chk-1.c.s.wast.wasm bare-musl
-gofast.c.s.wast.wasm bare
-gofast.c.s.wast.wasm bare-musl
-vfprintf-1.c.s.wast.wasm bare
-vfprintf-1.c.s.wast.wasm bare-musl
-vfprintf-chk-1.c.s.wast.wasm bare
-vfprintf-chk-1.c.s.wast.wasm bare-musl
-
+fprintf-1.c.s.wast.wasm
+fprintf-chk-1.c.s.wast.wasm
+gofast.c.s.wast.wasm
+vfprintf-1.c.s.wast.wasm
+vfprintf-chk-1.c.s.wast.wasm
 
 
 # These compiler-rt functions are for long doubles. Also NYI.
 # TODO: These probably need re-triage, as not all of them are link failures.
-20020413-1.c.s.wast.wasm bare  # __lttf2
-20020413-1.c.s.wast.wasm bare-musl  # __lttf2
+20020413-1.c.s.wast.wasm  # __lttf2
 20080502-1.c.s.wast.wasm bare # __eqtf2
-960215-1.c.s.wast.wasm bare # __addtf3
-960215-1.c.s.wast.wasm bare-musl # __addtf3
-960405-1.c.s.wast.wasm bare  # __eqtf2
-960405-1.c.s.wast.wasm bare-musl  # __eqtf2
-align-2.c.s.wast.wasm bare # __eqtf2
-align-2.c.s.wast.wasm bare-musl # __eqtf2
+960215-1.c.s.wast.wasm # __addtf3
+960405-1.c.s.wast.wasm  # __eqtf2
+align-2.c.s.wast.wasm # __eqtf2
 complex-7.c.s.wast.wasm bare # __netf2
-pr49218.c.s.wast.wasm bare  # __fixsfti
-pr49218.c.s.wast.wasm bare-musl  # __fixsfti
-pr54471.c.s.wast.wasm bare  # __multi3
-pr54471.c.s.wast.wasm bare-musl  # __multi3
-regstack-1.c.s.wast.wasm bare # __addtf3
-regstack-1.c.s.wast.wasm bare-musl # __addtf3
+pr49218.c.s.wast.wasm  # __fixsfti
+pr54471.c.s.wast.wasm  # __multi3
+regstack-1.c.s.wast.wasm # __addtf3
 stdarg-1.c.s.wast.wasm bare  # __netf2
-stdarg-2.c.s.wast.wasm bare # __floatsitf
-stdarg-2.c.s.wast.wasm bare-musl # __floatsitf
+stdarg-2.c.s.wast.wasm # __floatsitf
 va-arg-5.c.s.wast.wasm bare  # __eqtf2
 va-arg-6.c.s.wast.wasm bare  # __eqtf2
 
 # Trying to import function 'bar'. The test is likely wrong.
-va-arg-pack-1.c.s.wast.wasm bare
-va-arg-pack-1.c.s.wast.wasm bare-musl
-va-arg-pack-1.c.js # missing __builtin_va_arg_pack
+va-arg-pack-1.c.s.wast.wasm
+va-arg-pack-1.c.js # No import error but missing __builtin_va_arg_pack
 
 
 # Program terminated with: Terminating wasm: abort()
 # This could be a problem in any part of the toolchain (not just d8).
 # It should never happen (the torture tests are self-validating).
-strcmp-1.c.s.wast.wasm bare # abort()
-strcmp-1.c.s.wast.wasm bare-musl # abort()
-string-opt-5.c.s.wast.wasm bare # abort()
-string-opt-5.c.s.wast.wasm bare-musl # abort()
-strncmp-1.c.s.wast.wasm bare # abort()
-strncmp-1.c.s.wast.wasm bare-musl # abort()
+strcmp-1.c.s.wast.wasm # abort()
+string-opt-5.c.s.wast.wasm # abort()
+strncmp-1.c.s.wast.wasm # abort()
 
 # The following failures go away when disabling LLVM IR optimizations only:
-20000910-2.c.s.wast.wasm bare # abort()
-20000910-2.c.s.wast.wasm bare-musl # abort()
+20000910-2.c.s.wast.wasm # abort()
 
 # Additionally there are a bunch of unexpected failures when disabling IR
 # optimization, which this margin is too small to contain.
@@ -114,71 +109,50 @@ strncmp-1.c.s.wast.wasm bare-musl # abort()
 20030125-1.c.s.wast.wasm bare # abort()
 
 # Don't care/won't fix:
-920612-1.c.s.wast.wasm bare # abort() # UB
-920612-1.c.s.wast.wasm bare-musl # abort() # UB
-920711-1.c.s.wast.wasm bare # abort() # UB for 32-bit longs
-920711-1.c.s.wast.wasm bare-musl # abort() # UB for 32-bit longs
-bcp-1.c.s.wast.wasm bare # abort() # builtin_constant_p depends on opt setting
-bcp-1.c.s.wast.wasm bare-musl # abort() # builtin_constant_p depends on opt setting
-builtin-constant.c.s.wast.wasm bare # abort() # builtin_constant_p depends on opt setting
-builtin-constant.c.s.wast.wasm bare-musl # abort() # builtin_constant_p depends on opt setting
-pr22493-1.c.s.wast.wasm bare # abort() # UB
-pr22493-1.c.s.wast.wasm bare-musl # abort() # UB
-eeprof-1.c.s.wast.wasm bare # tests -finstrument-functions
-eeprof-1.c.s.wast.wasm bare-musl # tests -finstrument-functions
+920612-1.c.s.wast.wasm # abort() # UB
+920711-1.c.s.wast.wasm # abort() # UB for 32-bit longs
+bcp-1.c.s.wast.wasm # abort() # builtin_constant_p depends on opt setting
+builtin-constant.c.s.wast.wasm # abort() # builtin_constant_p depends on opt setting
+pr22493-1.c.s.wast.wasm # abort() # UB
+eeprof-1.c.s.wast.wasm # tests -finstrument-functions
 eeprof-1.c.js # tests -finstrument-functions
 
 # Low priority
 # Bitfield tests
-bitfld-3.c.s.wast.wasm bare # abort()
-bitfld-3.c.s.wast.wasm bare-musl # abort()
+bitfld-3.c.s.wast.wasm # abort()
 bitfld-3.c.js
-bitfld-5.c.s.wast.wasm bare # memory access out of bounds
-bitfld-5.c.s.wast.wasm bare-musl # memory access out of bounds
+bitfld-5.c.s.wast.wasm # memory access out of bounds
 bitfld-5.c.js
-pr32244-1.c.s.wast.wasm bare # abort()
-pr32244-1.c.s.wast.wasm bare-musl # abort()
+pr32244-1.c.s.wast.wasm # abort()
 pr32244-1.c.js
-pr34971.c.s.wast.wasm bare # abort()
-pr34971.c.s.wast.wasm bare-musl # abort()
+pr34971.c.s.wast.wasm # abort()
 pr34971.c.js
 
 # struct-vararg tests (they work in asm2wasm, not yet triaged vs. opt level).
 # A few of them pass, but most still fail.
-920625-1.c.s.wast.wasm bare # abort()
-920625-1.c.s.wast.wasm bare-musl # abort()
+920625-1.c.s.wast.wasm # abort()
 920625-1.c.js emwasm # abort()
-931004-10.c.s.wast.wasm bare # abort()
-931004-10.c.s.wast.wasm bare-musl # abort()
+931004-10.c.s.wast.wasm # abort()
 931004-10.c.js emwasm # abort()
-931004-12.c.s.wast.wasm bare # abort()
-931004-12.c.s.wast.wasm bare-musl # abort()
+931004-12.c.s.wast.wasm # abort()
 931004-12.c.js emwasm # abort()
-931004-14.c.s.wast.wasm bare # abort()
-931004-14.c.s.wast.wasm bare-musl # abort()
+931004-14.c.s.wast.wasm # abort()
 931004-14.c.js emwasm # abort()
-931004-6.c.s.wast.wasm bare # abort()
-931004-6.c.s.wast.wasm bare-musl # abort()
+931004-6.c.s.wast.wasm # abort()
 931004-6.c.js emwasm # abort()
-pr38151.c.s.wast.wasm bare # abort()
-pr38151.c.s.wast.wasm bare-musl # abort()
+pr38151.c.s.wast.wasm # abort()
 pr38151.c.js emwasm # abort()
-pr44575.c.s.wast.wasm bare # abort()
-pr44575.c.s.wast.wasm bare-musl # abort()
+pr44575.c.s.wast.wasm # abort()
 pr44575.c.js emwasm # abort()
 stdarg-1.c.js emwasm # abort()
 stdarg-2.c.js emwasm # abort()
-stdarg-3.c.s.wast.wasm bare # abort()
-stdarg-3.c.s.wast.wasm bare-musl # abort()
+stdarg-3.c.s.wast.wasm # abort()
 stdarg-3.c.js emwasm # abort()
-strct-stdarg-1.c.s.wast.wasm bare # abort()
-strct-stdarg-1.c.s.wast.wasm bare-musl # abort()
+strct-stdarg-1.c.s.wast.wasm # abort()
 strct-stdarg-1.c.js emwasm # abort()
-strct-varg-1.c.s.wast.wasm bare # abort()
-strct-varg-1.c.s.wast.wasm bare-musl # abort()
+strct-varg-1.c.s.wast.wasm # abort()
 strct-varg-1.c.js emwasm # abort()
-va-arg-22.c.s.wast.wasm bare # abort()
-va-arg-22.c.s.wast.wasm bare-musl # abort()
+va-arg-22.c.s.wast.wasm # abort()
 va-arg-22.c.js emwasm # abort()
 va-arg-6.c.js emwasm # abort()
 
@@ -236,7 +210,7 @@ pr49279.c.js asm2wasm
 # aborts in native clang
 20031003-1.c.js # abort() in emwasm
 
-pr23135.c.js emwasm # compile failure in asm2wasm (vector legalization), OOB trap in emwasm, works in bare
+pr23135.c.js emwasm # compile failure in asm2wasm (vector legalization), OOB trap in emwasm
 
 # This seems to be spuriously passing for now because the stack below it
 # happens to align it to 32 byte alignment. Will probably need to toggle this

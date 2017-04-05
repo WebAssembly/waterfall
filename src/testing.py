@@ -89,7 +89,7 @@ class Tester(object):
       return Result(test=basename, success=False, output=e.output)
 
 
-def ParseExcludeFiles(fails, config_attributes):
+def parse_exclude_files(fails, config_attributes):
   ''' Parse the files containing tests to exclude (i.e. expected fails).
   Each line may contain a comma-separated list of attributes restricting
   the test configurations which are expected to fail. (e.g. JS engine
@@ -97,10 +97,10 @@ def ParseExcludeFiles(fails, config_attributes):
   has all the attributes specified in the exclude line. Lines which
   have no attributes will match everything, and lines which specify only
   one attribute (e.g. engine) will match all configurations with that
-  attribute (e.g. both opt levels with that engine)
+  attribute (e.g. both opt levels with that engine). Returns a sorted list
+  of exclusions which match the attributes.
   '''
   excludes = {} # maps name of excluded test to file from whence it came
-  print 'PARSE!', fails, config_attributes
   if not config_attributes:
     config_attributes = set()
   for excludefile in fails:
@@ -113,7 +113,6 @@ def ParseExcludeFiles(fails, config_attributes):
       tokens = line.split()
       if len(tokens) > 1:
         attributes = set(tokens[1].split(','))
-        print 'attrs', attributes
         if not attributes.issubset(config_attributes):
           continue
         test = tokens[0]
@@ -126,7 +125,6 @@ def ParseExcludeFiles(fails, config_attributes):
       excludes[test] = excludefile
     f.close()
     print 'Size of excludes now: %d' % len(excludes)
-    print excludes
   return sorted(excludes.keys())
 
 
@@ -224,8 +222,7 @@ def similarity(results, cutoff):
 
 def execute(tester, inputs, fails, attributes=None):
   """Execute tests in parallel, output results, return failure count."""
-  input_expected_failures = ParseExcludeFiles(fails, attributes) if fails else []
-  print input_expected_failures
+  input_expected_failures = parse_exclude_files(fails, attributes) if fails else []
   pool = multiprocessing.Pool()
   sys.stdout.write('Executing tests.')
   results = sorted(pool.map(tester, inputs))

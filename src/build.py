@@ -170,10 +170,6 @@ EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
 
 RUN_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
                                            'run_' + IT_IS_KNOWN)]
-JSC_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
-                                          'jsc_' + IT_IS_KNOWN)]
-JSC_MUSL_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
-                                               'jsc_musl_' + IT_IS_KNOWN)]
 WAST2WASM_KNOWN_TORTURE_FAILURES = [os.path.join(WABT_SRC_DIR, 's2wasm_' +
                                                 IT_IS_KNOWN)]
 SPEC_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
@@ -183,9 +179,6 @@ S2WASM_KNOWN_TORTURE_FAILURES = [os.path.join(BINARYEN_SRC_DIR, 'test',
 BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = [
     os.path.join(BINARYEN_SRC_DIR, 'test',
                  's2wasm_known_binaryen_shell_test_failures.txt')]
-
-EMSCRIPTENWASM_KNOWN_TORTURE_FAILURES = [os.path.join(
-    SCRIPT_DIR, 'test', 'emwasm_run_' + IT_IS_KNOWN)]
 
 
 NPROC = multiprocessing.cpu_count()
