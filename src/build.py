@@ -162,7 +162,7 @@ NODE_BIN = Executable(os.path.join(WORK_DIR,
 # Known failures.
 IT_IS_KNOWN = 'known_gcc_test_failures.txt'
 LLVM_KNOWN_TORTURE_FAILURES = [os.path.join(LLVM_SRC_DIR, 'lib', 'Target',
-                                           'WebAssembly', IT_IS_KNOWN)]
+                                            'WebAssembly', IT_IS_KNOWN)]
 ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
     SCRIPT_DIR, 'test', 'asm2wasm_compile_' + IT_IS_KNOWN)]
 EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
@@ -171,11 +171,11 @@ EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
 RUN_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
                                            'run_' + IT_IS_KNOWN)]
 WAST2WASM_KNOWN_TORTURE_FAILURES = [os.path.join(WABT_SRC_DIR, 's2wasm_' +
-                                                IT_IS_KNOWN)]
+                                                 IT_IS_KNOWN)]
 SPEC_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
-                                           'spec_' + IT_IS_KNOWN)]
+                                            'spec_' + IT_IS_KNOWN)]
 S2WASM_KNOWN_TORTURE_FAILURES = [os.path.join(BINARYEN_SRC_DIR, 'test',
-                                             's2wasm_' + IT_IS_KNOWN)]
+                                              's2wasm_' + IT_IS_KNOWN)]
 BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = [
     os.path.join(BINARYEN_SRC_DIR, 'test',
                  's2wasm_known_binaryen_shell_test_failures.txt')]
@@ -1140,8 +1140,9 @@ def AssembleLLVMTorture(name, assembler, indir, fails):
   return out
 
 
-def ExecuteLLVMTorture(name, runner, indir, fails, attributes, extension, outdir='',
-                       wasmjs='', extra_files=None, warn_only=False):
+def ExecuteLLVMTorture(name, runner, indir, fails, attributes, extension,
+                       outdir='', wasmjs='', extra_files=None,
+                       warn_only=False):
   extra_files = [] if extra_files is None else extra_files
 
   buildbot.Step('Execute LLVM Torture (%s)' % name)
@@ -1309,7 +1310,7 @@ def TestBare():
         runner=os.path.join(INSTALL_BIN, 'jsc'),
         indir=wast2wasm_out,
         fails=RUN_KNOWN_TORTURE_FAILURES,
-        attributes=common_attrs +['jsc'],
+        attributes=common_attrs + ['jsc'],
         extension='wasm',
         warn_only=True,
         wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
@@ -1318,7 +1319,7 @@ def TestBare():
         runner=os.path.join(INSTALL_BIN, 'jsc'),
         indir=wast2wasm_out,
         fails=RUN_KNOWN_TORTURE_FAILURES,
-        attributes=['bare-musl', 'O0', 'jsc',],
+        attributes=['bare-musl', 'O0', 'jsc'],
         extension='wasm',
         warn_only=True,
         wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),

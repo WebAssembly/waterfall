@@ -100,7 +100,7 @@ def parse_exclude_files(fails, config_attributes):
   attribute (e.g. both opt levels with that engine). Returns a sorted list
   of exclusions which match the attributes.
   '''
-  excludes = {} # maps name of excluded test to file from whence it came
+  excludes = {}  # maps name of excluded test to file from whence it came
   if not config_attributes:
     config_attributes = set()
   for excludefile in fails:
@@ -109,7 +109,8 @@ def parse_exclude_files(fails, config_attributes):
       line = line.strip()
       if '#' in line:
         line = line[:line.index('#')].strip()
-      if not line: continue
+      if not line:
+        continue
       tokens = line.split()
       if len(tokens) > 1:
         attributes = set(tokens[1].split(','))
@@ -222,7 +223,10 @@ def similarity(results, cutoff):
 
 def execute(tester, inputs, fails, attributes=None):
   """Execute tests in parallel, output results, return failure count."""
-  input_expected_failures = parse_exclude_files(fails, attributes) if fails else []
+  if fails:
+    input_expected_failures = parse_exclude_files(fails, attributes)
+  else:
+    input_expected_failures = []
   pool = multiprocessing.Pool()
   sys.stdout.write('Executing tests.')
   results = sorted(pool.map(tester, inputs))
