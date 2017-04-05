@@ -101,41 +101,34 @@ def parse_exclude_files(fails, config_attributes):
   of exclusions which match the attributes.
   '''
   excludes = {}  # maps name of excluded test to file from whence it came
-  if not config_attributes:
-    config_attributes = set()
+  config_attributes = set(config_attributes) if config_attributes else set()
+
+  def parse_line(line):
+    line = line.strip()
+    if '#' in line:
+      line = line[:line.index('#')].strip()
+    tokens = line.split()
+    return tokens
+
   for excludefile in fails:
     f = open(excludefile)
     for line in f:
-      line = line.strip()
-      if '#' in line:
-        line = line[:line.index('#')].strip()
-      if not line:
+      tokens = parse_line(line)
+      if not tokens:
         continue
-      tokens = line.split()
       if len(tokens) > 1:
         attributes = set(tokens[1].split(','))
         if not attributes.issubset(config_attributes):
           continue
-        test = tokens[0]
-      else:
-        test = line
+      test = tokens[0]
+
       if test in excludes:
         print 'ERROR: duplicate exclude: [%s]' % line
         print 'Files: %s and %s' % (excludes[test], excludefile)
         sys.exit(1)
       excludes[test] = excludefile
     f.close()
-    print 'Size of excludes now: %d' % len(excludes)
   return sorted(excludes.keys())
-
-
-def get_expected_failures(fails):
-  """One failure per line, some whitespace, Python-style comments."""
-  assert os.path.isfile(fails), 'Cannot find known failures at %s' % fails
-  res = []
-  with open(fails, 'r') as fails_file:
-    res = fails_file.readlines()
-  return sorted([r for r in [r.split('#')[0].strip() for r in res] if len(r)])
 
 
 class TriangularArray:
