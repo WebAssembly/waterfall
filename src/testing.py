@@ -90,16 +90,19 @@ class Tester(object):
 
 
 def parse_exclude_files(fails, config_attributes):
-  ''' Parse the files containing tests to exclude (i.e. expected fails).
-  Each line may contain a comma-separated list of attributes restricting
-  the test configurations which are expected to fail. (e.g. JS engine
-  or optimization level). A test is only excluded if the configuration
-  has all the attributes specified in the exclude line. Lines which
-  have no attributes will match everything, and lines which specify only
-  one attribute (e.g. engine) will match all configurations with that
-  attribute (e.g. both opt levels with that engine). Returns a sorted list
-  of exclusions which match the attributes.
-  '''
+  """ Returns a sorted list  of exclusions which match the attributes.
+
+  Parse the files containing tests to exclude (i.e. expected fails).
+  * Each line may contain a comma-separated list of attributes restricting
+    the test configurations which are expected to fail. (e.g. JS engine
+    or optimization level).
+  * A test is only excluded if the configuration has all the attributes
+    specified in the exclude line.
+  * Lines which have no attributes will match everything
+  * Lines which specify only one attribute (e.g. engine) will match all
+    configurations with that attribute (e.g. both opt levels with that engine).
+  For more details and example, see test/run_known_gcc_test_failures.txt
+  """
   excludes = {}  # maps name of excluded test to file from whence it came
   config_attributes = set(config_attributes) if config_attributes else set()
 
