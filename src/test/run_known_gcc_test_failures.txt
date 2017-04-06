@@ -27,6 +27,16 @@
 # emscripten entry into a single line. This may not be worth it, as there isn't
 # a huge amount of overlap.
 
+
+### Untriaged bare wasm failures
+# (this one broke at rev e5b9c73, r269252)
+20030125-1.c.s.wast.wasm bare # abort()
+# Recent-ish but fairly long-standing:
+# Interestingly, they pass in the spec interpreter, but not JS engines or binaryen.
+20040409-1.c.s.wast.wasm # abort()
+20040409-2.c.s.wast.wasm # abort()
+20040409-3.c.s.wast.wasm # abort()
+
 ### bare wasm.js tests: need some libc support.
 # Not yet implemented.
 # See wasm.js for the list of libc functions which are missing.
@@ -105,8 +115,6 @@ strncmp-1.c.s.wast.wasm # abort()
 # (a lot of them are unsupported features and missing libcalls which are
 # eliminated by IR optzns)
 
-# Untriaged (this one broke at rev e5b9c73, r269252)
-20030125-1.c.s.wast.wasm bare # abort()
 
 # Don't care/won't fix:
 920612-1.c.s.wast.wasm # abort() # UB
