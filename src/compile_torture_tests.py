@@ -50,11 +50,11 @@ def run(c, cxx, testsuite, sysroot_dir, fails, out, config='wasm'):
                '--sysroot=%s' % sysroot_dir],
       # Binaryen's native-wasm method uses the JS engine's native support for
       # wasm rather than interpreting the wasm with wasm.js.
-      'binaryen-native': ['-s', 'BINARYEN=1', '-s',
+      'binaryen-native': ['-s', 'WASM=1', '-s',
                           'BINARYEN_METHOD="native-wasm"'],
       # The interpret-binary method runs the wasm in an asmjs-compiled
       # wasm-shell
-      'binaryen-interpret': ['-s', 'BINARYEN=1', '-s',
+      'binaryen-interpret': ['-s', 'WASM=1', '-s',
                              'BINARYEN_METHOD="interpret-binary"'],
   }
 

@@ -89,13 +89,49 @@ class Tester(object):
       return Result(test=basename, success=False, output=e.output)
 
 
-def get_expected_failures(fails):
-  """One failure per line, some whitespace, Python-style comments."""
-  assert os.path.isfile(fails), 'Cannot find known failures at %s' % fails
-  res = []
-  with open(fails, 'r') as fails_file:
-    res = fails_file.readlines()
-  return sorted([r for r in [r.split('#')[0].strip() for r in res] if len(r)])
+def parse_exclude_files(fails, config_attributes):
+  """ Returns a sorted list  of exclusions which match the attributes.
+
+  Parse the files containing tests to exclude (i.e. expected fails).
+  * Each line may contain a comma-separated list of attributes restricting
+    the test configurations which are expected to fail. (e.g. JS engine
+    or optimization level).
+  * A test is only excluded if the configuration has all the attributes
+    specified in the exclude line.
+  * Lines which have no attributes will match everything
+  * Lines which specify only one attribute (e.g. engine) will match all
+    configurations with that attribute (e.g. both opt levels with that engine).
+  For more details and example, see test/run_known_gcc_test_failures.txt
+  """
+  excludes = {}  # maps name of excluded test to file from whence it came
+  config_attributes = set(config_attributes) if config_attributes else set()
+
+  def parse_line(line):
+    line = line.strip()
+    if '#' in line:
+      line = line[:line.index('#')].strip()
+    tokens = line.split()
+    return tokens
+
+  for excludefile in fails:
+    f = open(excludefile)
+    for line in f:
+      tokens = parse_line(line)
+      if not tokens:
+        continue
+      if len(tokens) > 1:
+        attributes = set(tokens[1].split(','))
+        if not attributes.issubset(config_attributes):
+          continue
+      test = tokens[0]
+
+      if test in excludes:
+        print 'ERROR: duplicate exclude: [%s]' % line
+        print 'Files: %s and %s' % (excludes[test], excludefile)
+        sys.exit(1)
+      excludes[test] = excludefile
+    f.close()
+  return sorted(excludes.keys())
 
 
 class TriangularArray:
@@ -181,9 +217,12 @@ def similarity(results, cutoff):
   return similar_groups
 
 
-def execute(tester, inputs, fails):
+def execute(tester, inputs, fails, attributes=None):
   """Execute tests in parallel, output results, return failure count."""
-  input_expected_failures = get_expected_failures(fails) if fails else []
+  if fails:
+    input_expected_failures = parse_exclude_files(fails, attributes)
+  else:
+    input_expected_failures = []
   pool = multiprocessing.Pool()
   sys.stdout.write('Executing tests.')
   results = sorted(pool.map(tester, inputs))

@@ -53,7 +53,7 @@ def execute(infile, outfile, extras):
   return commands[config]
 
 
-def run(runner, files, fails, out, wasmjs='', extra_files=[]):
+def run(runner, files, fails, attributes, out, wasmjs='', extra_files=[]):
   """Execute all files."""
   assert os.path.isfile(runner), 'Cannot find runner at %s' % runner
   if out:
@@ -73,7 +73,8 @@ def run(runner, files, fails, out, wasmjs='', extra_files=[]):
               'extra_files': extra_files if extra_files else []
           }),
       inputs=executable_files,
-      fails=fails)
+      fails=fails,
+      attributes=attributes)
 
 
 def getargs():
@@ -96,5 +97,5 @@ def getargs():
 
 if __name__ == '__main__':
   args = getargs()
-  sys.exit(run(args.runner, args.files, args.fails, args.out, args.wasmjs,
-               args.extra))
+  sys.exit(run(args.runner, [args.files], args.fails, set(), args.out,
+               args.wasmjs, args.extra))
