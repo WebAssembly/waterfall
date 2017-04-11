@@ -83,6 +83,7 @@ BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
 FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
 MUSL_OUT_DIR = os.path.join(WORK_DIR, 'musl-out')
 TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
+TORTURE_O_OUT_DIR = os.path.join(WORK_DIR, 'torture-o')
 ASM2WASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'asm2wasm-torture-out')
 EMSCRIPTENWASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-torture-out')
 EMSCRIPTEN_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-out')
@@ -161,8 +162,11 @@ NODE_BIN = Executable(os.path.join(WORK_DIR,
 
 # Known failures.
 IT_IS_KNOWN = 'known_gcc_test_failures.txt'
-LLVM_KNOWN_TORTURE_FAILURES = [os.path.join(LLVM_SRC_DIR, 'lib', 'Target',
-                                            'WebAssembly', IT_IS_KNOWN)]
+LLVM_KNOWN_TORTURE_FAILURES_S = [os.path.join(LLVM_SRC_DIR, 'lib', 'Target',
+                                              'WebAssembly', IT_IS_KNOWN)]
+# TODO(sbc): Move this failures file to the llvm repo
+LLVM_KNOWN_TORTURE_FAILURES_O = [os.path.join(
+    SCRIPT_DIR, 'test', 'wasm_o_compile_' + IT_IS_KNOWN)]
 ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
     SCRIPT_DIR, 'test', 'asm2wasm_compile_' + IT_IS_KNOWN)]
 EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
@@ -1040,6 +1044,7 @@ def ArchiveBinaries():
   buildbot.Step('Archive binaries')
   # All relevant binaries were copied to the LLVM directory.
   UploadArchive('binaries', Archive(INSTALL_DIR, print_content=True))
+  UploadArchive('torture-c', Archive(GCC_TEST_DIR))
 
 
 def DebianPackage():
@@ -1070,20 +1075,20 @@ def DebianPackage():
     return
 
 
-def CompileLLVMTorture():
-  name = 'Compile LLVM Torture'
+def CompileLLVMTorture(extension, outdir, fails):
+  name = 'Compile LLVM Torture (%s)' % extension
   buildbot.Step(name)
   c = Executable(os.path.join(INSTALL_BIN, 'clang'))
   cxx = Executable(os.path.join(INSTALL_BIN, 'clang++'))
-  Remove(TORTURE_S_OUT_DIR)
-  Mkdir(TORTURE_S_OUT_DIR)
+  Remove(outdir)
+  Mkdir(outdir)
   unexpected_result_count = compile_torture_tests.run(
       c=c, cxx=cxx, testsuite=GCC_TEST_DIR,
       sysroot_dir=INSTALL_SYSROOT,
-      fails=LLVM_KNOWN_TORTURE_FAILURES,
-      out=TORTURE_S_OUT_DIR)
-  UploadArchive('torture-c', Archive(GCC_TEST_DIR))
-  UploadArchive('torture-s', Archive(TORTURE_S_OUT_DIR))
+      fails=fails,
+      out=outdir,
+      config='wasm-' + extension)
+  UploadArchive('torture-' + extension, Archive(outdir))
   if 0 != unexpected_result_count:
     buildbot.Fail()
 
@@ -1258,7 +1263,8 @@ class Test(object):
 
 
 def TestBare():
-  CompileLLVMTorture()
+  CompileLLVMTorture('s', TORTURE_S_OUT_DIR, LLVM_KNOWN_TORTURE_FAILURES_S)
+  CompileLLVMTorture('o', TORTURE_O_OUT_DIR, LLVM_KNOWN_TORTURE_FAILURES_O)
   s2wasm_out = LinkLLVMTorture(
       name='s2wasm',
       linker=Executable(os.path.join(INSTALL_BIN, 's2wasm')),
