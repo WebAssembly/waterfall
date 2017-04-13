@@ -89,7 +89,7 @@ def run(c, cxx, testsuite, sysroot_dir, fails, out, config):
   return result
 
 
-def main():
+def getargs():
   import argparse
   parser = argparse.ArgumentParser(description='Compile GCC torture tests.')
   parser.add_argument('--c', type=str, required=True,
@@ -106,15 +106,15 @@ def main():
                       help='Output directory')
   parser.add_argument('--config', type=str, required=True,
                       help='configuration to use')
-  args = parser.parse_args()
-  return run(c=args.c,
-             cxx=args.cxx,
-             testsuite=args.testsuite,
-             sysroot_dir=args.sysroot,
-             fails=args.fails,
-             out=args.out,
-             config=args.config)
+  return parser.parse_args()
 
 
 if __name__ == '__main__':
-  sys.exit(main())
+  args = getargs()
+  sys.exit(run(c=args.c,
+               cxx=args.cxx,
+               testsuite=args.testsuite,
+               sysroot_dir=args.sysroot,
+               fails=args.fails,
+               out=args.out,
+               config=args.config))
