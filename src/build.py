@@ -15,6 +15,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import argparse
 import glob
 import json
 import multiprocessing
@@ -23,6 +24,8 @@ import shutil
 import sys
 import tarfile
 import tempfile
+import textwrap
+import time
 import traceback
 import urllib2
 import zipfile
@@ -1393,7 +1396,6 @@ ALL_TESTS = [
 
 
 def TextWrapNameList(prefix, items):
-  import textwrap
   width = 80  # TODO(binji): better guess?
   names = sorted(item.name for item in items)
   return '%s%s' % (prefix, textwrap.fill(' '.join(names), width,
@@ -1402,8 +1404,6 @@ def TextWrapNameList(prefix, items):
 
 
 def ParseArgs():
-  import argparse
-
   def SplitComma(arg):
     if not arg:
       return None
@@ -1512,7 +1512,6 @@ def run(sync_filter, build_filter, test_filter, options):
 
 
 def main():
-  import time
   start = time.time()
   options = ParseArgs()
 
