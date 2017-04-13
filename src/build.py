@@ -100,9 +100,8 @@ EMSCRIPTEN_CONFIG_WASM = os.path.join(INSTALL_DIR, 'emscripten_config_vanilla')
 GITHUB_REMOTE = 'github'
 GITHUB_SSH = 'git@github.com:'
 GIT_MIRROR_BASE = 'https://chromium.googlesource.com/'
-LLVM_OFFICIAL_MIRROR_BASE = GIT_MIRROR_BASE + 'external/llvm.org/'
+LLVM_MIRROR_BASE = 'https://llvm.googlesource.com/'
 GITHUB_MIRROR_BASE = GIT_MIRROR_BASE + 'external/github.com/'
-LLVM_GITHUB_MIRROR_BASE = GITHUB_MIRROR_BASE + 'llvm-mirror/'
 WASM_GIT_BASE = GITHUB_MIRROR_BASE + 'WebAssembly/'
 EMSCRIPTEN_GIT_BASE = GITHUB_MIRROR_BASE + 'kripken/'
 MUSL_GIT_BASE = 'https://github.com/jfbastien/'
@@ -541,15 +540,13 @@ def NoSync(*args):
 ALL_SOURCES = [
     Source('waterfall', SCRIPT_DIR, None, custom_sync=NoSync),
     Source('llvm', LLVM_SRC_DIR,
-           LLVM_GITHUB_MIRROR_BASE + 'llvm'),
+           LLVM_MIRROR_BASE + 'llvm'),
     Source('clang', CLANG_SRC_DIR,
-           LLVM_GITHUB_MIRROR_BASE + 'clang'),
+           LLVM_MIRROR_BASE + 'clang'),
     Source('compiler-rt', COMPILER_RT_SRC_DIR,
-           LLVM_OFFICIAL_MIRROR_BASE + 'compiler-rt'),
-    # TODO(dschuff): re-enable this when we switch back to external/llvm.org
-    # as the git mirror base, or when we actually begin to use it.
-    # Source('llvm-test-suite', LLVM_TEST_SUITE_SRC_DIR,
-    #        LLVM_MIRROR_BASE + 'test-suite'),
+           LLVM_MIRROR_BASE + 'compiler-rt'),
+    Source('llvm-test-suite', LLVM_TEST_SUITE_SRC_DIR,
+           LLVM_MIRROR_BASE + 'test-suite'),
     Source('emscripten', EMSCRIPTEN_SRC_DIR,
            EMSCRIPTEN_GIT_BASE + 'emscripten',
            checkout=RemoteBranch('incoming')),
