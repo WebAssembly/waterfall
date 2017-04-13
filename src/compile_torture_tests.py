@@ -14,6 +14,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import argparse
 import glob
 import os
 import os.path
@@ -82,8 +83,7 @@ def run(c, cxx, testsuite, sysroot_dir, fails, out, config='wasm'):
   return result
 
 
-def getargs():
-  import argparse
+def main():
   parser = argparse.ArgumentParser(description='Compile GCC torture tests.')
   parser.add_argument('--c', type=str, required=True,
                       help='C compiler path')
@@ -97,14 +97,14 @@ def getargs():
                       help='Expected failures')
   parser.add_argument('--out', type=str, required=True,
                       help='Output directory')
-  return parser.parse_args()
+  args = parser.parse_args()
+  return run(c=args.c,
+             cxx=args.cxx,
+             testsuite=args.testsuite,
+             sysroot_dir=args.sysroot,
+             fails=args.fails,
+             out=args.out)
 
 
 if __name__ == '__main__':
-  args = getargs()
-  sys.exit(run(c=args.c,
-               cxx=args.cxx,
-               testsuite=args.testsuite,
-               sysroot_dir=args.sysroot,
-               fails=args.fails,
-               out=args.out))
+  sys.exit(main())
