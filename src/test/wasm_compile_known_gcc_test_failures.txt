@@ -1,4 +1,16 @@
 # Tests which are known to fail from the GCC torture test suite.
+# TODO(sbc): The original home for this file is in the llvm repo once that
+# copy is updated this one should be removed.
+
+# Syntax: Each line has a single test to be marked as a 'known failure' (or
+# 'exclusion'. Known failures are expected to fail, and will cause an error if
+# they pass. (Known failures that do not run at all will not cause an
+# error). The format is
+# <name> <attributes> # comment
+#
+# The attributes in this case represent the different arguments used to
+# compiler: 'wasm-s' is for compiling to .s files, and 'wasm-o' for compiling
+# to wasm object files (.o).
 
 # Computed gotos are not supported (Cannot select BlockAddress/BRIND)
 20040302-1.c
