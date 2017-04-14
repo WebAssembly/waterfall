@@ -359,6 +359,12 @@ class Source(object):
     self.no_windows = no_windows
     self.no_linux = no_linux
 
+    # Ensure that git URLs end in .git.  We have had issues in the past where
+    # github would not recognise the requests correctly otherwise:
+    # would not https://bugs.chromium.org/p/chromium/issues/detail?id=711775
+    if git_repo:
+      assert git_repo.endswith('.git'), 'Git URLs should end in .git'
+
   def Sync(self, good_hashes=None):
     if IsWindows() and self.no_windows:
       print "Skipping %s: Doesn't work on Windows" % self.name
@@ -546,37 +552,37 @@ def NoSync(*args):
 ALL_SOURCES = [
     Source('waterfall', SCRIPT_DIR, None, custom_sync=NoSync),
     Source('llvm', LLVM_SRC_DIR,
-           LLVM_MIRROR_BASE + 'llvm'),
+           LLVM_MIRROR_BASE + 'llvm.git'),
     Source('clang', CLANG_SRC_DIR,
-           LLVM_MIRROR_BASE + 'clang'),
+           LLVM_MIRROR_BASE + 'clang.git'),
     Source('compiler-rt', COMPILER_RT_SRC_DIR,
-           LLVM_MIRROR_BASE + 'compiler-rt'),
+           LLVM_MIRROR_BASE + 'compiler-rt.git'),
     Source('llvm-test-suite', LLVM_TEST_SUITE_SRC_DIR,
-           LLVM_MIRROR_BASE + 'test-suite'),
+           LLVM_MIRROR_BASE + 'test-suite.git'),
     Source('emscripten', EMSCRIPTEN_SRC_DIR,
-           EMSCRIPTEN_GIT_BASE + 'emscripten',
+           EMSCRIPTEN_GIT_BASE + 'emscripten.git',
            checkout=RemoteBranch('incoming')),
     Source('fastcomp', FASTCOMP_SRC_DIR,
-           EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp',
+           EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp.git',
            checkout=RemoteBranch('incoming')),
     Source('fastcomp-clang',
            os.path.join(FASTCOMP_SRC_DIR, 'tools', 'clang'),
-           EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp-clang',
+           EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp-clang.git',
            checkout=RemoteBranch('incoming')),
     Source('gcc', GCC_SRC_DIR,
-           GIT_MIRROR_BASE + 'chromiumos/third_party/gcc',
+           GIT_MIRROR_BASE + 'chromiumos/third_party/gcc.git',
            checkout=GCC_REVISION, depth=GCC_CLONE_DEPTH),
     Source('v8', V8_SRC_DIR,
-           GIT_MIRROR_BASE + 'v8/v8',
+           GIT_MIRROR_BASE + 'v8/v8.git',
            custom_sync=ChromiumFetchSync),
     Source('jsc', JSC_SRC_DIR,
            WEBKIT_GIT_BASE + 'webkit.git', depth=1000,
            no_windows=True, no_linux=True),
     Source('host-toolchain', PREBUILT_CLANG,
-           GIT_MIRROR_BASE + 'chromium/src/tools/clang',
+           GIT_MIRROR_BASE + 'chromium/src/tools/clang.git',
            custom_sync=SyncToolchain),
     Source('cr-buildtools', os.path.join(WORK_DIR, 'build'),
-           GIT_MIRROR_BASE + 'chromium/src/build'),
+           GIT_MIRROR_BASE + 'chromium/src/build.git'),
     Source('cmake', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltCMake),
     Source('nodejs', '', '',  # The source and git args are ignored.
