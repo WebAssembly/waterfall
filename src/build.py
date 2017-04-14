@@ -360,8 +360,9 @@ class Source(object):
     self.no_linux = no_linux
 
     # Ensure that git URLs end in .git.  We have had issues in the past where
-    # github would not recognise the requests correctly otherwise:
-    # would not https://bugs.chromium.org/p/chromium/issues/detail?id=711775
+    # github would not recognize the requests correctly otherwise due to
+    # chromium's builders setting custom GIT_USER_AGENT:
+    # https://bugs.chromium.org/p/chromium/issues/detail?id=711775
     if git_repo:
       assert git_repo.endswith('.git'), 'Git URLs should end in .git'
 
