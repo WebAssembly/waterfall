@@ -14,6 +14,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import argparse
 import glob
 import os
 import os.path
@@ -77,8 +78,7 @@ def run(runner, files, fails, attributes, out, wasmjs='', extra_files=[]):
       attributes=attributes)
 
 
-def getargs():
-  import argparse
+def main():
   parser = argparse.ArgumentParser(description='Execute .wast or .wasm files.')
   parser.add_argument('--runner', type=str, required=True,
                       help='Runner path')
@@ -92,10 +92,10 @@ def getargs():
                       help='JavaScript support runtime for WebAssembly')
   parser.add_argument('--extra', type=str, required=False, action='append',
                       help='Extra files to pass to the runner')
-  return parser.parse_args()
+  args = parser.parse_args()
+  return run(args.runner, [args.files], args.fails, set(), args.out,
+             args.wasmjs, args.extra)
 
 
 if __name__ == '__main__':
-  args = getargs()
-  sys.exit(run(args.runner, [args.files], args.fails, set(), args.out,
-               args.wasmjs, args.extra))
+  sys.exit(main())
