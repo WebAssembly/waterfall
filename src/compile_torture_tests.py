@@ -84,7 +84,8 @@ def run(c, cxx, testsuite, sysroot_dir, fails, out, config):
           outdir=out,
           extras={'c': c, 'cflags': cflags}),
       inputs=c_test_files,
-      fails=fails)
+      fails=fails,
+      attributes=[config])
 
   return result
 
