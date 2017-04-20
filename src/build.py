@@ -169,9 +169,6 @@ NODE_BIN = Executable(os.path.join(WORK_DIR,
 IT_IS_KNOWN = 'known_gcc_test_failures.txt'
 LLVM_KNOWN_TORTURE_FAILURES = [os.path.join(LLVM_SRC_DIR, 'lib', 'Target',
                                             'WebAssembly', IT_IS_KNOWN)]
-# TODO(sbc): Remove this line once t his file is merged back into llvm
-LLVM_KNOWN_TORTURE_FAILURES = [os.path.join(
-    SCRIPT_DIR, 'test', 'wasm_compile_' + IT_IS_KNOWN)]
 ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
     SCRIPT_DIR, 'test', 'asm2wasm_compile_' + IT_IS_KNOWN)]
 EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
