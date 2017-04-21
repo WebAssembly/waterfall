@@ -103,10 +103,7 @@ EMSCRIPTEN_CONFIG_WASM = os.path.join(INSTALL_DIR, 'emscripten_config_vanilla')
 GITHUB_REMOTE = 'github'
 GITHUB_SSH = 'git@github.com:'
 GIT_MIRROR_BASE = 'https://chromium.googlesource.com/'
-# TODO(sbc): We should be using llvm.googlesource.com but its currently
-# falling behind in its mirroring: b/37252800
-#LLVM_MIRROR_BASE = 'https://llvm.googlesource.com/'
-LLVM_MIRROR_BASE = 'https://github.com/llvm-mirror/'
+LLVM_MIRROR_BASE = 'https://llvm.googlesource.com/'
 GITHUB_MIRROR_BASE = GIT_MIRROR_BASE + 'external/github.com/'
 WASM_GIT_BASE = GITHUB_MIRROR_BASE + 'WebAssembly/'
 EMSCRIPTEN_GIT_BASE = GITHUB_MIRROR_BASE + 'kripken/'
