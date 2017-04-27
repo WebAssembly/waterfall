@@ -46,6 +46,7 @@ WORK_DIR = os.path.join(SCRIPT_DIR, 'work')
 
 LLVM_SRC_DIR = os.path.join(WORK_DIR, 'llvm')
 CLANG_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'clang')
+LLD_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'lld')
 COMPILER_RT_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'projects', 'compiler-rt')
 LLVM_TEST_SUITE_SRC_DIR = os.path.join(WORK_DIR, 'llvm-test-suite')
 
@@ -558,6 +559,8 @@ ALL_SOURCES = [
            LLVM_MIRROR_BASE + 'compiler-rt.git'),
     Source('llvm-test-suite', LLVM_TEST_SUITE_SRC_DIR,
            LLVM_MIRROR_BASE + 'test-suite.git'),
+    Source('lld', LLD_SRC_DIR,
+           LLVM_MIRROR_BASE + 'lld.git'),
     Source('emscripten', EMSCRIPTEN_SRC_DIR,
            EMSCRIPTEN_GIT_BASE + 'emscripten.git',
            checkout=RemoteBranch('incoming')),
@@ -616,14 +619,12 @@ def FindPriorSvnRev(path, goal):
   raise Exception('Cannot find svn rev at or before %d' % goal)
 
 
-def SyncToSameSvnRev(primary, secondary):
-    """Use primary's SVN rev to figure out which rev secondary goes to."""
-    primary_svn_rev = CurrentSvnRev(primary)
-    print 'SVN REV for %s: %d' % (primary, primary_svn_rev)
-    print 'Finding prior %s rev' % secondary
-    prior_rev = FindPriorSvnRev(secondary, primary_svn_rev)
-    print 'Checking out %s rev: %s' % (secondary, prior_rev)
-    proc.check_call(['git', 'checkout', prior_rev], cwd=secondary)
+def SyncToSvnRev(src_dir, svn_rev):
+  """Sync git-svn-based repository to a given svn rev."""
+  print 'Finding prior %s rev' % src_dir
+  prior_rev = FindPriorSvnRev(src_dir, svn_rev)
+  print 'Checking out %s rev: %s' % (src_dir, prior_rev)
+  proc.check_call(['git', 'checkout', prior_rev], cwd=src_dir)
 
 
 def SyncLLVMClang(good_hashes=None):
@@ -637,13 +638,17 @@ def SyncLLVMClang(good_hashes=None):
 
   proc.check_call(['git', 'checkout', get_rev('llvm')], cwd=LLVM_SRC_DIR)
   proc.check_call(['git', 'checkout', get_rev('clang')], cwd=CLANG_SRC_DIR)
+
   # If LLVM didn't trigger the new build then sync LLVM to the corresponding
   # clang revision, even if clang may not have triggered the build: usually
   # LLVM provides APIs which clang uses, which means that most synchronized
   # commits touch LLVM before clang. This should reduce the chance of breakage.
   primary = LLVM_SRC_DIR if SCHEDULER == 'llvm' else CLANG_SRC_DIR
-  secondary = LLVM_SRC_DIR if primary == CLANG_SRC_DIR else CLANG_SRC_DIR
-  SyncToSameSvnRev(primary, secondary)
+  primary_svn_rev = CurrentSvnRev(primary)
+  print 'SVN REV for %s: %d' % (primary, primary_svn_rev)
+  for srcdir in (LLVM_SRC_DIR, CLANG_SRC_DIR, LLD_SRC_DIR):
+    if srcdir != primary:
+      SyncToSvnRev(srcdir, primary_svn_rev)
 
 
 def Clobber():
