@@ -42,13 +42,15 @@ class Outname:
     return os.path.join(outdir, outname)
 
 
-def run(c, cxx, testsuite, sysroot_dir, fails, out, config='wasm'):
+def run(c, cxx, testsuite, sysroot_dir, fails, out, config):
   """Compile all torture tests."""
   cflags_common = ['--std=gnu89', '-DSTACK_SIZE=1044480',
                    '-w', '-Wno-implicit-function-declaration']
   cflags_extra = {
-      'wasm': ['--target=wasm32-unknown-unknown', '-S', '-O2',
-               '--sysroot=%s' % sysroot_dir],
+      'wasm-s': ['--target=wasm32-unknown-unknown', '-S', '-O2',
+                 '--sysroot=%s' % sysroot_dir],
+      'wasm-o': ['--target=wasm32-unknown-unknown-wasm', '-c', '-O2',
+                 '--sysroot=%s' % sysroot_dir],
       # Binaryen's native-wasm method uses the JS engine's native support for
       # wasm rather than interpreting the wasm with wasm.js.
       'binaryen-native': ['-s', 'WASM=1', '-s',
@@ -58,6 +60,12 @@ def run(c, cxx, testsuite, sysroot_dir, fails, out, config='wasm'):
       'binaryen-interpret': ['-s', 'WASM=1', '-s',
                              'BINARYEN_METHOD="interpret-binary"'],
   }
+  suffix = {
+      'wasm-o': '.o',
+      'wasm-s': '.s',
+      'binaryen-native': '.js',
+      'binaryen-inputs': '.js',
+  }[config]
 
   assert os.path.isfile(c), 'Cannot find C compiler at %s' % c
   assert os.path.isfile(cxx), 'Cannot find C++ compiler at %s' % cxx
@@ -69,7 +77,6 @@ def run(c, cxx, testsuite, sysroot_dir, fails, out, config='wasm'):
   assert os.path.isdir(out), 'Cannot find outdir %s' % out
   c_test_files = glob.glob(os.path.join(c_torture, '*c'))
   cflags = cflags_common + cflags_extra[config]
-  suffix = '.s' if config == 'wasm' else '.js'
 
   result = testing.execute(
       tester=testing.Tester(
@@ -78,7 +85,8 @@ def run(c, cxx, testsuite, sysroot_dir, fails, out, config='wasm'):
           outdir=out,
           extras={'c': c, 'cflags': cflags}),
       inputs=c_test_files,
-      fails=fails)
+      fails=fails,
+      attributes=[config])
 
   return result
 
@@ -97,13 +105,16 @@ def main():
                       help='Expected failures')
   parser.add_argument('--out', type=str, required=True,
                       help='Output directory')
+  parser.add_argument('--config', type=str, required=True,
+                      help='configuration to use')
   args = parser.parse_args()
   return run(c=args.c,
              cxx=args.cxx,
              testsuite=args.testsuite,
              sysroot_dir=args.sysroot,
              fails=args.fails,
-             out=args.out)
+             out=args.out,
+             config=args.config)
 
 
 if __name__ == '__main__':
