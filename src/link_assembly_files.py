@@ -26,7 +26,11 @@ import testing
 def create_outname(outdir, infile, extras):
   """Create the output file's name."""
   basename = os.path.basename(infile)
-  outname = basename + '.wast'
+  linker = os.path.splitext(os.path.basename(extras['linker']))[0]
+  if linker == 'lld':
+    outname = basename + '.wasm'
+  else:
+    outname = basename + '.wast'
   return os.path.join(outdir, outname)
 
 
@@ -34,31 +38,37 @@ def link(infile, outfile, extras):
   """Create the command-line for a linker invocation."""
   linker = extras['linker']
   basename = os.path.splitext(os.path.basename(linker))[0]
+  install_root = os.path.dirname(os.path.dirname(linker))
+  symfile = os.path.join(install_root, 'sysroot', 'lib', 'wasm.syms')
   commands = {
+      'lld': [linker, '-flavor', 'wasm', '-entry=main',
+              '--allow-undefined-file=' + symfile, '-o', outfile, infile],
       's2wasm': [linker, '--allocate-stack', '1048576', '-o', outfile, infile],
-      'wasm-as': [linker, '-o', outfile, infile],
   }
-  return commands[basename]
+  return commands[basename] + extras['args']
 
 
-def run(linker, files, fails, out):
+def run(linker, files, fails, out, args):
   """Link all files."""
   assert os.path.isfile(linker), 'Cannot find linker at %s' % linker
   assert os.path.isdir(out), 'Cannot find outdir %s' % out
-  assembly_files = glob.glob(files)
-  assert len(assembly_files), 'No files found by %s' % files
+  input_files = glob.glob(files)
+  assert len(input_files), 'No files found by %s' % files
+  if not args:
+    args = []
   return testing.execute(
       tester=testing.Tester(
           command_ctor=link,
           outname_ctor=create_outname,
           outdir=out,
-          extras={'linker': linker}),
-      inputs=assembly_files,
+          extras={'linker': linker, 'args': args}),
+      inputs=input_files,
       fails=fails)
 
 
 def main():
-  parser = argparse.ArgumentParser(description='Link .s files into .wast.')
+  parser = argparse.ArgumentParser(
+      description='Link .s/.o files into .wast/.wasm.')
   parser.add_argument('--linker', type=str, required=True,
                       help='Linker path')
   parser.add_argument('--files', type=str, required=True,

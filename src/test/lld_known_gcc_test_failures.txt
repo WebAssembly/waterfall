@@ -1,0 +1,13 @@
+# Expected failures from using lld to link on clang-generated .o files generated
+# from the GCC torture tests.
+
+# undefined symbol: stdout
+fprintf-1.c.o
+fprintf-chk-1.c.o
+gofast.c.o
+vfprintf-1.c.o
+vfprintf-chk-1.c.o
+
+# undefined symbol: bar
+# This seems to be clang bug because it occurs for native clang too.
+va-arg-pack-1.c.o

@@ -184,6 +184,10 @@ SPEC_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
                                             'spec_' + IT_IS_KNOWN)]
 S2WASM_KNOWN_TORTURE_FAILURES = [os.path.join(BINARYEN_SRC_DIR, 'test',
                                               's2wasm_' + IT_IS_KNOWN)]
+LLD_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
+                              'lld_' + IT_IS_KNOWN)]
+LLD_MUSL_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
+                                   'lld_musl_' + IT_IS_KNOWN)]
 BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = [
     os.path.join(BINARYEN_SRC_DIR, 'test',
                  's2wasm_known_binaryen_shell_test_failures.txt')]
@@ -1065,10 +1069,12 @@ def Musl():
 
     CopyLibraryToArchive(os.path.join(MUSL_SRC_DIR,
                                       'arch', 'wasm32', 'wasm.js'))
+    CopyLibraryToSysroot(os.path.join(SCRIPT_DIR, 'wasm.syms'))
     CopyTree(os.path.join(MUSL_SRC_DIR, 'include'),
              os.path.join(INSTALL_SYSROOT, 'include'))
     CopyTree(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32'),
              os.path.join(INSTALL_SYSROOT, 'include'))
+
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
     buildbot.Fail()
@@ -1148,15 +1154,14 @@ def CompileLLVMTortureBinaryen(name, em_config, outdir, fails):
   return outdir
 
 
-def LinkLLVMTorture(name, linker, fails):
+def LinkLLVMTorture(name, linker, fails, input_pattern, args=None):
   buildbot.Step('Link LLVM Torture with %s' % name)
   assert os.path.isfile(linker), 'Cannot find linker at %s' % linker
-  assembly_files = os.path.join(TORTURE_S_OUT_DIR, '*.s')
   out = os.path.join(WORK_DIR, 'torture-%s' % name)
   Remove(out)
   Mkdir(out)
   unexpected_result_count = link_assembly_files.run(
-      linker=linker, files=assembly_files, fails=fails, out=out)
+      linker=linker, files=input_pattern, fails=fails, out=out, args=args)
   UploadArchive('torture-%s' % name, Archive(out))
   if 0 != unexpected_result_count:
     buildbot.Fail()
@@ -1299,18 +1304,55 @@ class Test(object):
 
 
 def TestBare():
+  # Compile
   CompileLLVMTorture('s', TORTURE_S_OUT_DIR)
   CompileLLVMTorture('o', TORTURE_O_OUT_DIR)
+
+  # Link/Assemble
+  libc = os.path.join(INSTALL_SYSROOT, 'lib', 'libc.a')
+  lld_musl_out = LinkLLVMTorture(
+      name='lld-musl',
+      linker=Executable(os.path.join(INSTALL_BIN, 'lld')),
+      fails=LLD_MUSL_KNOWN_TORTURE_FAILURES,
+      input_pattern=os.path.join(TORTURE_O_OUT_DIR, '*.o'),
+      args=[libc])
+  lld_out = LinkLLVMTorture(
+      name='lld',
+      linker=Executable(os.path.join(INSTALL_BIN, 'lld')),
+      fails=LLD_KNOWN_TORTURE_FAILURES,
+      input_pattern=os.path.join(TORTURE_O_OUT_DIR, '*.o'))
   s2wasm_out = LinkLLVMTorture(
       name='s2wasm',
       linker=Executable(os.path.join(INSTALL_BIN, 's2wasm')),
-      fails=S2WASM_KNOWN_TORTURE_FAILURES)
+      fails=S2WASM_KNOWN_TORTURE_FAILURES,
+      input_pattern=os.path.join(TORTURE_S_OUT_DIR, '*.s'))
   wast2wasm_out = AssembleLLVMTorture(
       name='wast2wasm',
       assembler=Executable(os.path.join(INSTALL_BIN, 'wast2wasm')),
       indir=s2wasm_out,
       fails=WAST2WASM_KNOWN_TORTURE_FAILURES)
+
+  # Execute
   common_attrs = ['bare', 'O0']
+
+  ExecuteLLVMTorture(
+      name='d8-lld',
+      runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
+      indir=lld_out,
+      fails=RUN_KNOWN_TORTURE_FAILURES,
+      attributes=common_attrs + ['d8', 'lld'],
+      extension='wasm',
+      warn_only=True,
+      wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
+  ExecuteLLVMTorture(
+      name='d8-lld-musl',
+      runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
+      indir=lld_musl_out,
+      fails=RUN_KNOWN_TORTURE_FAILURES,
+      attributes=common_attrs + ['d8', 'lld-musl'],
+      extension='wasm',
+      warn_only=True,
+      wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
   ExecuteLLVMTorture(
       name='wasm-shell',
       runner=Executable(os.path.join(INSTALL_BIN, 'wasm-shell')),
@@ -1319,6 +1361,7 @@ def TestBare():
       attributes=common_attrs + ['wasm-shell'],
       extension='wast',
       warn_only=True)  # TODO wasm-shell is flaky when running tests.
+
   if not IsWindows():
     ExecuteLLVMTorture(
         name='spec',
@@ -1327,6 +1370,7 @@ def TestBare():
         fails=SPEC_KNOWN_TORTURE_FAILURES,
         attributes=common_attrs + ['spec'],
         extension='wast')
+
   ExecuteLLVMTorture(
       name='d8',
       runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
@@ -1346,6 +1390,7 @@ def TestBare():
       warn_only=True,
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
       extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
+
   if IsMac():
     ExecuteLLVMTorture(
         name='jsc',
