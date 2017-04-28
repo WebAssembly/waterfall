@@ -55,7 +55,7 @@ def SyncWinToolchain():
 
 
 def GetVSEnv(dir):
-  """ Return the configured VS build environment block as a python dict."""
+  """Return the configured VS build environment block as a python dict."""
   # The format is a list of nul-terminated strings of the form var=val
   # where 'var' is the environment variable name, and 'val' is its value
   env = os.environ.copy()
@@ -88,7 +88,7 @@ def SetUpVSEnv(outdir):
 
 
 def CopyDlls(dir, configuration):
-  """ Copy MSVS Runtime dlls into a build directory"""
+  """Copy MSVS Runtime dlls into a build directory"""
   proc.check_call([VS_TOOLCHAIN, 'copy_dlls', dir, configuration, 'x64'])
 
 
