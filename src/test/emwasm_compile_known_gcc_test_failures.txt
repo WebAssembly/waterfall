@@ -49,9 +49,6 @@
 	pr41935.c
 	pr51447.c
 	pr60003.c
-	scal-to-vec1.c
-	scal-to-vec2.c
-	scal-to-vec3.c
 
 
 # Multiply-defined symbols because emcc doesn't link libc/libm as archives
