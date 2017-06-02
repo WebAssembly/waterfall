@@ -279,7 +279,7 @@ def UploadArchive(name, archive):
   if not IsBuildbot():
     return
   extension = os.path.splitext(archive)[1]
-  UploadFile(archive, 'wasm-%s-%s%s' % (name, BUILDBOT_BUILDNUMBER, extension))
+  UploadFile(archive, 'wasm-%s%s' % (name, extension))
 
 
 # Repo and subproject utilities
@@ -1052,8 +1052,8 @@ def Musl():
 def ArchiveBinaries():
   buildbot.Step('Archive binaries')
   # All relevant binaries were copied to the LLVM directory.
-  UploadArchive('binaries', Archive(INSTALL_DIR, print_content=True))
   UploadArchive('torture-c', Archive(GCC_TEST_DIR))
+  UploadArchive('binaries', Archive(INSTALL_DIR, print_content=True))
 
 
 def DebianPackage():
