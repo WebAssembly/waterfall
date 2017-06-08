@@ -2,7 +2,7 @@
 # interpreter.
 #
 # To run this test:
-# waterfall/src/execute_files.py --runner waterfall/src/work/wasm-install/bin/wasm.opt --files torture-s2wasm/\*.wast --fails waterfall/src/test/spec_known_gcc_test_failures.txt
+# waterfall/src/execute_files.py --runner waterfall/src/work/wasm-install/bin/wasm --files torture-s2wasm/\*.wast --fails waterfall/src/test/spec_known_gcc_test_failures.txt
 #
 # .wast files are available from wasm-stat.us as wasm-torture-s2wasm-$BUILD.tbz2
 pr44942.c.s.wast # arity mismatch: toolchain problem.
