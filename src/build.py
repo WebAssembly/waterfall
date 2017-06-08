@@ -907,7 +907,7 @@ def Spec():
   # Spec builds in-tree. Always clobber and run the tests.
   proc.check_call(['make', 'clean'], cwd=ML_DIR)
   proc.check_call(['make', 'all'], cwd=ML_DIR)
-  wasm = os.path.join(ML_DIR, 'wasm.opt')
+  wasm = os.path.join(ML_DIR, 'wasm')
   CopyBinaryToArchive(wasm)
 
 
@@ -1295,7 +1295,7 @@ def TestBare():
   if not IsWindows():
     ExecuteLLVMTorture(
         name='spec',
-        runner=Executable(os.path.join(INSTALL_BIN, 'wasm.opt')),
+        runner=Executable(os.path.join(INSTALL_BIN, 'wasm')),
         indir=s2wasm_out,
         fails=SPEC_KNOWN_TORTURE_FAILURES,
         attributes=common_attrs + ['spec'],
