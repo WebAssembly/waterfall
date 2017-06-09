@@ -31,6 +31,7 @@ WIN_TOOLCHAIN_JSON = os.path.join(CR_BUILD_DIR, 'win_toolchain.json')
 
 os.environ['GYP_MSVS_VERSION'] = '2015'
 
+
 def SyncPrebuiltClang(name, src_dir, git_repo):
   """Update the prebuilt clang toolchain used by chromium bots"""
   tools_clang = os.path.join(src_dir, 'tools', 'clang')
