@@ -33,8 +33,7 @@ def create_outname(outdir, infile):
 def execute(infile, outfile, extras):
   """Create the command-line for an execution."""
   runner = extras['runner']
-  # Strip only Windows suffxes (instead of all) because wasm.opt has a suffix
-  basename = os.path.basename(runner).replace('.exe', '').replace('.bat', '')
+  basename = os.path.splitext(os.path.basename(runner))[0]
   out_opt = ['-o', outfile] if outfile else []
   extra_files = extras['extra_files']
   config = basename
@@ -52,7 +51,7 @@ def execute(infile, outfile, extras):
       'jsc-wasm': [runner, '--useWebAssembly=1'] + wasmjs + [
           '--', infile] + extra_files,
       'jsc-asm2wasm': [runner, '--useWebAssembly=1', infile],
-      'wasm.opt': [runner, infile]
+      'wasm': [runner, infile]
   }
   return commands[config]
 
