@@ -751,7 +751,10 @@ def GetRepoInfo():
 
 def OverrideCMakeCompiler():
   if IsWindows():
-    return []
+    MSVC_COMPILER = os.path.join(os.environ['GYP_MSVS_OVERRIDE_PATH'],
+                                 'VC', 'bin', 'amd64', 'cl.exe')
+    return ['-DCMAKE_C_COMPILER=' + MSVC_COMPILER,
+            '-DCMAKE_CXX_COMPILER=' + MSVC_COMPILER]
   return ['-DCMAKE_C_COMPILER=' + CC,
           '-DCMAKE_CXX_COMPILER=' + CXX]
 
