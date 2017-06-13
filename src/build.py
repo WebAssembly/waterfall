@@ -978,8 +978,8 @@ def Emscripten(use_asm=True):
 
   configs = [('emwasm', EMSCRIPTEN_CONFIG_WASM)]
   if use_asm:
-      # build with asm2wasm first to match the ordering of the test steps
-      configs.insert(0, ('asm2wasm', EMSCRIPTEN_CONFIG_ASMJS))
+    # build with asm2wasm first to match the ordering of the test steps
+    configs.insert(0, ('asm2wasm', EMSCRIPTEN_CONFIG_ASMJS))
 
   for config_name, config in configs:
     buildbot.Step('emscripten (%s)' % config_name)
