@@ -25,8 +25,9 @@ WORK_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'work')
 CR_BUILD_DIR = os.path.join(WORK_DIR, 'build')
 SETUP_TOOLCHAIN = os.path.join(CR_BUILD_DIR, 'toolchain', 'win',
                                'setup_toolchain.py')
-VS_TOOLCHAIN = os.path.join(CR_BUILD_DIR, 'vs_toolchain.py')
-WIN_TOOLCHAIN_JSON = os.path.join(CR_BUILD_DIR, 'win_toolchain.json')
+V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
+VS_TOOLCHAIN = os.path.join(V8_SRC_DIR, 'build', 'vs_toolchain.py')
+WIN_TOOLCHAIN_JSON = os.path.join(V8_SRC_DIR, 'build', 'win_toolchain.json')
 
 os.environ['GYP_MSVS_VERSION'] = '2015'
 
