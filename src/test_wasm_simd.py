@@ -1,5 +1,13 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 
+"""
+Tests that SIMD operations are compiled to intrinsic instructions.
+For each operation and vector type listed in the test cases, a
+simple test program is generated and compiled, and the compiled
+output is verified to consist of a single SIMD instruction.
+"""
+
+from __future__ import print_function
 import os
 import re
 import subprocess
@@ -55,14 +63,14 @@ def compile_test_file(filename, clang, include):
   p = subprocess.Popen([clang, '-w', '-S', '-emit-llvm', filename,
                         '-O3', '-o-', '-I', include],
                        stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  (output, err) = p.communicate()
-  if output == '':
-    print ('================================================================')
-    print (err.strip())
-    print ('================================================================')
-    return (False, 'Compiler error (see above)')
+  stdout, stderr = p.communicate()
+  if p.returncode != 0:
+    print('================================================================')
+    print(stderr.strip())
+    print('================================================================')
+    return False, 'Compiler error (see above)'
   else:
-    return (True, output)
+    return True, stdout
 
 def check_test_output(output, opcode, arity):
   param_pattern = r', '.join(r'<.+> %\w' for x in range(arity))
@@ -76,50 +84,55 @@ def check_test_output(output, opcode, arity):
   m = re.search(pattern, output)
   if m:
     if m.group(2) == opcode:
-      return (True, None)
+      return True, None
     else:
-      return (False, 'Expected operation %s but found %s' % (opcode, m.group(2)))
+      return False, 'Expected operation %s but found %s' % (opcode, m.group(2))
   else:
-    print ('================================================================')
+    print('================================================================')
     m = re.search(r'define .+ \{[^}]+\}', output)
     if m:
-      print m.group(0).strip()
+      print(m.group(0).strip())
       err = 'Compiled function not in intrinsic form (see above)'
     else:
-      print output.strip()
+      print(output.strip())
       err = 'Compiled function not found (see above)'
-    print ('================================================================')
-    return (False, err)
+    print('================================================================')
+    return False, err
 
 def test_wasm_simd_instruction(datatype, operation, arity, returntype, opcode, clang, include):
   filename = create_test_file(datatype, operation, arity, returntype)
-  (passed, output) = compile_test_file(filename, clang, include)
+  passed, output = compile_test_file(filename, clang, include)
   if passed:
-    (passed, err) = check_test_output(output, opcode, arity)
+    passed, err = check_test_output(output, opcode, arity)
     if passed:
-      print ('%s %s: PASSED' % (datatype, operation))
+      print('%s %s: PASSED' % (datatype, operation))
     else:
-      print ('%s %s: FAILED: %s' % (datatype, operation, err))
+      print('%s %s: FAILED: %s' % (datatype, operation, err))
   else:
-    print ('%s %s: FAILED: %s' % (datatype, operation, output))
+    print('%s %s: FAILED: %s' % (datatype, operation, output))
   os.remove(filename)
   return passed
 
 def test_wasm_simd(clang, include):
-  passed = 0
+  passed_expectedly = 0
+  passed_unexpectedly = 0
   failed_expectedly = 0
   failed_unexpectedly = 0
   for (operation, arity, datatype, returntype, opcode, expect_failure) in wasm_simd_test_cases:
     if test_wasm_simd_instruction(datatype, operation, arity, returntype, opcode, clang, include):
-      passed += 1
+      if expect_failure:
+        passed_unexpectedly += 1
+      else:
+        passed_expectedly += 1
     elif expect_failure:
       failed_expectedly += 1
     else:
       failed_unexpectedly += 1
-  print ('Passes: %d' % passed)
-  print ('Failures (expected): %d' % failed_expectedly)
-  print ('Failures (unexpected): %d' % failed_unexpectedly)
-  return failed_unexpectedly
+  print('Passes (expected):', passed_expectedly)
+  print('Passes (unexpected):', passed_unexpectedly)
+  print('Failures (expected):', failed_expectedly)
+  print('Failures (unexpected):', failed_unexpectedly)
+  return passed_unexpectedly + failed_unexpectedly
 
 if __name__ == '__main__':
   clang = sys.argv[1] if len(sys.argv) > 1 else 'clang'
