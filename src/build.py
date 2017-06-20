@@ -1043,7 +1043,7 @@ def Musl():
                             os.path.join(
                                 V8_SRC_DIR, 'third_party', 'cygwin', 'bin'))
 
-    # Build musl directly wasm object files in an ar library
+    # Build musl directly to wasm object files in an ar library
     proc.check_call([
         os.path.join(MUSL_SRC_DIR, 'libc.py'),
         '--clang_dir', INSTALL_BIN,
