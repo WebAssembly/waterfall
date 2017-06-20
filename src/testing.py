@@ -75,7 +75,10 @@ class Tester(object):
   def __call__(self, test_file):
     """Execute a single test."""
     basename = os.path.basename(test_file)
-    outfile = self.outname_ctor(self.outdir, test_file) if self.outdir else ''
+    if self.outdir:
+      outfile = self.outname_ctor(self.outdir, test_file, self.extras)
+    else:
+      outfile = None
     try:
       output = proc.check_output(
           self.command_ctor(test_file, outfile, self.extras),
