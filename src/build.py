@@ -230,6 +230,14 @@ def CopyLibraryToArchive(library, prefix=''):
   shutil.copy2(library, install_lib)
 
 
+def CopyLibraryToSysroot(library):
+  """All libraries are archived in the same tar file."""
+  install_lib = os.path.join(INSTALL_SYSROOT, 'lib')
+  print 'Copying library %s to archive %s' % (library, install_lib)
+  Mkdir(install_lib)
+  shutil.copy2(library, install_lib)
+
+
 def Archive(directory, print_content=False):
   """Create an archive file from directory."""
   # Use the format "native" to the platform
@@ -1034,6 +1042,18 @@ def Musl():
       os.environ['PATH'] = (path + os.pathsep +
                             os.path.join(
                                 V8_SRC_DIR, 'third_party', 'cygwin', 'bin'))
+
+    # Build musl directly to wasm object files in an ar library
+    proc.check_call([
+        os.path.join(MUSL_SRC_DIR, 'libc.py'),
+        '--clang_dir', INSTALL_BIN,
+        '--binaryen_dir', os.path.join(INSTALL_BIN),
+        '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wast2wasm'),
+        '--out', os.path.join(MUSL_OUT_DIR, 'libc.a'),
+        '--musl', MUSL_SRC_DIR, '--compile-to-wasm'])
+    CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'libc.a'))
+
+    # Build musl via s2wasm as single wasm file.
     proc.check_call([
         os.path.join(MUSL_SRC_DIR, 'libc.py'),
         '--clang_dir', INSTALL_BIN,
@@ -1042,6 +1062,7 @@ def Musl():
         '--musl', MUSL_SRC_DIR], cwd=MUSL_OUT_DIR)
     for f in ['musl.wast', 'musl.wasm']:
       CopyLibraryToArchive(os.path.join(MUSL_OUT_DIR, f))
+
     CopyLibraryToArchive(os.path.join(MUSL_SRC_DIR,
                                       'arch', 'wasm32', 'wasm.js'))
     CopyTree(os.path.join(MUSL_SRC_DIR, 'include'),
