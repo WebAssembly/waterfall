@@ -112,6 +112,10 @@ EMSCRIPTEN_GIT_BASE = GITHUB_MIRROR_BASE + 'kripken/'
 MUSL_GIT_BASE = 'https://github.com/jfbastien/'
 WEBKIT_GIT_BASE = 'https://github.com/WebKit/'
 
+# TODO(sbc): Remove this once lld changes are upstream
+LLD_GIT_BASE = 'https://github.com/sbc100/'
+LLD_BRANCH = 'add_wasm_linker'
+
 # Name of remote for build script to use. Don't touch origin to avoid
 # clobbering any local development.
 WATERFALL_REMOTE = '_waterfall'
@@ -560,7 +564,8 @@ ALL_SOURCES = [
     Source('llvm-test-suite', LLVM_TEST_SUITE_SRC_DIR,
            LLVM_MIRROR_BASE + 'test-suite.git'),
     Source('lld', LLD_SRC_DIR,
-           LLVM_MIRROR_BASE + 'lld.git'),
+           LLD_GIT_BASE + 'lld.git',
+           checkout=RemoteBranch(LLD_BRANCH)),
     Source('emscripten', EMSCRIPTEN_SRC_DIR,
            EMSCRIPTEN_GIT_BASE + 'emscripten.git',
            checkout=RemoteBranch('incoming')),
@@ -646,7 +651,8 @@ def SyncLLVMClang(good_hashes=None):
   primary = LLVM_SRC_DIR if SCHEDULER == 'llvm' else CLANG_SRC_DIR
   primary_svn_rev = CurrentSvnRev(primary)
   print 'SVN REV for %s: %d' % (primary, primary_svn_rev)
-  for srcdir in (LLVM_SRC_DIR, CLANG_SRC_DIR, LLD_SRC_DIR):
+  # TODO(sbc): Add LLD_SRC_DIR to this list once LLD is upstream
+  for srcdir in (LLVM_SRC_DIR, CLANG_SRC_DIR):
     if srcdir != primary:
       SyncToSvnRev(srcdir, primary_svn_rev)
 
