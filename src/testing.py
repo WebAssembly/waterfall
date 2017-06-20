@@ -78,7 +78,7 @@ class Tester(object):
     if self.outdir:
       outfile = self.outname_ctor(self.outdir, test_file, self.extras)
     else:
-      outfile = None
+      outfile = ''
     try:
       output = proc.check_output(
           self.command_ctor(test_file, outfile, self.extras),
