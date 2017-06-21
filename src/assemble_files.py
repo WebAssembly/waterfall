@@ -23,7 +23,7 @@ import sys
 import testing
 
 
-def create_outname(outdir, infile):
+def create_outname(outdir, infile, extras):
   """Create the output file's name."""
   basename = os.path.basename(infile)
   outname = basename + '.wasm'

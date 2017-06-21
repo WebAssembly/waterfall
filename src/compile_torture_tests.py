@@ -28,18 +28,10 @@ def c_compile(infile, outfile, extras):
   return [extras['c'], infile, '-o', outfile] + extras['cflags']
 
 
-class Outname:
-  """Create the output file's name. A local function passed to testing.execute
-  would be simpler, but it fails to pickle when the test driver calls pool.map.
-  So we manually package the suffix in a class.
-  """
-  def __init__(self, suffix):
-    self.suffix = suffix
-
-  def __call__(self, outdir, infile):
-    basename = os.path.basename(infile)
-    outname = basename + self.suffix
-    return os.path.join(outdir, outname)
+def create_outname(outdir, infile, extras):
+  basename = os.path.basename(infile)
+  outname = basename + extras['suffix']
+  return os.path.join(outdir, outname)
 
 
 def run(c, cxx, testsuite, sysroot_dir, fails, out, config):
@@ -81,9 +73,9 @@ def run(c, cxx, testsuite, sysroot_dir, fails, out, config):
   result = testing.execute(
       tester=testing.Tester(
           command_ctor=c_compile,
-          outname_ctor=Outname(suffix),
+          outname_ctor=create_outname,
           outdir=out,
-          extras={'c': c, 'cflags': cflags}),
+          extras={'c': c, 'cflags': cflags, 'suffix': suffix}),
       inputs=c_test_files,
       fails=fails,
       attributes=[config])
