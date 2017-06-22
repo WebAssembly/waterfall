@@ -244,9 +244,6 @@ pr53645-2.c.js asm2wasm
 pr53645.c.js asm2wasm
 pr60960.c.js asm2wasm # actually fails in asm2wasm, but JS file is still there
 
-### Failures specific to emwasm
-complex-5.c.js emwasm # missing fmaxf, presumably needed by compiler-rt
-
 # FastISel regressions, should be fixed with https://reviews.llvm.org/D34172
 20050502-1.c.js emwasm
 20050502-2.c.js emwasm
