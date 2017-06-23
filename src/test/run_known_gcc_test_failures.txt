@@ -243,21 +243,3 @@ simd-6.c.js asm2wasm
 pr53645-2.c.js asm2wasm
 pr53645.c.js asm2wasm
 pr60960.c.js asm2wasm # actually fails in asm2wasm, but JS file is still there
-
-# FastISel regressions, should be fixed with https://reviews.llvm.org/D34172
-20050502-1.c.js emwasm
-20050502-2.c.js emwasm
-20071219-1.c.js emwasm
-20120808-1.c.js emwasm
-920411-1.c.js emwasm
-920726-1.c.js emwasm
-990811-1.c.js emwasm
-loop-2f.c.js emwasm
-loop-2g.c.js emwasm
-memcpy-1.c.js emwasm
-mode-dependent-address.c.js emwasm
-pr27285.c.js emwasm
-pr36093.c.js emwasm
-pr43236.c.js emwasm
-pr43784.c.js emwasm
-pr51933.c.js emwasm
