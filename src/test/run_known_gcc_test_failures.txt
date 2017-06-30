@@ -374,7 +374,6 @@ va-arg-5.c.o.wasm
 va-arg-6.c.o.wasm
 
 # RuntimeError: memory access out of bounds
-960521-1.c.o.wasm
 bcp-1.c.o.wasm
 memcpy-1.c.o.wasm
 
@@ -394,9 +393,9 @@ multi-ix.c.o.wasm lld
 20021118-2.c.o.wasm lld
 
 # failures that only occur with musl
+960521-1.c.o.wasm lld-musl
 20000914-1.c.o.wasm lld-musl
 20051113-1.c.o.wasm lld-musl
-920810-1.c.o.wasm lld-musl
 941014-2.c.o.wasm lld-musl
 990628-1.c.o.wasm lld-musl
 fprintf-1.c.o.wasm lld-musl
