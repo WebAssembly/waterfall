@@ -884,7 +884,7 @@ def Jsc():
   proc.check_call(['../Tools/Scripts/run-javascriptcore-tests',
                    '--root=bin',
                    '--filter', 'wasm',
-                   '--no-build', '--no-testapi'],
+                   '--no-build', '--no-testapi', '--fast'],
                   cwd=JSC_OUT_DIR)
   to_archive = [Executable(os.path.join('bin', 'jsc'))]
   for a in to_archive:
