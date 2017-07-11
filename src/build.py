@@ -113,7 +113,7 @@ MUSL_GIT_BASE = 'https://github.com/jfbastien/'
 WEBKIT_GIT_BASE = 'https://github.com/WebKit/'
 
 # TODO(sbc): Remove this once lld changes are upstream
-LLD_GIT_BASE = 'https://github.com/sbc100/'
+LLD_GIT_BASE = 'https://github.com/WebAssembly/'
 LLD_BRANCH = 'add_wasm_linker'
 
 # Name of remote for build script to use. Don't touch origin to avoid
