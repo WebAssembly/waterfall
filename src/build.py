@@ -824,7 +824,7 @@ def BuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
 def LLVM():
   buildbot.Step('LLVM')
   Mkdir(LLVM_OUT_DIR)
-  cc_env = BuildEnv(LLVM_OUT_DIR, use_gnuwin32=True, bin_subdir=True)
+  cc_env = BuildEnv(LLVM_OUT_DIR, bin_subdir=True)
   build_dylib = 'ON' if not IsWindows() else 'OFF'
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', LLVM_SRC_DIR,
              '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
@@ -965,7 +965,7 @@ def Fastcomp():
   Mkdir(FASTCOMP_OUT_DIR)
   install_dir = os.path.join(INSTALL_DIR, 'fastcomp')
   build_dylib = 'ON' if not IsWindows() else 'OFF'
-  cc_env = BuildEnv(FASTCOMP_OUT_DIR, use_gnuwin32=True, bin_subdir=True)
+  cc_env = BuildEnv(FASTCOMP_OUT_DIR, bin_subdir=True)
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', FASTCOMP_SRC_DIR,
              '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
              '-DCMAKE_BUILD_TYPE=Release',
@@ -1052,17 +1052,7 @@ def Musl():
   Mkdir(MUSL_OUT_DIR)
   path = os.environ['PATH']
   try:
-    if IsWindows():
-      # Musl's build uses a shell script and a sed script to generate some
-      # headers. For the LLVM regression tests, we run ninja under 'git bash'
-      # (see above) but that doesn't work here for some reason. It turns out
-      # that the V8 build has some cygwin utils, so add them to the path.
-      # TODO(dschuff): see if this can be unified with the 'git bash' method
-      # for LLVM.
-      os.environ['PATH'] = (path + os.pathsep +
-                            os.path.join(
-                                V8_SRC_DIR, 'third_party', 'cygwin', 'bin'))
-
+    cc_env = BuildEnv(MUSL_OUT_DIR, use_gnuwin32=True)
     # Build musl directly to wasm object files in an ar library
     proc.check_call([
         os.path.join(MUSL_SRC_DIR, 'libc.py'),
@@ -1070,7 +1060,7 @@ def Musl():
         '--binaryen_dir', os.path.join(INSTALL_BIN),
         '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wast2wasm'),
         '--out', os.path.join(MUSL_OUT_DIR, 'libc.a'),
-        '--musl', MUSL_SRC_DIR, '--compile-to-wasm'])
+        '--musl', MUSL_SRC_DIR, '--compile-to-wasm'], env=cc_env)
     CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'libc.a'))
 
     # Build musl via s2wasm as single wasm file.
@@ -1079,7 +1069,7 @@ def Musl():
         '--clang_dir', INSTALL_BIN,
         '--binaryen_dir', os.path.join(INSTALL_BIN),
         '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wast2wasm'),
-        '--musl', MUSL_SRC_DIR], cwd=MUSL_OUT_DIR)
+        '--musl', MUSL_SRC_DIR], cwd=MUSL_OUT_DIR, env=cc_env)
     for f in ['musl.wast', 'musl.wasm']:
       CopyLibraryToArchive(os.path.join(MUSL_OUT_DIR, f))
 
