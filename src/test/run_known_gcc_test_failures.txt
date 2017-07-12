@@ -283,81 +283,38 @@ pr53645-2.c.o.wasm
 pr53645.c.o.wasm
 
 # abort()
-20000717-5.c.o.wasm
-20000801-3.c.o.wasm
-20000910-2.c.o.wasm
-20001013-1.c.o.wasm
-20001027-1.c.o.wasm
-20010915-1.c.o.wasm
-20010924-1.c.o.wasm
-20011113-1.c.o.wasm
-20020615-1.c.o.wasm
-20021010-2.c.o.wasm
-20030109-1.c.o.wasm
+
+20000910-2.c.o.wasm lld
 20030125-1.c.o.wasm
-20030313-1.c.o.wasm
 20040409-1.c.o.wasm
 20040409-2.c.o.wasm
 20040409-3.c.o.wasm
-20040703-1.c.o.wasm
-20050929-1.c.o.wasm
-20071202-1.c.o.wasm
-20081117-1.c.o.wasm
-20100416-1.c.o.wasm
 20101011-1.c.o.wasm
-20101025-1.c.o.wasm
-20120427-1.c.o.wasm
-20120427-2.c.o.wasm
-20120919-1.c.o.wasm
+30101025-1.c.o.wasm
 920612-1.c.o.wasm
 920625-1.c.o.wasm
 920711-1.c.o.wasm
-921019-1.c.o.wasm
-921113-1.c.o.wasm
 931004-10.c.o.wasm
 931004-12.c.o.wasm
 931004-14.c.o.wasm
 931004-6.c.o.wasm
-960326-1.c.o.wasm
-991118-1.c.o.wasm
 align-2.c.o.wasm
 bitfld-3.c.o.wasm
-bitfld-4.c.o.wasm
 bitfld-5.c.o.wasm
 builtin-constant.c.o.wasm
-cmpsf-1.c.o.wasm
-complex-2.c.o.wasm
-const-addr-expr-1.c.o.wasm
 eeprof-1.c.o.wasm
-ffs-2.c.o.wasm
 frame-address.c.o.wasm
-longlong.c.o.wasm
-loop-8.c.o.wasm
-pr15296.c.o.wasm
 pr22493-1.c.o.wasm
-pr27285.c.o.wasm
 pr32244-1.c.o.wasm
 pr34971.c.o.wasm
-pr35800.c.o.wasm
 pr38151.c.o.wasm
-pr39339.c.o.wasm
 pr44575.c.o.wasm
-pr47538.c.o.wasm
-pr52129.c.o.wasm
-pr57860.c.o.wasm
-pr58984.c.o.wasm
-pr59643.c.o.wasm
-pr60017.c.o.wasm
-pr63659.c.o.wasm
+3r39339.c.o.wasm
 stdarg-3.c.o.wasm
 strct-stdarg-1.c.o.wasm
 strct-varg-1.c.o.wasm
-string-opt-5.c.o.wasm
-struct-ini-1.c.o.wasm
-struct-ini-2.c.o.wasm
-struct-ini-4.c.o.wasm
 va-arg-22.c.o.wasm
-zero-struct-1.c.o.wasm
+string-opt-5.c.o.wasm lld
 
 # TypeError: invalid type
 20020413-1.c.o.wasm
@@ -376,9 +333,10 @@ va-arg-6.c.o.wasm
 # RuntimeError: memory access out of bounds
 bcp-1.c.o.wasm
 memcpy-1.c.o.wasm
+multi-ix.c.o.wasm
+pr28982b.c.o.wasm
 
 # other
-20041201-1.c.o.wasm
 va-arg-21.c.o.wasm
 vprintf-1.c.o.wasm
 vprintf-chk-1.c.o.wasm
@@ -387,10 +345,10 @@ vprintf-chk-1.c.o.wasm
 strcmp-1.c.o.wasm lld
 strncmp-1.c.o.wasm lld
 pr58419.c.o.wasm lld
-pr28982b.c.o.wasm lld
 921208-1.c.o.wasm lld
-multi-ix.c.o.wasm lld
 20021118-2.c.o.wasm lld
+pr44852.c.o.wasm lld
+pr56205.c.o.wasm lld
 
 # failures that only occur with musl
 960521-1.c.o.wasm lld-musl
@@ -400,12 +358,8 @@ multi-ix.c.o.wasm lld
 990628-1.c.o.wasm lld-musl
 fprintf-1.c.o.wasm lld-musl
 fprintf-chk-1.c.o.wasm lld-musl
-pr28289.c.o.wasm lld-musl
-pr34768-1.c.o.wasm lld-musl
-pr34768-2.c.o.wasm lld-musl
 pr41395-1.c.o.wasm lld-musl
 pr41395-2.c.o.wasm lld-musl
 pr41463.c.o.wasm lld-musl
-pr57130.c.o.wasm lld-musl
 vfprintf-1.c.o.wasm lld-musl
 vfprintf-chk-1.c.o.wasm lld-musl
