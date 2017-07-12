@@ -131,6 +131,9 @@ OCAML_DIR = os.path.join(WORK_DIR, OCAML_VERSION)
 OCAML_OUT_DIR = os.path.join(WORK_DIR, 'ocaml-out')
 OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 
+GNUWIN32_DIR = os.path.join(WORK_DIR, 'gnuwin32')
+GNUWIN32_ZIP = 'gnuwin32.zip'
+
 
 def IsWindows():
   return sys.platform == 'win32'
@@ -561,6 +564,14 @@ def SyncPrebuiltNodeJS(name, src_dir, git_repo):
   return SyncArchive(out_dir, name, NODE_VERSION, node_url)
 
 
+# Utilities needed for running LLVM regression tests on Windows
+def SyncGNUWin32(name, src_dir, git_repo):
+  if not IsWindows():
+    return
+  url = WASM_STORAGE_BASE + GNUWIN32_ZIP
+  return SyncArchive(GNUWIN32_DIR, name, '1', url)
+
+
 def NoSync(*args):
   pass
 
@@ -606,6 +617,8 @@ ALL_SOURCES = [
            custom_sync=SyncPrebuiltCMake),
     Source('nodejs', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltNodeJS),
+    Source('gnuwin32', '', '',  # The source and git args are ignored.
+           custom_sync=SyncGNUWin32),
     Source('wabt', WABT_SRC_DIR,
            WASM_GIT_BASE + 'wabt.git'),
     Source('spec', SPEC_SRC_DIR,
@@ -793,11 +806,14 @@ def CopyLLVMTools(build_dir, prefix=''):
       CopyLibraryToArchive(os.path.join(build_dir, 'lib', e), prefix)
 
 
-def BuildEnv(build_dir, bin_subdir=False, runtime='Release'):
+def BuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
+             runtime='Release'):
   if not IsWindows():
     return None
   cc_env = host_toolchains.SetUpVSEnv(build_dir)
-
+  if use_gnuwin32:
+    cc_env['PATH'] = cc_env['PATH'] + os.pathsep + os.path.join(GNUWIN32_DIR,
+                                                                'bin')
   bin_dir = build_dir if not bin_subdir else os.path.join(build_dir, 'bin')
   Mkdir(bin_dir)
   assert runtime in ['Release', 'Debug']
@@ -1036,17 +1052,7 @@ def Musl():
   Mkdir(MUSL_OUT_DIR)
   path = os.environ['PATH']
   try:
-    if IsWindows():
-      # Musl's build uses a shell script and a sed script to generate some
-      # headers. For the LLVM regression tests, we run ninja under 'git bash'
-      # (see above) but that doesn't work here for some reason. It turns out
-      # that the V8 build has some cygwin utils, so add them to the path.
-      # TODO(dschuff): see if this can be unified with the 'git bash' method
-      # for LLVM.
-      os.environ['PATH'] = (path + os.pathsep +
-                            os.path.join(
-                                V8_SRC_DIR, 'third_party', 'cygwin', 'bin'))
-
+    cc_env = BuildEnv(MUSL_OUT_DIR, use_gnuwin32=True)
     # Build musl directly to wasm object files in an ar library
     proc.check_call([
         os.path.join(MUSL_SRC_DIR, 'libc.py'),
@@ -1054,7 +1060,7 @@ def Musl():
         '--binaryen_dir', os.path.join(INSTALL_BIN),
         '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wast2wasm'),
         '--out', os.path.join(MUSL_OUT_DIR, 'libc.a'),
-        '--musl', MUSL_SRC_DIR, '--compile-to-wasm'])
+        '--musl', MUSL_SRC_DIR, '--compile-to-wasm'], env=cc_env)
     CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'libc.a'))
 
     # Build musl via s2wasm as single wasm file.
@@ -1063,7 +1069,7 @@ def Musl():
         '--clang_dir', INSTALL_BIN,
         '--binaryen_dir', os.path.join(INSTALL_BIN),
         '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wast2wasm'),
-        '--musl', MUSL_SRC_DIR], cwd=MUSL_OUT_DIR)
+        '--musl', MUSL_SRC_DIR], cwd=MUSL_OUT_DIR, env=cc_env)
     for f in ['musl.wast', 'musl.wasm']:
       CopyLibraryToArchive(os.path.join(MUSL_OUT_DIR, f))
 
