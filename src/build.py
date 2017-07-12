@@ -131,6 +131,9 @@ OCAML_DIR = os.path.join(WORK_DIR, OCAML_VERSION)
 OCAML_OUT_DIR = os.path.join(WORK_DIR, 'ocaml-out')
 OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 
+GNUWIN32_DIR = os.path.join(WORK_DIR, 'gnuwin32')
+GNUWIN32_ZIP = 'gnuwin32.zip'
+
 
 def IsWindows():
   return sys.platform == 'win32'
@@ -561,6 +564,14 @@ def SyncPrebuiltNodeJS(name, src_dir, git_repo):
   return SyncArchive(out_dir, name, NODE_VERSION, node_url)
 
 
+# Utilities needed for running LLVM regression tests on Windows
+def SyncGNUWin32(name, src_dir, git_repo):
+  if not IsWindows():
+    return
+  url = WASM_STORAGE_BASE + GNUWIN32_ZIP
+  return SyncArchive(GNUWIN32_DIR, name, '1', url)
+
+
 def NoSync(*args):
   pass
 
@@ -606,6 +617,8 @@ ALL_SOURCES = [
            custom_sync=SyncPrebuiltCMake),
     Source('nodejs', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltNodeJS),
+    Source('gnuwin32', '', '',  # The source and git args are ignored.
+           custom_sync=SyncGNUWin32),
     Source('wabt', WABT_SRC_DIR,
            WASM_GIT_BASE + 'wabt.git'),
     Source('spec', SPEC_SRC_DIR,
@@ -793,11 +806,14 @@ def CopyLLVMTools(build_dir, prefix=''):
       CopyLibraryToArchive(os.path.join(build_dir, 'lib', e), prefix)
 
 
-def BuildEnv(build_dir, bin_subdir=False, runtime='Release'):
+def BuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
+             runtime='Release'):
   if not IsWindows():
     return None
   cc_env = host_toolchains.SetUpVSEnv(build_dir)
-
+  if use_gnuwin32:
+    cc_env['PATH'] = cc_env['PATH'] + os.pathsep + os.path.join(GNUWIN32_DIR,
+                                                                'bin')
   bin_dir = build_dir if not bin_subdir else os.path.join(build_dir, 'bin')
   Mkdir(bin_dir)
   assert runtime in ['Release', 'Debug']
@@ -808,7 +824,7 @@ def BuildEnv(build_dir, bin_subdir=False, runtime='Release'):
 def LLVM():
   buildbot.Step('LLVM')
   Mkdir(LLVM_OUT_DIR)
-  cc_env = BuildEnv(LLVM_OUT_DIR, bin_subdir=True)
+  cc_env = BuildEnv(LLVM_OUT_DIR, use_gnuwin32=True, bin_subdir=True)
   build_dylib = 'ON' if not IsWindows() else 'OFF'
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', LLVM_SRC_DIR,
              '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
@@ -949,7 +965,7 @@ def Fastcomp():
   Mkdir(FASTCOMP_OUT_DIR)
   install_dir = os.path.join(INSTALL_DIR, 'fastcomp')
   build_dylib = 'ON' if not IsWindows() else 'OFF'
-  cc_env = BuildEnv(FASTCOMP_OUT_DIR, bin_subdir=True)
+  cc_env = BuildEnv(FASTCOMP_OUT_DIR, use_gnuwin32=True, bin_subdir=True)
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', FASTCOMP_SRC_DIR,
              '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
              '-DCMAKE_BUILD_TYPE=Release',
