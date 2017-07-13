@@ -884,27 +884,33 @@ def Jsc():
   buildbot.Step('JSC')
   Mkdir(JSC_OUT_DIR)
 
-  command = ['xcrun', PREBUILT_CMAKE_BIN, '-Wno-dev',
-             '..', '-G', 'Ninja',
-             '-DCMAKE_BUILD_TYPE="Release"',
-             '-DPORT=Mac',
-             '-DENABLE_WEBASSEMBLY=ON']
+  try:
+    command = ['xcrun', PREBUILT_CMAKE_BIN, '-Wno-dev',
+               '..', '-G', 'Ninja',
+               '-DCMAKE_BUILD_TYPE="Release"',
+               '-DPORT=Mac',
+               '-DENABLE_WEBASSEMBLY=ON']
 
-  command.extend(OverrideCMakeCompiler())
+    command.extend(OverrideCMakeCompiler())
 
-  jobs = host_toolchains.NinjaJobs()
-  command.extend(host_toolchains.CmakeLauncherFlags())
+    jobs = host_toolchains.NinjaJobs()
+    command.extend(host_toolchains.CmakeLauncherFlags())
 
-  proc.check_call(command, cwd=JSC_OUT_DIR)
-  proc.check_call(['ninja', 'jsc'] + jobs, cwd=JSC_OUT_DIR)
-  proc.check_call(['../Tools/Scripts/run-javascriptcore-tests',
-                   '--root=bin',
-                   '--filter', 'wasm',
-                   '--no-build', '--no-testapi', '--fast'],
-                  cwd=JSC_OUT_DIR)
-  to_archive = [Executable(os.path.join('bin', 'jsc'))]
-  for a in to_archive:
-    CopyBinaryToArchive(os.path.join(JSC_OUT_DIR, a))
+    proc.check_call(command, cwd=JSC_OUT_DIR)
+    proc.check_call(['ninja', 'jsc'] + jobs, cwd=JSC_OUT_DIR)
+    proc.check_call(['../Tools/Scripts/run-javascriptcore-tests',
+                     '--root=bin',
+                     '--filter', 'wasm',
+                     '--no-build', '--no-testapi', '--fast'],
+                    cwd=JSC_OUT_DIR)
+    to_archive = [Executable(os.path.join('bin', 'jsc'))]
+    for a in to_archive:
+      CopyBinaryToArchive(os.path.join(JSC_OUT_DIR, a))
+
+  except proc.CalledProcessError:
+    # JSC cmake build is flaky because it is not the official build. For the
+    # moment make this not abort the whole process.
+    buildbot.Fail(True)
 
 
 def Wabt():
