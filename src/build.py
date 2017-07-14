@@ -884,27 +884,33 @@ def Jsc():
   buildbot.Step('JSC')
   Mkdir(JSC_OUT_DIR)
 
-  command = ['xcrun', PREBUILT_CMAKE_BIN, '-Wno-dev',
-             '..', '-G', 'Ninja',
-             '-DCMAKE_BUILD_TYPE="Release"',
-             '-DPORT=Mac',
-             '-DENABLE_WEBASSEMBLY=ON']
+  try:
+    command = ['xcrun', PREBUILT_CMAKE_BIN, '-Wno-dev',
+               '..', '-G', 'Ninja',
+               '-DCMAKE_BUILD_TYPE="Release"',
+               '-DPORT=Mac',
+               '-DENABLE_WEBASSEMBLY=ON']
 
-  command.extend(OverrideCMakeCompiler())
+    command.extend(OverrideCMakeCompiler())
 
-  jobs = host_toolchains.NinjaJobs()
-  command.extend(host_toolchains.CmakeLauncherFlags())
+    jobs = host_toolchains.NinjaJobs()
+    command.extend(host_toolchains.CmakeLauncherFlags())
 
-  proc.check_call(command, cwd=JSC_OUT_DIR)
-  proc.check_call(['ninja', 'jsc'] + jobs, cwd=JSC_OUT_DIR)
-  proc.check_call(['../Tools/Scripts/run-javascriptcore-tests',
-                   '--root=bin',
-                   '--filter', 'wasm',
-                   '--no-build', '--no-testapi', '--fast'],
-                  cwd=JSC_OUT_DIR)
-  to_archive = [Executable(os.path.join('bin', 'jsc'))]
-  for a in to_archive:
-    CopyBinaryToArchive(os.path.join(JSC_OUT_DIR, a))
+    proc.check_call(command, cwd=JSC_OUT_DIR)
+    proc.check_call(['ninja', 'jsc'] + jobs, cwd=JSC_OUT_DIR)
+    proc.check_call(['../Tools/Scripts/run-javascriptcore-tests',
+                     '--root=bin',
+                     '--filter', 'wasm',
+                     '--no-build', '--no-testapi', '--fast'],
+                    cwd=JSC_OUT_DIR)
+    to_archive = [Executable(os.path.join('bin', 'jsc'))]
+    for a in to_archive:
+      CopyBinaryToArchive(os.path.join(JSC_OUT_DIR, a))
+
+  except proc.CalledProcessError:
+    # JSC cmake build is flaky because it is not the official build. For the
+    # moment make this not abort the whole process.
+    buildbot.Warn()
 
 
 def Wabt():
@@ -1213,7 +1219,10 @@ def ExecuteLLVMTorture(name, runner, indir, fails, attributes, extension,
       wasmjs=wasmjs,
       extra_files=extra_files)
   if 0 != unexpected_result_count:
-      buildbot.Fail(warn_only)
+      if warn_only:
+        buildbot.Warn()
+      else:
+        buildbot.Fail()
   return outdir
 
 
@@ -1257,6 +1266,9 @@ def Summary(repos):
 
   print 'Failed steps: %s.' % buildbot.Failed()
   for step in buildbot.FailedList():
+    print '    %s' % step
+  print 'Warned steps: %s.' % buildbot.Warned()
+  for step in buildbot.WarnedList():
     print '    %s' % step
 
   if IsBuildbot():
@@ -1397,7 +1409,7 @@ def TestBare():
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
       extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
 
-  if IsMac():
+  if IsMac() and not buildbot.DidStepFailOrWarn('JSC'):
     ExecuteLLVMTorture(
         name='jsc',
         runner=os.path.join(INSTALL_BIN, 'jsc'),
@@ -1460,7 +1472,10 @@ def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only):
          'binaryen2', '--em-config', config],
         cwd=outdir)
   except proc.CalledProcessError:
-    buildbot.Fail(warn_only)
+    if warn_only:
+      buildbot.Warn()
+    else:
+      buildbot.Fail()
 
 
 def TestEmtest():

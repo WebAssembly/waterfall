@@ -18,6 +18,7 @@ import sys
 
 
 failed_steps = []
+warned_steps = []
 current_step = None
 
 
@@ -34,12 +35,9 @@ def Link(label, url):
   sys.stdout.write('@@@STEP_LINK@%s@%s@@@\n' % (label, url))
 
 
-def Fail(warn_only=False):
+def Fail():
   """Mark one step as failing, but keep going."""
   sys.stdout.flush()
-  if warn_only:
-    sys.stdout.write('\n@@@STEP_WARNINGS@@@\n')
-    return
   sys.stdout.write('\n@@@STEP_FAILURE@@@\n')
   global failed_steps
   failed_steps.append(current_step)
@@ -51,3 +49,24 @@ def Failed():
 
 def FailedList():
   return list(failed_steps)
+
+
+def Warn():
+  """We mark this step as failing, but this step is flaky so we don't care
+  enough about this to make the bot red."""
+  sys.stdout.flush()
+  sys.stdout.write('\n@@@STEP_WARNINGS@@@\n')
+  global warned_steps
+  warned_steps.append(current_step)
+
+
+def Warned():
+  return len(warned_steps)
+
+
+def WarnedList():
+  return list(warned_steps)
+
+
+def DidStepFailOrWarn(step):
+  return step in failed_steps or step in warned_steps
