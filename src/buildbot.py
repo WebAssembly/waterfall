@@ -67,3 +67,7 @@ def Warned():
 
 def WarnedList():
   return list(warned_steps)
+
+
+def DidStepFailOrWarn(step):
+  return step in failed_steps or step in warned_steps

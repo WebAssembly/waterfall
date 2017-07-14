@@ -1406,7 +1406,7 @@ def TestBare():
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
       extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
 
-  if IsMac() and 'JSC' not in buildbot.WarnedList():
+  if IsMac() and not buildbot.DidStepFailOrWarn('JSC'):
     ExecuteLLVMTorture(
         name='jsc',
         runner=os.path.join(INSTALL_BIN, 'jsc'),
