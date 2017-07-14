@@ -1264,6 +1264,9 @@ def Summary(repos):
   print 'Failed steps: %s.' % buildbot.Failed()
   for step in buildbot.FailedList():
     print '    %s' % step
+  print 'Warned steps: %s.' % buildbot.Warned()
+  for step in buildbot.WarnedList():
+    print '    %s' % step
 
   if IsBuildbot():
     latest_file = '%s/%s' % (BUILDBOT_BUILDERNAME, 'latest.json')
@@ -1403,7 +1406,7 @@ def TestBare():
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
       extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
 
-  if IsMac():
+  if IsMac() and 'JSC' not in buildbot.WarnedList():
     ExecuteLLVMTorture(
         name='jsc',
         runner=os.path.join(INSTALL_BIN, 'jsc'),

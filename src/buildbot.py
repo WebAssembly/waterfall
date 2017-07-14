@@ -18,6 +18,7 @@ import sys
 
 
 failed_steps = []
+warned_steps = []
 current_step = None
 
 
@@ -38,7 +39,7 @@ def Fail(warn_only=False):
   """Mark one step as failing, but keep going."""
   sys.stdout.flush()
   if warn_only:
-    sys.stdout.write('\n@@@STEP_WARNINGS@@@\n')
+    Warn()
     return
   sys.stdout.write('\n@@@STEP_FAILURE@@@\n')
   global failed_steps
@@ -51,3 +52,18 @@ def Failed():
 
 def FailedList():
   return list(failed_steps)
+
+
+def Warn():
+  sys.stdout.flush()
+  sys.stdout.write('\n@@@STEP_WARNINGS@@@\n')
+  global warned_steps
+  warned_steps.append(current_step)
+
+
+def Warned():
+  return len(warned_steps)
+
+
+def WarnedList():
+  return list(warned_steps)
