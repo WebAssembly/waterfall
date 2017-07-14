@@ -910,7 +910,7 @@ def Jsc():
   except proc.CalledProcessError:
     # JSC cmake build is flaky because it is not the official build. For the
     # moment make this not abort the whole process.
-    buildbot.Fail(True)
+    buildbot.Warn()
 
 
 def Wabt():
@@ -1219,7 +1219,10 @@ def ExecuteLLVMTorture(name, runner, indir, fails, attributes, extension,
       wasmjs=wasmjs,
       extra_files=extra_files)
   if 0 != unexpected_result_count:
-      buildbot.Fail(warn_only)
+      if warn_only:
+        buildbot.Warn()
+      else:
+        buildbot.Fail()
   return outdir
 
 
@@ -1469,7 +1472,10 @@ def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only):
          'binaryen2', '--em-config', config],
         cwd=outdir)
   except proc.CalledProcessError:
-    buildbot.Fail(warn_only)
+    if warn_only:
+      buildbot.Warn()
+    else:
+      buildbot.Fail()
 
 
 def TestEmtest():
