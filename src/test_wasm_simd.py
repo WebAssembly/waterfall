@@ -16,34 +16,35 @@ import tempfile
 
 wasm_simd_test_cases = [
   # Oper Arity ArgType     ReturnType   Opcode   KnownFailure
-  ('add',  2, 'int32x4',   'int32x4',   'add',   False),
-  ('add',  2, 'int16x8',   'int16x8',   'add',   False),
-  ('add',  2, 'int8x16',   'int8x16',   'add',   False),
-  ('sub',  2, 'int32x4',   'int32x4',   'sub',   False),
-  ('sub',  2, 'int16x8',   'int16x8',   'sub',   False),
-  ('sub',  2, 'int8x16',   'int8x16',   'sub',   False),
-  ('mul',  2, 'int32x4',   'int32x4',   'mul',   False),
-  ('mul',  2, 'int16x8',   'int16x8',   'mul',   False),
-  ('mul',  2, 'int8x16',   'int8x16',   'mul',   False),
-  ('add',  2, 'float64x2', 'float64x2', 'fadd',  False),
-  ('add',  2, 'float32x4', 'float32x4', 'fadd',  False),
-  ('sub',  2, 'float64x2', 'float64x2', 'fsub',  False),
-  ('sub',  2, 'float32x4', 'float32x4', 'fsub',  False),
-  ('mul',  2, 'float64x2', 'float64x2', 'fmul',  False),
-  ('mul',  2, 'float32x4', 'float32x4', 'fmul',  False),
-  ('div',  2, 'float64x2', 'float64x2', 'fdiv',  False),
-  ('div',  2, 'float32x4', 'float32x4', 'fdiv',  False),
-  ('min',  2, 'float64x2', 'float64x2', 'fmin',  True ),
-  ('min',  2, 'float32x4', 'float32x4', 'fmin',  True ),
-  ('max',  2, 'float64x2', 'float64x2', 'fmax',  True ),
-  ('max',  2, 'float32x4', 'float32x4', 'fmax',  True ),
-  ('abs',  1, 'float64x2', 'float64x2', 'fabs',  True ),
-  ('abs',  1, 'float32x4', 'float32x4', 'fabs',  True ),
-  ('neg',  1, 'float64x2', 'float64x2', 'fsub',  False),
-  ('neg',  1, 'float32x4', 'float32x4', 'fsub',  False),
-  ('sqrt', 1, 'float64x2', 'float64x2', 'fsqrt', True ),
-  ('sqrt', 1, 'float32x4', 'float32x4', 'fsqrt', True ),
+  ('add',  2, 'int32x4',   'int32x4',   'add',   False),  # noqa
+  ('add',  2, 'int16x8',   'int16x8',   'add',   False),  # noqa
+  ('add',  2, 'int8x16',   'int8x16',   'add',   False),  # noqa
+  ('sub',  2, 'int32x4',   'int32x4',   'sub',   False),  # noqa
+  ('sub',  2, 'int16x8',   'int16x8',   'sub',   False),  # noqa
+  ('sub',  2, 'int8x16',   'int8x16',   'sub',   False),  # noqa
+  ('mul',  2, 'int32x4',   'int32x4',   'mul',   False),  # noqa
+  ('mul',  2, 'int16x8',   'int16x8',   'mul',   False),  # noqa
+  ('mul',  2, 'int8x16',   'int8x16',   'mul',   False),  # noqa
+  ('add',  2, 'float64x2', 'float64x2', 'fadd',  False),  # noqa
+  ('add',  2, 'float32x4', 'float32x4', 'fadd',  False),  # noqa
+  ('sub',  2, 'float64x2', 'float64x2', 'fsub',  False),  # noqa
+  ('sub',  2, 'float32x4', 'float32x4', 'fsub',  False),  # noqa
+  ('mul',  2, 'float64x2', 'float64x2', 'fmul',  False),  # noqa
+  ('mul',  2, 'float32x4', 'float32x4', 'fmul',  False),  # noqa
+  ('div',  2, 'float64x2', 'float64x2', 'fdiv',  False),  # noqa
+  ('div',  2, 'float32x4', 'float32x4', 'fdiv',  False),  # noqa
+  ('min',  2, 'float64x2', 'float64x2', 'fmin',  True ),  # noqa
+  ('min',  2, 'float32x4', 'float32x4', 'fmin',  True ),  # noqa
+  ('max',  2, 'float64x2', 'float64x2', 'fmax',  True ),  # noqa
+  ('max',  2, 'float32x4', 'float32x4', 'fmax',  True ),  # noqa
+  ('abs',  1, 'float64x2', 'float64x2', 'fabs',  True ),  # noqa
+  ('abs',  1, 'float32x4', 'float32x4', 'fabs',  True ),  # noqa
+  ('neg',  1, 'float64x2', 'float64x2', 'fsub',  False),  # noqa
+  ('neg',  1, 'float32x4', 'float32x4', 'fsub',  False),  # noqa
+  ('sqrt', 1, 'float64x2', 'float64x2', 'fsqrt', True ),  # noqa
+  ('sqrt', 1, 'float32x4', 'float32x4', 'fsqrt', True ),  # noqa
 ]
+
 
 def create_test_file(datatype, operation, arity, returntype):
   f = tempfile.NamedTemporaryFile(mode='w', suffix='.c', delete=False)
@@ -59,6 +60,7 @@ def create_test_file(datatype, operation, arity, returntype):
   f.close()
   return f.name
 
+
 def compile_test_file(filename, clang, include):
   p = subprocess.Popen([clang, '-w', '-S', '-emit-llvm', filename,
                         '-O3', '-o-', '-I', include],
@@ -72,15 +74,17 @@ def compile_test_file(filename, clang, include):
   else:
     return True, stdout
 
+
 def check_test_output(output, opcode, arity):
   param_pattern = r', '.join(r'<.+> %\w' for x in range(arity))
   operand_pattern = r', '.join(r'%\w' for x in range(arity))
   pattern = (
-    r'define <.+> @test\(' + param_pattern + r'\) local_unnamed_addr #\d \{\s+' +
-    r'entry:\s+' +
-    r'(%.+) = ([A-Za-z0-9]+) .+ ' + operand_pattern + r'\s+' +
-    r'ret <.+> \1\s+' +
-    r'\}')
+      r'define <.+> @test\(' + param_pattern +
+      r'\) local_unnamed_addr #\d \{\s+' +
+      r'entry:\s+' +
+      r'(%.+) = ([A-Za-z0-9]+) .+ ' + operand_pattern + r'\s+' +
+      r'ret <.+> \1\s+' +
+      r'\}')
   m = re.search(pattern, output)
   if m:
     if m.group(2) == opcode:
@@ -99,7 +103,9 @@ def check_test_output(output, opcode, arity):
     print('================================================================')
     return False, err
 
-def test_wasm_simd_instruction(datatype, operation, arity, returntype, opcode, clang, include):
+
+def test_wasm_simd_instruction(datatype, operation, arity, returntype,
+                               opcode, clang, include):
   filename = create_test_file(datatype, operation, arity, returntype)
   passed, output = compile_test_file(filename, clang, include)
   if passed:
@@ -113,13 +119,16 @@ def test_wasm_simd_instruction(datatype, operation, arity, returntype, opcode, c
   os.remove(filename)
   return passed
 
+
 def test_wasm_simd(clang, include):
   passed_expectedly = 0
   passed_unexpectedly = 0
   failed_expectedly = 0
   failed_unexpectedly = 0
-  for (operation, arity, datatype, returntype, opcode, expect_failure) in wasm_simd_test_cases:
-    if test_wasm_simd_instruction(datatype, operation, arity, returntype, opcode, clang, include):
+  for (operation, arity, datatype, returntype,
+       opcode, expect_failure) in wasm_simd_test_cases:
+    if test_wasm_simd_instruction(datatype, operation, arity, returntype,
+                                  opcode, clang, include):
       if expect_failure:
         passed_unexpectedly += 1
       else:
@@ -133,6 +142,7 @@ def test_wasm_simd(clang, include):
   print('Failures (expected):', failed_expectedly)
   print('Failures (unexpected):', failed_unexpectedly)
   return passed_unexpectedly + failed_unexpectedly
+
 
 if __name__ == '__main__':
   clang = sys.argv[1] if len(sys.argv) > 1 else 'clang'
