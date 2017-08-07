@@ -1494,12 +1494,23 @@ def TestEmtestAsm2Wasm():
       warn_only=False)
 
 
+def TestWasmSimd():
+  script = os.path.join(SCRIPT_DIR, 'test_wasm_simd.py')
+  clang = Executable(os.path.join(INSTALL_BIN, 'clang'))
+  include = os.path.join(EMSCRIPTEN_SRC_DIR, 'system', 'include')
+  try:
+    proc.check_call([script, clang, include])
+  except proc.CalledProcessError:
+    buildbot.Fail()
+
+
 ALL_TESTS = [
     Test('bare', TestBare),
     Test('asm', TestAsm),
     Test('emwasm', TestEmwasm),
     Test('emtest', TestEmtest, no_windows=True),
     Test('emtest-asm', TestEmtestAsm2Wasm, no_windows=True),
+    Test('wasm-simd', TestWasmSimd),
 ]
 
 
