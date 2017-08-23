@@ -303,7 +303,7 @@ stdarg-3.c.o.wasm
 strct-stdarg-1.c.o.wasm
 strct-varg-1.c.o.wasm
 va-arg-22.c.o.wasm
-string-opt-5.c.o.wasm lld
+string-opt-5.c.o.wasm
 
 # TypeError: invalid type
 20020413-1.c.o.wasm
@@ -329,13 +329,13 @@ pr28982b.c.o.wasm
 va-arg-21.c.o.wasm
 vprintf-1.c.o.wasm
 vprintf-chk-1.c.o.wasm
+921208-1.c.o.wasm
+20021118-2.c.o.wasm
+pr44852.c.o.wasm
+pr56205.c.o.wasm
 
 # failures that only occur without musl
 pr58419.c.o.wasm lld
-921208-1.c.o.wasm lld
-20021118-2.c.o.wasm lld
-pr44852.c.o.wasm lld
-pr56205.c.o.wasm lld
 
 # failures that only occur with musl
 960521-1.c.o.wasm lld-musl
