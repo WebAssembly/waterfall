@@ -329,8 +329,6 @@ pr28982b.c.o.wasm
 va-arg-21.c.o.wasm
 vprintf-1.c.o.wasm
 vprintf-chk-1.c.o.wasm
-921208-1.c.o.wasm
-20021118-2.c.o.wasm
 pr44852.c.o.wasm
 pr56205.c.o.wasm
 
