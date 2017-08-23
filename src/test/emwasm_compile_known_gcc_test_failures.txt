@@ -70,5 +70,9 @@
         960218-1.c # glob multiply defined in wasm but not asm2wasm
 	pr17377.c # __builtin_return_address
 
-# wasm-validation errors
+# Should be resolved when long doubles become 64 bits.
+# Now long double is 128bit fp and in case of vararg function that has 'long
+# double' as one of its fixed arguments, llvm backend splits function parameters
+# into two 64bit fps but not the actual arguments. This causes validation errors
+# in s2wasm.
         pr44942.c # call param number must match (works in asm2wasm)

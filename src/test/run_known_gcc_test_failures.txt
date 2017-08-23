@@ -32,11 +32,16 @@
 # a huge amount of overlap.
 
 
-### Untriaged bare wasm failures
-# (this one broke at rev e5b9c73, r269252)
-20030125-1.c.s.wast.wasm bare # abort()
-# Recent-ish but fairly long-standing:
-# Interestingly, they pass in the spec interpreter, but not JS engines or binaryen.
+### Undefined behavior: native clang also fails
+
+# Unlike gcc, libm functions are not replaced with builtins in clang.
+20030125-1.c.s.wast.wasm # abort()
+
+# Results of signed integer overflow are undefined in C, so don't care.
+# 'clang -O2' runs -instcombine pass that does these transformations:
+# > add nsw x, INT_MIN -> or x, INT_MIN
+# > add nuw x, INT_MIN -> xor x, INT_MIN
+# which makes the tests below fail.
 20040409-1.c.s.wast.wasm # abort()
 20040409-2.c.s.wast.wasm # abort()
 20040409-3.c.s.wast.wasm # abort()
@@ -102,17 +107,6 @@ va-arg-6.c.s.wast.wasm bare  # __eqtf2
 # Trying to import function 'bar'. The test is likely wrong.
 va-arg-pack-1.c.s.wast.wasm
 va-arg-pack-1.c.js # No import error but missing __builtin_va_arg_pack
-
-
-# Program terminated with: Terminating wasm: abort()
-# This could be a problem in any part of the toolchain (not just d8).
-# It should never happen (the torture tests are self-validating).
-strcmp-1.c.s.wast.wasm # abort()
-string-opt-5.c.s.wast.wasm # abort()
-strncmp-1.c.s.wast.wasm # abort()
-
-# The following failures go away when disabling LLVM IR optimizations only:
-20000910-2.c.s.wast.wasm # abort()
 
 # Additionally there are a bunch of unexpected failures when disabling IR
 # optimization, which this margin is too small to contain.
@@ -195,10 +189,6 @@ pr39228.c.s.wast.wasm bare-musl # isinfl
 stdarg-1.c.s.wast.wasm bare-musl
 va-arg-5.c.s.wast.wasm bare-musl
 va-arg-6.c.s.wast.wasm bare-musl
-
-# Untriaged (this one broke at rev e5b9c73, r269252)
-20030125-1.c.s.wast.wasm bare-musl # abort()
-
 
 ### Failures specific to emscripten
 # no builtin returnaddress or frameaddress
@@ -284,7 +274,6 @@ pr53645.c.o.wasm
 
 # abort()
 
-20000910-2.c.o.wasm lld
 20030125-1.c.o.wasm
 20040409-1.c.o.wasm
 20040409-2.c.o.wasm
@@ -342,8 +331,6 @@ vprintf-1.c.o.wasm
 vprintf-chk-1.c.o.wasm
 
 # failures that only occur without musl
-strcmp-1.c.o.wasm lld
-strncmp-1.c.o.wasm lld
 pr58419.c.o.wasm lld
 921208-1.c.o.wasm lld
 20021118-2.c.o.wasm lld
