@@ -319,11 +319,8 @@ stdarg-1.c.o.wasm
 va-arg-5.c.o.wasm
 va-arg-6.c.o.wasm
 
-# RuntimeError: memory access out of bounds
-bcp-1.c.o.wasm
-memcpy-1.c.o.wasm
-multi-ix.c.o.wasm
-pr28982b.c.o.wasm
+# Don't care/won't fix:
+bcp-1.c.o.wasm # abort() # builtin_constant_p depends on opt setting
 
 # other
 va-arg-21.c.o.wasm

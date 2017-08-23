@@ -41,8 +41,9 @@ def link(infile, outfile, extras):
   install_root = os.path.dirname(os.path.dirname(linker))
   symfile = os.path.join(install_root, 'sysroot', 'lib', 'wasm.syms')
   commands = {
-      'lld': [linker, '-flavor', 'wasm', '-entry=main',
-              '--allow-undefined-file=' + symfile, '-o', outfile, infile],
+      'lld': [linker, '-flavor', 'wasm', '-z', 'stack-size=1048576',
+              '-entry=main', '--allow-undefined-file=' + symfile, '-o',
+              outfile, infile],
       's2wasm': [linker, '--allocate-stack', '1048576', '-o', outfile, infile],
   }
   return commands[basename] + extras['args']
