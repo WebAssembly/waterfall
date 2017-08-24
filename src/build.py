@@ -1192,6 +1192,7 @@ def LinkLLVMTorture(name, linker, fails, indir, extension, args=None):
       buildbot.Fail()
   return os.path.join(WORK_DIR, 'torture-%s' % name)
 
+
 def AssembleLLVMTorture(name, assembler, indir, fails):
   for opt in BARE_TEST_OPT_FLAGS:
     buildbot.Step('Assemble LLVM Torture (%s, %s)' % (name, opt))
@@ -1349,20 +1350,20 @@ def TestBare():
       linker=Executable(os.path.join(INSTALL_BIN, 'lld')),
       fails=LLD_MUSL_KNOWN_TORTURE_FAILURES,
       indir=TORTURE_O_OUT_DIR,
-      extension= 'o',
+      extension='o',
       args=[libc])
   lld_out = LinkLLVMTorture(
       name='lld',
       linker=Executable(os.path.join(INSTALL_BIN, 'lld')),
       fails=LLD_KNOWN_TORTURE_FAILURES,
       indir=TORTURE_O_OUT_DIR,
-      extension= 'o')
+      extension='o')
   s2wasm_out = LinkLLVMTorture(
       name='s2wasm',
       linker=Executable(os.path.join(INSTALL_BIN, 's2wasm')),
       fails=S2WASM_KNOWN_TORTURE_FAILURES,
       indir=TORTURE_S_OUT_DIR,
-      extension= 's')
+      extension='s')
   wast2wasm_out = AssembleLLVMTorture(
       name='wast2wasm',
       assembler=Executable(os.path.join(INSTALL_BIN, 'wast2wasm')),
