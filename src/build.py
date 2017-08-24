@@ -195,6 +195,10 @@ BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = [
     os.path.join(BINARYEN_SRC_DIR, 'test',
                  's2wasm_known_binaryen_shell_test_failures.txt')]
 
+# Optimization levels
+BARE_TEST_OPT_FLAGS = ['O0', 'O2']
+BINARYEN_TEST_OPT_FLAGS = ['O0', 'O3']
+
 
 NPROC = multiprocessing.cpu_count()
 
@@ -1130,99 +1134,111 @@ def DebianPackage():
 
 
 def CompileLLVMTorture(extension, outdir):
-  name = 'Compile LLVM Torture (%s)' % extension
-  buildbot.Step(name)
-  c = Executable(os.path.join(INSTALL_BIN, 'clang'))
-  cxx = Executable(os.path.join(INSTALL_BIN, 'clang++'))
-  Remove(outdir)
-  Mkdir(outdir)
-  unexpected_result_count = compile_torture_tests.run(
-      c=c, cxx=cxx, testsuite=GCC_TEST_DIR,
-      sysroot_dir=INSTALL_SYSROOT,
-      fails=LLVM_KNOWN_TORTURE_FAILURES,
-      out=outdir,
-      config='wasm-' + extension)
-  UploadArchive('torture-' + extension, Archive(outdir))
-  if 0 != unexpected_result_count:
-    buildbot.Fail()
+  for opt in BARE_TEST_OPT_FLAGS:
+    name = 'Compile LLVM Torture (%s, %s)' % (extension, opt)
+    buildbot.Step(name)
+    c = Executable(os.path.join(INSTALL_BIN, 'clang'))
+    cxx = Executable(os.path.join(INSTALL_BIN, 'clang++'))
+    outsubdir = os.path.join(outdir, opt)
+    Remove(outsubdir)
+    Mkdir(outsubdir)
+    unexpected_result_count = compile_torture_tests.run(
+        c=c, cxx=cxx, testsuite=GCC_TEST_DIR,
+        sysroot_dir=INSTALL_SYSROOT,
+        fails=LLVM_KNOWN_TORTURE_FAILURES,
+        out=outsubdir,
+        config='wasm-' + extension,
+        opt=opt)
+    UploadArchive('torture-%s-%s' % (extension, opt), Archive(outsubdir))
+    if 0 != unexpected_result_count:
+      buildbot.Fail()
 
 
 def CompileLLVMTortureBinaryen(name, em_config, outdir, fails):
-  buildbot.Step('Compile LLVM Torture (%s)' % name)
-  os.environ['EM_CONFIG'] = em_config
-  c = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'emcc'), '.bat')
-  cxx = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'em++'), '.bat')
-  Remove(outdir)
-  Mkdir(outdir)
-  unexpected_result_count = compile_torture_tests.run(
-      c=c, cxx=cxx, testsuite=GCC_TEST_DIR,
-      sysroot_dir=INSTALL_SYSROOT,
-      fails=fails,
-      out=outdir,
-      config='binaryen-native')
-  UploadArchive('torture-' + name, Archive(outdir))
-  if 0 != unexpected_result_count:
-    buildbot.Fail()
+  for opt in BINARYEN_TEST_OPT_FLAGS:
+    buildbot.Step('Compile LLVM Torture (%s, %s)' % (name, opt))
+    os.environ['EM_CONFIG'] = em_config
+    c = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'emcc'), '.bat')
+    cxx = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'em++'), '.bat')
+    outsubdir = os.path.join(outdir, opt)
+    Remove(outsubdir)
+    Mkdir(outsubdir)
+    unexpected_result_count = compile_torture_tests.run(
+        c=c, cxx=cxx, testsuite=GCC_TEST_DIR,
+        sysroot_dir=INSTALL_SYSROOT,
+        fails=fails,
+        out=outsubdir,
+        config='binaryen-native',
+        opt=opt)
+    UploadArchive('torture-%s-%s' % (name, opt), Archive(outsubdir))
+    if 0 != unexpected_result_count:
+      buildbot.Fail()
   return outdir
 
 
-def LinkLLVMTorture(name, linker, fails, input_pattern, args=None):
-  buildbot.Step('Link LLVM Torture with %s' % name)
-  assert os.path.isfile(linker), 'Cannot find linker at %s' % linker
-  out = os.path.join(WORK_DIR, 'torture-%s' % name)
-  Remove(out)
-  Mkdir(out)
-  unexpected_result_count = link_assembly_files.run(
-      linker=linker, files=input_pattern, fails=fails, out=out, args=args)
-  UploadArchive('torture-%s' % name, Archive(out))
-  if 0 != unexpected_result_count:
-    buildbot.Fail()
-  return out
-
+def LinkLLVMTorture(name, linker, fails, indir, extension, args=None):
+  for opt in BARE_TEST_OPT_FLAGS:
+    buildbot.Step('Link LLVM Torture (%s, %s)' % (name, opt))
+    assert os.path.isfile(linker), 'Cannot find linker at %s' % linker
+    outsubdir = os.path.join(WORK_DIR, 'torture-%s' % name, opt)
+    Remove(outsubdir)
+    Mkdir(outsubdir)
+    input_pattern = os.path.join(indir, opt, '*.' + extension)
+    unexpected_result_count = link_assembly_files.run(
+        linker=linker, files=input_pattern, fails=fails, attributes=[opt],
+        out=outsubdir, args=args)
+    UploadArchive('torture-%s-%s' % (name, opt), Archive(outsubdir))
+    if 0 != unexpected_result_count:
+      buildbot.Fail()
+  return os.path.join(WORK_DIR, 'torture-%s' % name)
 
 def AssembleLLVMTorture(name, assembler, indir, fails):
-  buildbot.Step('Assemble LLVM Torture with %s' % name)
-  assert os.path.isfile(assembler), 'Cannot find assembler at %s' % assembler
-  files = os.path.join(indir, '*.wast')
-  out = os.path.join(WORK_DIR, 'torture-%s' % name)
-  Remove(out)
-  Mkdir(out)
-  unexpected_result_count = assemble_files.run(
-      assembler=assembler,
-      files=files,
-      fails=fails,
-      out=out)
-  UploadArchive('torture-%s' % name, Archive(out))
-  if 0 != unexpected_result_count:
-    buildbot.Fail()
-  return out
+  for opt in BARE_TEST_OPT_FLAGS:
+    buildbot.Step('Assemble LLVM Torture (%s, %s)' % (name, opt))
+    assert os.path.isfile(assembler), 'Cannot find assembler at %s' % assembler
+    files = os.path.join(indir, opt, '*.wast')
+    outsubdir = os.path.join(WORK_DIR, 'torture-%s' % name, opt)
+    Remove(outsubdir)
+    Mkdir(outsubdir)
+    unexpected_result_count = assemble_files.run(
+        assembler=assembler,
+        files=files,
+        fails=fails,
+        attributes=[opt],
+        out=outsubdir)
+    UploadArchive('torture-%s-%s' % (name, opt), Archive(outsubdir))
+    if 0 != unexpected_result_count:
+      buildbot.Fail()
+  return os.path.join(WORK_DIR, 'torture-%s' % name)
 
 
 def ExecuteLLVMTorture(name, runner, indir, fails, attributes, extension,
-                       outdir='', wasmjs='', extra_files=None,
+                       optflags, outdir='', wasmjs='', extra_files=None,
                        warn_only=False):
   extra_files = [] if extra_files is None else extra_files
 
-  buildbot.Step('Execute LLVM Torture (%s)' % name)
-  if not indir:
-    print 'Step skipped: no input'
-    buildbot.Fail(True)
-    return None
-  assert os.path.isfile(runner), 'Cannot find runner at %s' % runner
-  files = os.path.join(indir, '*.%s' % extension)
-  unexpected_result_count = execute_files.run(
-      runner=runner,
-      files=files,
-      fails=fails,
-      attributes=attributes,
-      out=outdir,
-      wasmjs=wasmjs,
-      extra_files=extra_files)
-  if 0 != unexpected_result_count:
-      if warn_only:
-        buildbot.Warn()
-      else:
-        buildbot.Fail()
+  for opt in optflags:
+    buildbot.Step('Execute LLVM Torture (%s, %s)' % (name, opt))
+    if not os.path.join(indir, opt):
+      print 'Step skipped: no input'
+      buildbot.Fail(True)
+      return None
+    assert os.path.isfile(runner), 'Cannot find runner at %s' % runner
+    files = os.path.join(indir, opt, '*.%s' % extension)
+    outsubdir = '' if outdir == '' else os.path.join(outdir, opt)
+    unexpected_result_count = execute_files.run(
+        runner=runner,
+        files=files,
+        fails=fails,
+        attributes=attributes + [opt],
+        out=outsubdir,
+        wasmjs=wasmjs,
+        extra_files=extra_files)
+    if 0 != unexpected_result_count:
+        if warn_only:
+          buildbot.Warn()
+        else:
+          buildbot.Fail()
   return outdir
 
 
@@ -1332,18 +1348,21 @@ def TestBare():
       name='lld-musl',
       linker=Executable(os.path.join(INSTALL_BIN, 'lld')),
       fails=LLD_MUSL_KNOWN_TORTURE_FAILURES,
-      input_pattern=os.path.join(TORTURE_O_OUT_DIR, '*.o'),
+      indir=TORTURE_O_OUT_DIR,
+      extension= 'o',
       args=[libc])
   lld_out = LinkLLVMTorture(
       name='lld',
       linker=Executable(os.path.join(INSTALL_BIN, 'lld')),
       fails=LLD_KNOWN_TORTURE_FAILURES,
-      input_pattern=os.path.join(TORTURE_O_OUT_DIR, '*.o'))
+      indir=TORTURE_O_OUT_DIR,
+      extension= 'o')
   s2wasm_out = LinkLLVMTorture(
       name='s2wasm',
       linker=Executable(os.path.join(INSTALL_BIN, 's2wasm')),
       fails=S2WASM_KNOWN_TORTURE_FAILURES,
-      input_pattern=os.path.join(TORTURE_S_OUT_DIR, '*.s'))
+      indir=TORTURE_S_OUT_DIR,
+      extension= 's')
   wast2wasm_out = AssembleLLVMTorture(
       name='wast2wasm',
       assembler=Executable(os.path.join(INSTALL_BIN, 'wast2wasm')),
@@ -1351,15 +1370,16 @@ def TestBare():
       fails=WAST2WASM_KNOWN_TORTURE_FAILURES)
 
   # Execute
-  common_attrs = ['bare', 'O0']
+  common_attrs = ['bare']
 
   ExecuteLLVMTorture(
       name='d8-lld',
       runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=lld_out,
       fails=RUN_KNOWN_TORTURE_FAILURES,
-      attributes=common_attrs + ['d8', 'lld'],
+      attributes=common_attrs + ['bare', 'd8', 'lld'],
       extension='wasm',
+      optflags=BARE_TEST_OPT_FLAGS,
       warn_only=True,
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
   ExecuteLLVMTorture(
@@ -1369,6 +1389,7 @@ def TestBare():
       fails=RUN_KNOWN_TORTURE_FAILURES,
       attributes=common_attrs + ['d8', 'lld-musl'],
       extension='wasm',
+      optflags=BARE_TEST_OPT_FLAGS,
       warn_only=True,
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
   ExecuteLLVMTorture(
@@ -1378,6 +1399,7 @@ def TestBare():
       fails=BINARYEN_SHELL_KNOWN_TORTURE_FAILURES,
       attributes=common_attrs + ['wasm-shell'],
       extension='wast',
+      optflags=BARE_TEST_OPT_FLAGS,
       warn_only=True)  # TODO wasm-shell is flaky when running tests.
 
   if not IsWindows():
@@ -1387,7 +1409,8 @@ def TestBare():
         indir=s2wasm_out,
         fails=SPEC_KNOWN_TORTURE_FAILURES,
         attributes=common_attrs + ['spec'],
-        extension='wast')
+        extension='wast',
+        optflags=BARE_TEST_OPT_FLAGS)
 
   ExecuteLLVMTorture(
       name='d8',
@@ -1396,6 +1419,7 @@ def TestBare():
       fails=RUN_KNOWN_TORTURE_FAILURES,
       attributes=common_attrs + ['d8'],
       extension='wasm',
+      optflags=BARE_TEST_OPT_FLAGS,
       warn_only=True,
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
   ExecuteLLVMTorture(
@@ -1403,8 +1427,9 @@ def TestBare():
       runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=wast2wasm_out,
       fails=RUN_KNOWN_TORTURE_FAILURES,
-      attributes=['bare-musl', 'O0', 'd8'],
+      attributes=['bare-musl', 'd8'],
       extension='wasm',
+      optflags=BARE_TEST_OPT_FLAGS,
       warn_only=True,
       wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
       extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
@@ -1417,6 +1442,7 @@ def TestBare():
         fails=RUN_KNOWN_TORTURE_FAILURES,
         attributes=common_attrs + ['jsc'],
         extension='wasm',
+        optflags=BARE_TEST_OPT_FLAGS,
         warn_only=True,
         wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
     ExecuteLLVMTorture(
@@ -1424,8 +1450,9 @@ def TestBare():
         runner=os.path.join(INSTALL_BIN, 'jsc'),
         indir=wast2wasm_out,
         fails=RUN_KNOWN_TORTURE_FAILURES,
-        attributes=['bare-musl', 'O0', 'jsc'],
+        attributes=['bare-musl', 'jsc'],
         extension='wasm',
+        optflags=BARE_TEST_OPT_FLAGS,
         warn_only=True,
         wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
         extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
@@ -1442,8 +1469,9 @@ def TestAsm():
       runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=asm2wasm_out,
       fails=RUN_KNOWN_TORTURE_FAILURES,
-      attributes=['asm2wasm', 'O0', 'd8'],
+      attributes=['asm2wasm', 'd8'],
       extension='c.js',
+      optflags=BINARYEN_TEST_OPT_FLAGS,
       outdir=asm2wasm_out)  # emscripten's wasm.js expects all files in cwd.
 
 
@@ -1458,8 +1486,9 @@ def TestEmwasm():
       runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=emscripten_wasm_out,
       fails=RUN_KNOWN_TORTURE_FAILURES,
-      attributes=['emwasm', 'O0', 'd8'],
+      attributes=['emwasm', 'd8'],
       extension='c.js',
+      optflags=BINARYEN_TEST_OPT_FLAGS,
       outdir=emscripten_wasm_out)
 
 

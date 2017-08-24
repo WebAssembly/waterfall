@@ -41,7 +41,7 @@ def assemble(infile, outfile, extras):
   return commands[basename]
 
 
-def run(assembler, files, fails, out):
+def run(assembler, files, fails, attributes, out):
   """Assemble all files."""
   assert os.path.isfile(assembler), 'Cannot find assembler at %s' % assembler
   assert os.path.isdir(out), 'Cannot find outdir %s' % out
@@ -54,7 +54,8 @@ def run(assembler, files, fails, out):
           outdir=out,
           extras={'assembler': assembler}),
       inputs=assembler_files,
-      fails=fails)
+      fails=fails,
+      attributes=attributes)
 
 
 def main():
