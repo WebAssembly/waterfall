@@ -1502,7 +1502,8 @@ def TestAsm():
 def TestEmwasm():
   emscripten_wasm_out = {}
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
-    emscripten_wasm_out[opt] = os.path.join(EMSCRIPTENWASM_TORTURE_OUT_DIR, opt)
+    emscripten_wasm_out[opt] = os.path.join(EMSCRIPTENWASM_TORTURE_OUT_DIR,
+                                            opt)
     CompileLLVMTortureBinaryen(
         'emwasm',
         EMSCRIPTEN_CONFIG_WASM,
