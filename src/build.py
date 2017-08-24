@@ -1377,7 +1377,7 @@ def TestBare():
       runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
       indir=lld_out,
       fails=RUN_KNOWN_TORTURE_FAILURES,
-      attributes=common_attrs + ['bare', 'd8', 'lld'],
+      attributes=common_attrs + ['d8', 'lld'],
       extension='wasm',
       optflags=BARE_TEST_OPT_FLAGS,
       warn_only=True,
