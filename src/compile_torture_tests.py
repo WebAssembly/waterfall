@@ -37,7 +37,7 @@ def create_outname(outdir, infile, extras):
 def run(c, cxx, testsuite, sysroot_dir, fails, out, config, opt):
   """Compile all torture tests."""
   cflags_common = ['--std=gnu89', '-DSTACK_SIZE=1044480',
-                   '-w', '-Wno-implicit-function-declaration']
+                   '-w', '-Wno-implicit-function-declaration', '-' + opt]
   cflags_extra = {
       'wasm-s': ['--target=wasm32-unknown-unknown', '-S',
                  '--sysroot=%s' % sysroot_dir],
@@ -68,7 +68,7 @@ def run(c, cxx, testsuite, sysroot_dir, fails, out, config, opt):
                                     c_torture)
   assert os.path.isdir(out), 'Cannot find outdir %s' % out
   c_test_files = glob.glob(os.path.join(c_torture, '*c'))
-  cflags = cflags_common + cflags_extra[config] + ['-' + opt]
+  cflags = cflags_common + cflags_extra[config]
 
   result = testing.execute(
       tester=testing.Tester(

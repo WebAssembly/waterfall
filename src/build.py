@@ -197,7 +197,7 @@ BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = [
 
 # Optimization levels
 BARE_TEST_OPT_FLAGS = ['O0', 'O2']
-BINARYEN_TEST_OPT_FLAGS = ['O0', 'O3']
+EMSCRIPTEN_TEST_OPT_FLAGS = ['O0', 'O3']
 
 
 NPROC = multiprocessing.cpu_count()
@@ -1155,7 +1155,7 @@ def CompileLLVMTorture(extension, outdir):
 
 
 def CompileLLVMTortureBinaryen(name, em_config, outdir, fails):
-  for opt in BINARYEN_TEST_OPT_FLAGS:
+  for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
     buildbot.Step('Compile LLVM Torture (%s, %s)' % (name, opt))
     os.environ['EM_CONFIG'] = em_config
     c = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'emcc'), '.bat')
@@ -1177,10 +1177,11 @@ def CompileLLVMTortureBinaryen(name, em_config, outdir, fails):
 
 
 def LinkLLVMTorture(name, linker, fails, indir, extension, args=None):
+  out = os.path.join(WORK_DIR, 'torture-%s' % name)
   for opt in BARE_TEST_OPT_FLAGS:
     buildbot.Step('Link LLVM Torture (%s, %s)' % (name, opt))
     assert os.path.isfile(linker), 'Cannot find linker at %s' % linker
-    outsubdir = os.path.join(WORK_DIR, 'torture-%s' % name, opt)
+    outsubdir = os.path.join(out, opt)
     Remove(outsubdir)
     Mkdir(outsubdir)
     input_pattern = os.path.join(indir, opt, '*.' + extension)
@@ -1190,15 +1191,16 @@ def LinkLLVMTorture(name, linker, fails, indir, extension, args=None):
     UploadArchive('torture-%s-%s' % (name, opt), Archive(outsubdir))
     if 0 != unexpected_result_count:
       buildbot.Fail()
-  return os.path.join(WORK_DIR, 'torture-%s' % name)
+  return out
 
 
 def AssembleLLVMTorture(name, assembler, indir, fails):
+  out = os.path.join(WORK_DIR, 'torture-%s' % name)
   for opt in BARE_TEST_OPT_FLAGS:
     buildbot.Step('Assemble LLVM Torture (%s, %s)' % (name, opt))
     assert os.path.isfile(assembler), 'Cannot find assembler at %s' % assembler
     files = os.path.join(indir, opt, '*.wast')
-    outsubdir = os.path.join(WORK_DIR, 'torture-%s' % name, opt)
+    outsubdir = os.path.join(out, opt)
     Remove(outsubdir)
     Mkdir(outsubdir)
     unexpected_result_count = assemble_files.run(
@@ -1210,7 +1212,7 @@ def AssembleLLVMTorture(name, assembler, indir, fails):
     UploadArchive('torture-%s-%s' % (name, opt), Archive(outsubdir))
     if 0 != unexpected_result_count:
       buildbot.Fail()
-  return os.path.join(WORK_DIR, 'torture-%s' % name)
+  return out
 
 
 def ExecuteLLVMTorture(name, runner, indir, fails, attributes, extension,
@@ -1472,7 +1474,7 @@ def TestAsm():
       fails=RUN_KNOWN_TORTURE_FAILURES,
       attributes=['asm2wasm', 'd8'],
       extension='c.js',
-      optflags=BINARYEN_TEST_OPT_FLAGS,
+      optflags=EMSCRIPTEN_TEST_OPT_FLAGS,
       outdir=asm2wasm_out)  # emscripten's wasm.js expects all files in cwd.
 
 
@@ -1489,7 +1491,7 @@ def TestEmwasm():
       fails=RUN_KNOWN_TORTURE_FAILURES,
       attributes=['emwasm', 'd8'],
       extension='c.js',
-      optflags=BINARYEN_TEST_OPT_FLAGS,
+      optflags=EMSCRIPTEN_TEST_OPT_FLAGS,
       outdir=emscripten_wasm_out)
 
 
