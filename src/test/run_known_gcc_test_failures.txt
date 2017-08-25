@@ -280,9 +280,10 @@ vfprintf-chk-1.c.js O3
 vprintf-chk-1.c.js O3
 
 
-### Failures specific to lld-linked binaries
+### Failures for lld-linked binaries
 
-# printf missing
+# printf or other libc feature missing
+# All these failures also occur with s2wasm linked binaries
 20020406-1.c.o.wasm
 20021120-3.c.o.wasm
 20070201-1.c.o.wasm
@@ -293,49 +294,76 @@ vprintf-chk-1.c.js O3
 980605-1.c.o.wasm
 complex-5.c.o.wasm
 ipa-sra-2.c.o.wasm
+loop-2f.c.o.wasm
+loop-2g.c.o.wasm
 pr34456.c.o.wasm
-pr49218.c.o.wasm
 pr56982.c.o.wasm
 printf-1.c.o.wasm
 printf-chk-1.c.o.wasm
-stdarg-2.c.o.wasm
 struct-ret-1.c.o.wasm
-
-# expected 0 elements on the stack for fallthru
-20001009-2.c.o.wasm O2
+va-arg-21.c.o.wasm # vprintf
+vprintf-1.c.o.wasm # vprintf
+vprintf-chk-1.c.o.wasm # vprintf
 930513-1.c.o.wasm
-960312-1.c.o.wasm O2
 builtin-bitops-1.c.o.wasm
 pr39228.c.o.wasm
+pr47237.c.o.wasm
+
+# TypeError: invalid type
+# All these failures also occur with s2wasm linked binaries
+20020413-1.c.o.wasm
+20080502-1.c.o.wasm
+960215-1.c.o.wasm
+960405-1.c.o.wasm
+align-2.c.o.wasm
+complex-7.c.o.wasm
+pr49218.c.o.wasm
+pr54471.c.o.wasm
+regstack-1.c.o.wasm
+stdarg-1.c.o.wasm
+stdarg-2.c.o.wasm
+va-arg-5.c.o.wasm
+va-arg-6.c.o.wasm
+
+# Don't care/won't fix:
+# All these failures also occur with s2wasm linked binaries
+920612-1.c.o.wasm O2 # abort() # UB
+920711-1.c.o.wasm O2 # abort() # UB for 32-bit longs
+bcp-1.c.o.wasm O2 # abort() # builtin_constant_p depends on opt setting
+builtin-constant.c.o.wasm O2 # abort() # builtin_constant_p depends on opt setting
+pr22493-1.c.o.wasm O2 # abort() # UB
+eeprof-1.c.o.wasm # tests -finstrument-functions
+
+### Failures specific to lld-linked binaries
+
+# Invalid module: Expected 0 elements on the stack for fallthru
+# Seems to be a bug in the backend: https://bugs.llvm.org/show_bug.cgi?id=34317
+20001009-2.c.o.wasm O2
+960312-1.c.o.wasm O2
 pr40022.c.o.wasm O2
 pr40657.c.o.wasm O2
-pr44942.c.o.wasm
-pr47237.c.o.wasm
 pr53645-2.c.o.wasm O2
 pr53645.c.o.wasm O2
 
-# abort()
+# Invalid module: call[7] expected type i64, found get_local of type i32
+# Fails at compile time for s2wasm version
+pr44942.c.o.wasm
 
+# abort()
 20030125-1.c.o.wasm O2
 20040409-1.c.o.wasm O2
 20040409-2.c.o.wasm O2
 20040409-3.c.o.wasm O2
 20101011-1.c.o.wasm
 30101025-1.c.o.wasm
-920612-1.c.o.wasm O2
 920625-1.c.o.wasm
-920711-1.c.o.wasm O2
 931004-10.c.o.wasm
 931004-12.c.o.wasm
 931004-14.c.o.wasm
 931004-6.c.o.wasm
-align-2.c.o.wasm
 bitfld-3.c.o.wasm
 bitfld-5.c.o.wasm
-builtin-constant.c.o.wasm O2
-eeprof-1.c.o.wasm
 frame-address.c.o.wasm O2
-pr22493-1.c.o.wasm O2
 pr32244-1.c.o.wasm
 pr34971.c.o.wasm
 pr38151.c.o.wasm
@@ -345,28 +373,6 @@ stdarg-3.c.o.wasm
 strct-stdarg-1.c.o.wasm
 strct-varg-1.c.o.wasm
 va-arg-22.c.o.wasm
-
-# TypeError: invalid type
-20020413-1.c.o.wasm
-20080502-1.c.o.wasm
-960215-1.c.o.wasm
-960405-1.c.o.wasm
-complex-7.c.o.wasm
-loop-2f.c.o.wasm
-loop-2g.c.o.wasm
-pr54471.c.o.wasm
-regstack-1.c.o.wasm
-stdarg-1.c.o.wasm
-va-arg-5.c.o.wasm
-va-arg-6.c.o.wasm
-
-# Don't care/won't fix:
-bcp-1.c.o.wasm O2 # abort() # builtin_constant_p depends on opt setting
-
-# other
-va-arg-21.c.o.wasm # vprintf
-vprintf-1.c.o.wasm # vprintf
-vprintf-chk-1.c.o.wasm # vprintf
 
 # failures that only occur without musl
 pr58419.c.o.wasm lld
