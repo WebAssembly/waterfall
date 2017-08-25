@@ -1395,7 +1395,6 @@ def TestBare():
         attributes=common_attrs + ['d8', 'lld'],
         extension='wasm',
         opt=opt,
-        warn_only=True,
         wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
   for opt in BARE_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
@@ -1406,7 +1405,6 @@ def TestBare():
         attributes=common_attrs + ['d8', 'lld-musl'],
         extension='wasm',
         opt=opt,
-        warn_only=True,
         wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
   for opt in BARE_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
@@ -1439,7 +1437,6 @@ def TestBare():
         attributes=common_attrs + ['d8'],
         extension='wasm',
         opt=opt,
-        warn_only=True,
         wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
   for opt in BARE_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
@@ -1450,7 +1447,6 @@ def TestBare():
         attributes=['bare-musl', 'd8'],
         extension='wasm',
         opt=opt,
-        warn_only=True,
         wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
         extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
 
