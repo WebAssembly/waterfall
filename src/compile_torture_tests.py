@@ -34,14 +34,14 @@ def create_outname(outdir, infile, extras):
   return os.path.join(outdir, outname)
 
 
-def run(c, cxx, testsuite, sysroot_dir, fails, out, config):
+def run(c, cxx, testsuite, sysroot_dir, fails, out, config, opt):
   """Compile all torture tests."""
   cflags_common = ['--std=gnu89', '-DSTACK_SIZE=1044480',
-                   '-w', '-Wno-implicit-function-declaration']
+                   '-w', '-Wno-implicit-function-declaration', '-' + opt]
   cflags_extra = {
-      'wasm-s': ['--target=wasm32-unknown-unknown', '-S', '-O2',
+      'wasm-s': ['--target=wasm32-unknown-unknown', '-S',
                  '--sysroot=%s' % sysroot_dir],
-      'wasm-o': ['--target=wasm32-unknown-unknown-wasm', '-c', '-O2',
+      'wasm-o': ['--target=wasm32-unknown-unknown-wasm', '-c',
                  '--sysroot=%s' % sysroot_dir],
       # Binaryen's native-wasm method uses the JS engine's native support for
       # wasm rather than interpreting the wasm with wasm.js.
@@ -78,7 +78,7 @@ def run(c, cxx, testsuite, sysroot_dir, fails, out, config):
           extras={'c': c, 'cflags': cflags, 'suffix': suffix}),
       inputs=c_test_files,
       fails=fails,
-      attributes=[config])
+      attributes=[config, opt])
 
   return result
 

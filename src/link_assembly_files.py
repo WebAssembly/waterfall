@@ -49,7 +49,7 @@ def link(infile, outfile, extras):
   return commands[basename] + extras['args']
 
 
-def run(linker, files, fails, out, args):
+def run(linker, files, fails, attributes, out, args):
   """Link all files."""
   assert os.path.isfile(linker), 'Cannot find linker at %s' % linker
   assert os.path.isdir(out), 'Cannot find outdir %s' % out
@@ -64,7 +64,8 @@ def run(linker, files, fails, out, args):
           outdir=out,
           extras={'linker': linker, 'args': args}),
       inputs=input_files,
-      fails=fails)
+      fails=fails,
+      attributes=attributes)
 
 
 def main():
