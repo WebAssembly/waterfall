@@ -35,16 +35,16 @@
 ### Undefined behavior: native clang also fails
 
 # Unlike gcc, libm functions are not replaced with builtins in clang.
-20030125-1.c.s.wast.wasm # abort()
+20030125-1.c.s.wast.wasm O2 # abort()
 
 # Results of signed integer overflow are undefined in C, so don't care.
 # 'clang -O2' runs -instcombine pass that does these transformations:
 # > add nsw x, INT_MIN -> or x, INT_MIN
 # > add nuw x, INT_MIN -> xor x, INT_MIN
 # which makes the tests below fail.
-20040409-1.c.s.wast.wasm # abort()
-20040409-2.c.s.wast.wasm # abort()
-20040409-3.c.s.wast.wasm # abort()
+20040409-1.c.s.wast.wasm O2 # abort()
+20040409-2.c.s.wast.wasm O2 # abort()
+20040409-3.c.s.wast.wasm O2 # abort()
 
 ### bare wasm.js tests: need some libc support.
 # Not yet implemented.
@@ -115,11 +115,11 @@ va-arg-pack-1.c.js # No import error but missing __builtin_va_arg_pack
 
 
 # Don't care/won't fix:
-920612-1.c.s.wast.wasm # abort() # UB
-920711-1.c.s.wast.wasm # abort() # UB for 32-bit longs
-bcp-1.c.s.wast.wasm # abort() # builtin_constant_p depends on opt setting
-builtin-constant.c.s.wast.wasm # abort() # builtin_constant_p depends on opt setting
-pr22493-1.c.s.wast.wasm # abort() # UB
+920612-1.c.s.wast.wasm O2 # abort() # UB
+920711-1.c.s.wast.wasm O2 # abort() # UB for 32-bit longs
+bcp-1.c.s.wast.wasm O2 # abort() # builtin_constant_p depends on opt setting
+builtin-constant.c.s.wast.wasm O2 # abort() # builtin_constant_p depends on opt setting
+pr22493-1.c.s.wast.wasm O2 # abort() # UB
 eeprof-1.c.s.wast.wasm # tests -finstrument-functions
 eeprof-1.c.js # tests -finstrument-functions
 
@@ -190,6 +190,32 @@ stdarg-1.c.s.wast.wasm bare-musl
 va-arg-5.c.s.wast.wasm bare-musl
 va-arg-6.c.s.wast.wasm bare-musl
 
+# Untriaged bare/bare-musl O0 failures
+20000112-1.c.s.wast.wasm O0
+20010605-2.c.s.wast.wasm O0
+20021127-1.c.s.wast.wasm O0
+20030626-1.c.s.wast.wasm O0
+20030626-2.c.s.wast.wasm O0
+20030914-1.c.s.wast.wasm O0
+20031003-1.c.s.wast.wasm O0
+20040208-1.c.s.wast.wasm O0
+20040709-1.c.s.wast.wasm O0
+20040709-2.c.s.wast.wasm O0
+20041126-1.c.s.wast.wasm O0
+20050121-1.c.s.wast.wasm O0
+20070614-1.c.s.wast.wasm O0
+930622-2.c.s.wast.wasm O0
+960327-1.c.s.wast.wasm O0
+960513-1.c.s.wast.wasm O0
+960521-1.c.s.wast.wasm O0
+complex-6.c.s.wast.wasm O0
+conversion.c.s.wast.wasm O0
+medce-1.c.s.wast.wasm O0
+pr23135.c.s.wast.wasm O0
+pr33142.c.s.wast.wasm O0
+pr42614.c.s.wast.wasm O0
+pr58831.c.s.wast.wasm O0
+
 ### Failures specific to emscripten
 # no builtin returnaddress or frameaddress
 20010122-1.c.js asm2wasm
@@ -205,13 +231,13 @@ pr41239.c.js asm2wasm
 pr49279.c.js asm2wasm
 
 # aborts in native clang
-20031003-1.c.js # abort() in emwasm
+20031003-1.c.js O0 # abort() in emwasm
 
 # hoisting of conditional cast causing wasm float->int conversion trap
 # https://github.com/WebAssembly/binaryen/issues/983
-20040831-1.c.js asm2wasm
+20040831-1.c.js asm2wasm,O0
 
-pr23135.c.js emwasm # compile failure in asm2wasm (vector legalization), OOB trap in emwasm
+pr23135.c.js emwasm,O0 # compile failure in asm2wasm (vector legalization), OOB trap in emwasm
 
 # This seems to be spuriously passing for now because the stack below it
 # happens to align it to 32 byte alignment. Will probably need to toggle this
@@ -225,18 +251,34 @@ pr43008.c.js # missing __builtin_malloc
 
 
 # SIMD
-20050316-2.c.js asm2wasm
+20050316-2.c.js asm2wasm,O0
 20050604-1.c.js asm2wasm
-20050607-1.c.js asm2wasm
+20050607-1.c.js asm2wasm,O0
 20060420-1.c.js asm2wasm
 simd-1.c.js asm2wasm
 simd-2.c.js asm2wasm
-simd-4.c.js asm2wasm
+simd-4.c.js asm2wasm,O0
 simd-5.c.js asm2wasm
 simd-6.c.js asm2wasm
 pr53645-2.c.js asm2wasm
 pr53645.c.js asm2wasm
 pr60960.c.js asm2wasm # actually fails in asm2wasm, but JS file is still there
+
+# Untriaged emscripten O3 failures
+20040409-1.c.js emwasm,O3
+20040409-2.c.js emwasm,O3
+20040409-3.c.js emwasm,O3
+920612-1.c.js O3
+920711-1.c.js O3
+990208-1.c.js O3
+bcp-1.c.js O3
+builtin-constant.c.js O3
+fprintf-chk-1.c.js O3
+pr22493-1.c.js O3
+printf-chk-1.c.js O3
+vfprintf-chk-1.c.js O3
+vprintf-chk-1.c.js O3
+
 
 ### Failures specific to lld-linked binaries
 
@@ -260,29 +302,29 @@ stdarg-2.c.o.wasm
 struct-ret-1.c.o.wasm
 
 # expected 0 elements on the stack for fallthru
-20001009-2.c.o.wasm
+20001009-2.c.o.wasm O2
 930513-1.c.o.wasm
-960312-1.c.o.wasm
+960312-1.c.o.wasm O2
 builtin-bitops-1.c.o.wasm
 pr39228.c.o.wasm
-pr40022.c.o.wasm
-pr40657.c.o.wasm
+pr40022.c.o.wasm O2
+pr40657.c.o.wasm O2
 pr44942.c.o.wasm
 pr47237.c.o.wasm
-pr53645-2.c.o.wasm
-pr53645.c.o.wasm
+pr53645-2.c.o.wasm O2
+pr53645.c.o.wasm O2
 
 # abort()
 
-20030125-1.c.o.wasm
-20040409-1.c.o.wasm
-20040409-2.c.o.wasm
-20040409-3.c.o.wasm
+20030125-1.c.o.wasm O2
+20040409-1.c.o.wasm O2
+20040409-2.c.o.wasm O2
+20040409-3.c.o.wasm O2
 20101011-1.c.o.wasm
 30101025-1.c.o.wasm
-920612-1.c.o.wasm
+920612-1.c.o.wasm O2
 920625-1.c.o.wasm
-920711-1.c.o.wasm
+920711-1.c.o.wasm O2
 931004-10.c.o.wasm
 931004-12.c.o.wasm
 931004-14.c.o.wasm
@@ -290,10 +332,10 @@ pr53645.c.o.wasm
 align-2.c.o.wasm
 bitfld-3.c.o.wasm
 bitfld-5.c.o.wasm
-builtin-constant.c.o.wasm
+builtin-constant.c.o.wasm O2
 eeprof-1.c.o.wasm
-frame-address.c.o.wasm
-pr22493-1.c.o.wasm
+frame-address.c.o.wasm O2
+pr22493-1.c.o.wasm O2
 pr32244-1.c.o.wasm
 pr34971.c.o.wasm
 pr38151.c.o.wasm
@@ -319,7 +361,7 @@ va-arg-5.c.o.wasm
 va-arg-6.c.o.wasm
 
 # Don't care/won't fix:
-bcp-1.c.o.wasm # abort() # builtin_constant_p depends on opt setting
+bcp-1.c.o.wasm O2 # abort() # builtin_constant_p depends on opt setting
 
 # other
 va-arg-21.c.o.wasm # vprintf
@@ -342,3 +384,28 @@ pr41395-2.c.o.wasm lld-musl
 pr41463.c.o.wasm lld-musl
 vfprintf-1.c.o.wasm lld-musl
 vfprintf-chk-1.c.o.wasm lld-musl
+
+# Untriaged lld/lld-musl O0 failures
+20000112-1.c.o.wasm lld,O0
+20010605-2.c.o.wasm O0
+20021127-1.c.o.wasm O0
+20030626-1.c.o.wasm O0
+20030626-2.c.o.wasm O0
+20030914-1.c.o.wasm O0
+20031003-1.c.o.wasm O0
+20040208-1.c.o.wasm O0
+20040709-1.c.o.wasm O0
+20040709-2.c.o.wasm O0
+20041126-1.c.o.wasm lld,O0
+20050121-1.c.o.wasm O0
+920810-1.c.o.wasm lld-musl,O0
+930622-2.c.o.wasm O0
+960327-1.c.o.wasm O0
+960513-1.c.o.wasm O0
+960521-1.c.o.wasm lld,O0
+complex-6.c.o.wasm O0
+conversion.c.o.wasm O0
+pr15262-1.c.o.wasm lld-musl,O0
+pr23135.c.o.wasm O0
+pr33142.c.o.wasm lld,O0
+pr42614.c.o.wasm O0
