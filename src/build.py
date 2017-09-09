@@ -181,8 +181,8 @@ EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
 
 RUN_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
                                            'run_' + IT_IS_KNOWN)]
-WAST2WASM_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
-                                                 'wast2wasm_' + IT_IS_KNOWN)]
+WAT2WASM_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
+                                                'wat2wasm_' + IT_IS_KNOWN)]
 SPEC_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
                                             'spec_' + IT_IS_KNOWN)]
 S2WASM_KNOWN_TORTURE_FAILURES = [os.path.join(BINARYEN_SRC_DIR, 'test',
@@ -1068,7 +1068,7 @@ def Musl():
         os.path.join(MUSL_SRC_DIR, 'libc.py'),
         '--clang_dir', INSTALL_BIN,
         '--binaryen_dir', os.path.join(INSTALL_BIN),
-        '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wast2wasm'),
+        '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wat2wasm'),
         '--out', os.path.join(MUSL_OUT_DIR, 'libc.a'),
         '--musl', MUSL_SRC_DIR, '--compile-to-wasm'], env=cc_env)
     CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'libc.a'))
@@ -1078,7 +1078,7 @@ def Musl():
         os.path.join(MUSL_SRC_DIR, 'libc.py'),
         '--clang_dir', INSTALL_BIN,
         '--binaryen_dir', os.path.join(INSTALL_BIN),
-        '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wast2wasm'),
+        '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wat2wasm'),
         '--musl', MUSL_SRC_DIR], cwd=MUSL_OUT_DIR, env=cc_env)
     for f in ['musl.wast', 'musl.wasm']:
       CopyLibraryToArchive(os.path.join(MUSL_OUT_DIR, f))
@@ -1376,11 +1376,11 @@ def TestBare():
         opt=opt)
   for opt in BARE_TEST_OPT_FLAGS:
     AssembleLLVMTorture(
-        name='wast2wasm',
-        assembler=Executable(os.path.join(INSTALL_BIN, 'wast2wasm')),
+        name='wat2wasm',
+        assembler=Executable(os.path.join(INSTALL_BIN, 'wat2wasm')),
         indir=GetTortureDir('s2wasm', opt),
-        outdir=GetTortureDir('wast2wasm', opt),
-        fails=WAST2WASM_KNOWN_TORTURE_FAILURES,
+        outdir=GetTortureDir('wat2wasm', opt),
+        fails=WAT2WASM_KNOWN_TORTURE_FAILURES,
         opt=opt)
 
   # Execute
@@ -1432,7 +1432,7 @@ def TestBare():
     ExecuteLLVMTorture(
         name='d8',
         runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
-        indir=GetTortureDir('wast2wasm', opt),
+        indir=GetTortureDir('wat2wasm', opt),
         fails=RUN_KNOWN_TORTURE_FAILURES,
         attributes=common_attrs + ['d8'],
         extension='wasm',
@@ -1442,7 +1442,7 @@ def TestBare():
     ExecuteLLVMTorture(
         name='d8-musl',
         runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
-        indir=GetTortureDir('wast2wasm', opt),
+        indir=GetTortureDir('wat2wasm', opt),
         fails=RUN_KNOWN_TORTURE_FAILURES,
         attributes=['bare-musl', 'd8'],
         extension='wasm',
@@ -1455,7 +1455,7 @@ def TestBare():
       ExecuteLLVMTorture(
           name='jsc',
           runner=os.path.join(INSTALL_BIN, 'jsc'),
-          indir=GetTortureDir('wast2wasm', opt),
+          indir=GetTortureDir('wat2wasm', opt),
           fails=RUN_KNOWN_TORTURE_FAILURES,
           attributes=common_attrs + ['jsc'],
           extension='wasm',
@@ -1466,7 +1466,7 @@ def TestBare():
       ExecuteLLVMTorture(
           name='jsc-musl',
           runner=os.path.join(INSTALL_BIN, 'jsc'),
-          indir=GetTortureDir('wast2wasm', opt),
+          indir=GetTortureDir('wat2wasm', opt),
           fails=RUN_KNOWN_TORTURE_FAILURES,
           attributes=['bare-musl', 'jsc'],
           extension='wasm',
