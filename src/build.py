@@ -879,7 +879,8 @@ def V8():
   proc.check_call(['tools/run-tests.py', 'unittests', '--no-presubmit',
                    '--shell-dir', V8_OUT_DIR],
                   cwd=V8_SRC_DIR)
-  to_archive = [Executable('d8'), 'natives_blob.bin', 'snapshot_blob.bin']
+  to_archive = [Executable('d8'), 'natives_blob.bin', 'snapshot_blob.bin',
+                'icudtl.dat']
   for a in to_archive:
     CopyBinaryToArchive(os.path.join(V8_OUT_DIR, a))
 
