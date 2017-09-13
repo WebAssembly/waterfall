@@ -41,10 +41,13 @@ def execute(infile, outfile, extras):
   if basename == 'd8' or basename == 'jsc':
     config = basename + ('-wasm' if wasmjs else '-asm2wasm')
 
+  # TODO(sbc): Remove --no-wasm-async-compilation below once this bug is fixed:
+  # https://bugs.chromium.org/p/v8/issues/detail?id=6263
   commands = {
       'wasm-shell': [runner, '--entry=main', infile] + out_opt,
-      'd8-wasm': [runner] + wasmjs + ['--', infile] + extra_files,
-      'd8-asm2wasm': [runner, infile],
+      'd8-wasm': [runner, '--no-wasm-async-compilation'] + wasmjs + [
+          '--', infile] + extra_files,
+      'd8-asm2wasm': [runner, '--no-wasm-async-compilation', infile],
       'jsc-wasm': [runner, '--useWebAssembly=1'] + wasmjs + [
           '--', infile] + extra_files,
       'jsc-asm2wasm': [runner, '--useWebAssembly=1', infile],
