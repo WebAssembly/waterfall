@@ -41,8 +41,9 @@ def execute(infile, outfile, extras):
   if basename == 'd8' or basename == 'jsc':
     config = basename + ('-wasm' if wasmjs else '-asm2wasm')
 
-  # TODO(sbc): Remove --no-wasm-async-compilation below once this bug is fixed:
-  # https://bugs.chromium.org/p/v8/issues/detail?id=6263
+  # TODO(jgravelle): Remove --no-wasm-async-compilation by adding
+  # testRunner.waitUntilDone()/.notifyDone(), as used in V8's mjsunit.js:
+  # https://cs.chromium.org/chromium/src/v8/test/mjsunit/mjsunit.js
   commands = {
       'wasm-shell': [runner, '--entry=main', infile] + out_opt,
       'd8-wasm': [runner, '--no-wasm-async-compilation'] + wasmjs + [
