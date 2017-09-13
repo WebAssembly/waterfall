@@ -41,10 +41,14 @@ def execute(infile, outfile, extras):
   if basename == 'd8' or basename == 'jsc':
     config = basename + ('-wasm' if wasmjs else '-asm2wasm')
 
+  # TODO(jgravelle): Remove --no-wasm-async-compilation by adding
+  # testRunner.waitUntilDone()/.notifyDone(), as used in V8's mjsunit.js:
+  # https://cs.chromium.org/chromium/src/v8/test/mjsunit/mjsunit.js
   commands = {
       'wasm-shell': [runner, '--entry=main', infile] + out_opt,
-      'd8-wasm': [runner] + wasmjs + ['--', infile] + extra_files,
-      'd8-asm2wasm': [runner, infile],
+      'd8-wasm': [runner, '--no-wasm-async-compilation'] + wasmjs + [
+          '--', infile] + extra_files,
+      'd8-asm2wasm': [runner, '--no-wasm-async-compilation', infile],
       'jsc-wasm': [runner, '--useWebAssembly=1'] + wasmjs + [
           '--', infile] + extra_files,
       'jsc-asm2wasm': [runner, '--useWebAssembly=1', infile],
