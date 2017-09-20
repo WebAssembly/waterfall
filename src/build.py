@@ -862,7 +862,11 @@ def LLVM():
     else:
       return proc.check_call(cmd, **kwargs)
 
-  RunWithUnixUtils(['ninja', 'check-all'], cwd=LLVM_OUT_DIR, env=cc_env)
+  try:
+    buildbot.Step('LLVM regression tests')
+    RunWithUnixUtils(['ninja', 'check-all'], cwd=LLVM_OUT_DIR, env=cc_env)
+  except proc.CalledProcessError:
+    buildbot.FailUnless(lambda: IsWindows())
   proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
 
   CopyLLVMTools(LLVM_OUT_DIR)
@@ -1186,7 +1190,7 @@ def LinkLLVMTorture(name, linker, fails, indir, outdir, extension,
       out=outdir, args=args)
   UploadArchive('torture-%s-%s' % (name, opt), Archive(outdir))
   if 0 != unexpected_result_count:
-    buildbot.Fail()
+    buildbot.FailUnless(lambda: IsWindows() and 'lld' in name)
 
 
 def AssembleLLVMTorture(name, assembler, indir, outdir, fails, opt):
