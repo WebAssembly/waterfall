@@ -70,3 +70,10 @@ def WarnedList():
 
 def DidStepFailOrWarn(step):
   return step in failed_steps or step in warned_steps
+
+
+def FailUnless(predicate):
+  if predicate():
+    Warn()
+  else:
+    Fail()

@@ -862,7 +862,11 @@ def LLVM():
     else:
       return proc.check_call(cmd, **kwargs)
 
-  RunWithUnixUtils(['ninja', 'check-all'], cwd=LLVM_OUT_DIR, env=cc_env)
+  try:
+    buildbot.Step('LLVM regression tests')
+    RunWithUnixUtils(['ninja', 'check-all'], cwd=LLVM_OUT_DIR, env=cc_env)
+  except proc.CalledProcessError:
+    buildbot.FailUnless(lambda: IsWindows())
   proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
 
   CopyLLVMTools(LLVM_OUT_DIR)
@@ -1214,7 +1218,7 @@ def ExecuteLLVMTorture(name, runner, indir, fails, attributes, extension, opt,
   buildbot.Step('Execute LLVM Torture (%s, %s)' % (name, opt))
   if not indir:
     print 'Step skipped: no input'
-    buildbot.Fail(True)
+    buildbot.Warn()
     return None
   assert os.path.isfile(runner), 'Cannot find runner at %s' % runner
   files = os.path.join(indir, '*.%s' % extension)
@@ -1227,10 +1231,7 @@ def ExecuteLLVMTorture(name, runner, indir, fails, attributes, extension, opt,
       wasmjs=wasmjs,
       extra_files=extra_files)
   if 0 != unexpected_result_count:
-      if warn_only:
-        buildbot.Warn()
-      else:
-        buildbot.Fail()
+    buildbot.FailUnless(lambda: warn_only)
 
 
 class Build(object):
@@ -1529,10 +1530,7 @@ def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only):
          'binaryen2', '--em-config', config],
         cwd=outdir)
   except proc.CalledProcessError:
-    if warn_only:
-      buildbot.Warn()
-    else:
-      buildbot.Fail()
+    buildbot.FailUnless(lambda: warn_only)
 
 
 def TestEmtest():
