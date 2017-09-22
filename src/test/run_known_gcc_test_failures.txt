@@ -207,7 +207,6 @@ va-arg-6.c.s.wast.wasm bare-musl
 930622-2.c.s.wast.wasm O0
 960327-1.c.s.wast.wasm O0
 960513-1.c.s.wast.wasm O0
-960521-1.c.s.wast.wasm O0
 complex-6.c.s.wast.wasm O0
 conversion.c.s.wast.wasm O0
 medce-1.c.s.wast.wasm O0
@@ -408,7 +407,6 @@ vfprintf-chk-1.c.o.wasm lld-musl
 930622-2.c.o.wasm O0
 960327-1.c.o.wasm O0
 960513-1.c.o.wasm O0
-960521-1.c.o.wasm lld,O0
 complex-6.c.o.wasm O0
 conversion.c.o.wasm O0
 pr15262-1.c.o.wasm lld-musl,O0
