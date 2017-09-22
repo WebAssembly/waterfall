@@ -36,7 +36,7 @@ def create_outname(outdir, infile, extras):
 
 def run(c, cxx, testsuite, sysroot_dir, fails, out, config, opt):
   """Compile all torture tests."""
-  cflags_common = ['--std=gnu89', '-DSTACK_SIZE=1044480',
+  cflags_common = ['--std=gnu89', '-DSTACK_SIZE=524288',
                    '-w', '-Wno-implicit-function-declaration', '-' + opt]
   cflags_extra = {
       'wasm-s': ['--target=wasm32-unknown-unknown', '-S',
