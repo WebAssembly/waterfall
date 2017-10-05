@@ -944,8 +944,9 @@ def OCaml():
   makefile = os.path.join(OCAML_DIR, 'config', 'Makefile')
   if not os.path.isfile(makefile):
     configure = os.path.join(OCAML_DIR, 'configure')
-    cc_flag = ['-cc', CC,
-               '-aspp', CC + ' -c'] if sys.platform != 'darwin' else []
+    cc_flag = ['-cc', CC, '-aspp', CC + ' -c']
+    if sys.platform == 'darwin':
+      cc_flag = []
     proc.check_call(
         [configure, '-prefix', OCAML_OUT_DIR, '--no-ocamldoc'] + cc_flag,
         cwd=OCAML_DIR)
