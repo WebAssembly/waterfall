@@ -20,8 +20,9 @@
 import errno
 import os
 import shutil
-import subprocess
 import sys
+
+import proc
 
 
 def Chdir(path):
@@ -58,7 +59,7 @@ def Remove(path):
   if sys.platform == 'win32':
     # shutil.rmtree() may not work in Windows if a directory contains read-only
     # files.
-    subprocess.check_call('rmdir /S /Q "%s"' % path, shell=True)
+    proc.check_call('rmdir /S /Q "%s"' % path, shell=True)
   else:
     shutil.rmtree(path)
 
