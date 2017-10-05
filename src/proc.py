@@ -61,8 +61,10 @@ def SpecialCases(cmd, cwd):
 # Now we can override any parts of subprocess we want, while leaving the rest.
 def check_call(cmd, **kwargs):
   cwd = kwargs.get('cwd', os.getcwd())
-  cmd = SpecialCases(cmd, cwd)
-  c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
+  if isinstance(cmd, str):
+    c = cmd
+  else:
+    c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
   print 'subprocess.check_call(`%s`, cwd=`%s`)' % (c, cwd)
   sys.stdout.flush()
   try:
@@ -74,7 +76,10 @@ def check_call(cmd, **kwargs):
 def check_output(cmd, **kwargs):
   cwd = kwargs.get('cwd', os.getcwd())
   cmd = SpecialCases(cmd, cwd)
-  c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
+  if isinstance(cmd, str):
+    c = cmd
+  else:
+    c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
   print 'subprocess.check_output(`%s`, cwd=`%s`)' % (c, cwd)
   sys.stdout.flush()
   return subprocess.check_output(cmd, **kwargs)
