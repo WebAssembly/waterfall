@@ -50,17 +50,21 @@ def Mkdir(path):
 
 def Remove(path):
   """Remove file or directory if it exists, do nothing otherwise."""
-  if os.path.exists(path):
-    print 'Removing %s' % path
+  if not os.path.exists(path):
+    return
+  print 'Removing %s' % path
+  if sys.platform == 'win32':
+    # shutil.rmtree() may not work in Windows if a directory contains read-only
+    # files.
+    if os.path.isdir(path):
+      proc.check_call(['rmdir', '/S', '/Q', '"' + path + '"'])
+    else:
+      os.remove(path)
+  else:
     if os.path.isdir(path):
       shutil.rmtree(path)
     else:
       os.remove(path)
-
-  # shutil.rmtree() may not work in Windows if a directory contains read-only
-  # files.
-  if os.path.exists(path) and sys.platform == 'win32':
-    proc.check_call(['rmdir', '/S', '/Q', path])
 
 
 def CopyTree(src, dst):
