@@ -690,7 +690,7 @@ def Clobber():
   if os.environ.get('BUILDBOT_CLOBBER'):
     buildbot.Step('Clobbering work dir')
     if os.path.isdir(WORK_DIR):
-      shutil.rmtree(WORK_DIR)
+      Remove(WORK_DIR)
 
 
 class Filter(object):

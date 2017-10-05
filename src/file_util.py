@@ -20,6 +20,7 @@
 import errno
 import os
 import shutil
+import proc
 
 
 def Chdir(path):
@@ -53,6 +54,11 @@ def Remove(path):
       shutil.rmtree(path)
     else:
       os.remove(path)
+
+  # shutil.rmtree() may not work in Windows if a directory contains read-only
+  # files.
+  if os.path.exists(path) and sys.platform. == 'win32':
+    proc.check_call(['rmdir', '/S', '/Q', path])
 
 
 def CopyTree(src, dst):
