@@ -57,10 +57,11 @@ GCC_SRC_DIR = os.path.join(WORK_DIR, 'gcc')
 GCC_TEST_DIR = os.path.join(GCC_SRC_DIR, 'gcc', 'testsuite')
 
 V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
-
 JSC_SRC_DIR = os.path.join(WORK_DIR, 'jsc')
-
 WABT_SRC_DIR = os.path.join(WORK_DIR, 'wabt')
+
+OCAML_DIR = os.path.join(WORK_DIR, 'ocaml') # OCaml always does in-tree build
+OCAMLBUILD_DIR = os.path.join(WORK_DIR, 'ocamlbuild')
 
 SPEC_SRC_DIR = os.path.join(WORK_DIR, 'spec')
 ML_DIR = os.path.join(SPEC_SRC_DIR, 'interpreter')
@@ -83,6 +84,7 @@ LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out.gn', 'x64.release')
 JSC_OUT_DIR = os.path.join(JSC_SRC_DIR, 'current-release')
 WABT_OUT_DIR = os.path.join(WORK_DIR, 'wabt-out')
+OCAML_OUT_DIR = os.path.join(WORK_DIR, 'ocaml-out')
 BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
 FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
 MUSL_OUT_DIR = os.path.join(WORK_DIR, 'musl-out')
@@ -111,6 +113,7 @@ WASM_GIT_BASE = GITHUB_MIRROR_BASE + 'WebAssembly/'
 EMSCRIPTEN_GIT_BASE = GITHUB_MIRROR_BASE + 'kripken/'
 MUSL_GIT_BASE = 'https://github.com/jfbastien/'
 WEBKIT_GIT_BASE = 'https://github.com/WebKit/'
+OCAML_GIT_BASE = 'https://github.com/ocaml/'
 
 # TODO(sbc): Remove this once lld changes are upstream
 LLD_GIT_BASE = 'https://github.com/WebAssembly/'
@@ -122,13 +125,9 @@ WATERFALL_REMOTE = '_waterfall'
 
 WASM_STORAGE_BASE = 'https://wasm.storage.googleapis.com/'
 
-# Sync OCaml from a cached tar file because the upstream repository is only
-# http. The file untars into a directory of the same name as the tar file.
-OCAML_VERSION = 'ocaml-4.05.0'
-OCAML_TAR_NAME = OCAML_VERSION + '.tar.gz'
-OCAML_URL = WASM_STORAGE_BASE + OCAML_TAR_NAME
-OCAML_DIR = os.path.join(WORK_DIR, OCAML_VERSION)
-OCAML_OUT_DIR = os.path.join(WORK_DIR, 'ocaml-out')
+# These versions are the git tags to check out.
+OCAML_VERSION = '4.05.0'
+OCAMLBUILD_VERSION = '0.11.0'
 OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 
 GNUWIN32_DIR = os.path.join(WORK_DIR, 'gnuwin32')
@@ -414,7 +413,7 @@ class Source(object):
       proc.check_call(['git'] + clone)
 
     GitUpdateRemote(self.src_dir, self.git_repo, WATERFALL_REMOTE)
-    proc.check_call(['git', 'fetch', WATERFALL_REMOTE], cwd=self.src_dir)
+    proc.check_call(['git', 'fetch', '--tags', WATERFALL_REMOTE], cwd=self.src_dir)
     if not self.checkout.startswith(WATERFALL_REMOTE + '/'):
       sys.stderr.write(('WARNING: `git checkout %s` not based on waterfall '
                         'remote (%s), checking out local branch'
@@ -535,9 +534,6 @@ def SyncPrebuiltCMake(name, src_dir, git_repo):
     os.rename(contents_dir, PREBUILT_CMAKE_DIR)
 
 
-def SyncOCaml(name, src_dir, git_repo):
-  return SyncArchive(src_dir, 'OCaml', OCAML_VERSION, OCAML_URL)
-
 
 def SyncWindowsNode():
   if os.path.isfile(NODE_BIN):
@@ -627,8 +623,12 @@ ALL_SOURCES = [
            WASM_GIT_BASE + 'wabt.git'),
     Source('spec', SPEC_SRC_DIR,
            WASM_GIT_BASE + 'spec.git', no_windows=True),
-    Source('ocaml', OCAML_DIR, '',  # The git arg is ignored.
-           custom_sync=SyncOCaml, no_windows=True),
+    Source('ocaml', OCAML_DIR,
+           OCAML_GIT_BASE + 'ocaml.git',
+           checkout='refs/tags/' + OCAML_VERSION, no_windows=True),
+    Source('ocamlbuild', OCAMLBUILD_DIR,
+           OCAML_GIT_BASE + 'ocamlbuild.git',
+           checkout='refs/tags/' + OCAMLBUILD_VERSION, no_windows=True),
     Source('binaryen', BINARYEN_SRC_DIR,
            WASM_GIT_BASE + 'binaryen.git'),
     Source('musl', MUSL_SRC_DIR,
@@ -940,18 +940,27 @@ def Wabt():
 
 def OCaml():
   buildbot.Step('OCaml')
+  # Build the ocaml compiler and runtime
   makefile = os.path.join(OCAML_DIR, 'config', 'Makefile')
   if not os.path.isfile(makefile):
     configure = os.path.join(OCAML_DIR, 'configure')
-    cc_flag = ['-cc', CC, '-aspp', CC + ' -c'] if sys.platform != 'darwin' else []
+    cc_flag = ['-cc', CC,
+               '-aspp', CC + ' -c'] if sys.platform != 'darwin' else []
     proc.check_call(
         [configure, '-prefix', OCAML_OUT_DIR, '--no-ocamldoc'] + cc_flag,
         cwd=OCAML_DIR)
   proc.check_call(['make', 'world.opt', '-j%s' % NPROC], cwd=OCAML_DIR)
   proc.check_call(['make', 'install'], cwd=OCAML_DIR)
+  os.environ['PATH'] = OCAML_BIN_DIR + os.pathsep + os.environ['PATH']
+  # Build ocamlbuild
+  proc.check_call(
+      ['make', 'configure', 'OCAMLBUILD_PREFIX=' + OCAML_OUT_DIR],
+      cwd=OCAMLBUILD_DIR)
+  proc.check_call(['make', '-j%s' % NPROC], cwd=OCAMLBUILD_DIR)
+  proc.check_call(['make', 'install', 'CHECK_IF_PREINSTALLED=false'],
+                  cwd=OCAMLBUILD_DIR)
   ocamlbuild = os.path.join(OCAML_BIN_DIR, 'ocamlbuild')
   assert os.path.isfile(ocamlbuild), 'Expected installed %s' % ocamlbuild
-  os.environ['PATH'] = OCAML_BIN_DIR + os.pathsep + os.environ['PATH']
 
 
 def Spec():
