@@ -53,18 +53,15 @@ def Remove(path):
   if not os.path.exists(path):
     return
   print 'Removing %s' % path
+  if not os.path.isdir(path):
+    os.remove(path)
+    return
   if sys.platform == 'win32':
     # shutil.rmtree() may not work in Windows if a directory contains read-only
     # files.
-    if os.path.isdir(path):
-      proc.check_call(['rmdir', '/S', '/Q', '"' + path + '"'])
-    else:
-      os.remove(path)
+    proc.check_call(['rmdir', '/S', '/Q', '"' + path + '"'])
   else:
-    if os.path.isdir(path):
-      shutil.rmtree(path)
-    else:
-      os.remove(path)
+    shutil.rmtree(path)
 
 
 def CopyTree(src, dst):
