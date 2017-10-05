@@ -60,7 +60,7 @@ V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
 JSC_SRC_DIR = os.path.join(WORK_DIR, 'jsc')
 WABT_SRC_DIR = os.path.join(WORK_DIR, 'wabt')
 
-OCAML_DIR = os.path.join(WORK_DIR, 'ocaml') # OCaml always does in-tree build
+OCAML_DIR = os.path.join(WORK_DIR, 'ocaml')  # OCaml always does in-tree build
 OCAMLBUILD_DIR = os.path.join(WORK_DIR, 'ocamlbuild')
 
 SPEC_SRC_DIR = os.path.join(WORK_DIR, 'spec')
@@ -413,7 +413,8 @@ class Source(object):
       proc.check_call(['git'] + clone)
 
     GitUpdateRemote(self.src_dir, self.git_repo, WATERFALL_REMOTE)
-    proc.check_call(['git', 'fetch', '--tags', WATERFALL_REMOTE], cwd=self.src_dir)
+    proc.check_call(['git', 'fetch', '--tags', WATERFALL_REMOTE],
+                    cwd=self.src_dir)
     if not self.checkout.startswith(WATERFALL_REMOTE + '/'):
       sys.stderr.write(('WARNING: `git checkout %s` not based on waterfall '
                         'remote (%s), checking out local branch'
@@ -532,7 +533,6 @@ def SyncPrebuiltCMake(name, src_dir, git_repo):
       contents_dir = os.path.join(contents_dir, 'CMake.app', 'Contents')
 
     os.rename(contents_dir, PREBUILT_CMAKE_DIR)
-
 
 
 def SyncWindowsNode():
