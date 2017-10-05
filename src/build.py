@@ -124,7 +124,7 @@ WASM_STORAGE_BASE = 'https://wasm.storage.googleapis.com/'
 
 # Sync OCaml from a cached tar file because the upstream repository is only
 # http. The file untars into a directory of the same name as the tar file.
-OCAML_VERSION = 'ocaml-4.02.2'
+OCAML_VERSION = 'ocaml-4.05.0'
 OCAML_TAR_NAME = OCAML_VERSION + '.tar.gz'
 OCAML_URL = WASM_STORAGE_BASE + OCAML_TAR_NAME
 OCAML_DIR = os.path.join(WORK_DIR, OCAML_VERSION)
