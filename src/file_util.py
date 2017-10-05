@@ -20,6 +20,9 @@
 import errno
 import os
 import shutil
+import sys
+
+import proc
 
 
 def Chdir(path):
@@ -47,12 +50,18 @@ def Mkdir(path):
 
 def Remove(path):
   """Remove file or directory if it exists, do nothing otherwise."""
-  if os.path.exists(path):
-    print 'Removing %s' % path
-    if os.path.isdir(path):
-      shutil.rmtree(path)
-    else:
-      os.remove(path)
+  if not os.path.exists(path):
+    return
+  print 'Removing %s' % path
+  if not os.path.isdir(path):
+    os.remove(path)
+    return
+  if sys.platform == 'win32':
+    # shutil.rmtree() may not work in Windows if a directory contains read-only
+    # files.
+    proc.check_call(['rmdir', '/S', '/Q', '"' + path + '"'])
+  else:
+    shutil.rmtree(path)
 
 
 def CopyTree(src, dst):
