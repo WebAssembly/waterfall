@@ -1549,7 +1549,7 @@ def TestEmtest():
       'emwasm',
       EMSCRIPTEN_CONFIG_WASM,
       EMSCRIPTEN_TEST_OUT_DIR,
-      warn_only=True)
+      warn_only=False)
 
 
 def TestEmtestAsm2Wasm():
