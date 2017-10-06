@@ -13,4 +13,4 @@ medce-1.c.o O0
 20070614-1.c.o O0 # __mulsc3
 
 # Untriaged: Assertion `false && "Symbol not found in any segment"' failed
-pr23324.c O0
+pr23324.c.o O0
