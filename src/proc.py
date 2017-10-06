@@ -58,14 +58,18 @@ def SpecialCases(cmd, cwd):
   return cmd
 
 
-# Now we can override any parts of subprocess we want, while leaving the rest.
-def check_call(cmd, **kwargs):
-  cwd = kwargs.get('cwd', os.getcwd())
+def LogCall(funcname, cmd, cwd):
   if isinstance(cmd, str):
     c = cmd
   else:
     c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
-  print 'subprocess.check_call(`%s`, cwd=`%s`)' % (c, cwd)
+  print '%s(`%s`, cwd=`%s`)' % (funcname, c, cwd)
+
+
+# Now we can override any parts of subprocess we want, while leaving the rest.
+def check_call(cmd, **kwargs):
+  cwd = kwargs.get('cwd', os.getcwd())
+  LogCall('subprocess.check_call', cmd, cwd)
   sys.stdout.flush()
   try:
     subprocess.check_call(cmd, **kwargs)
@@ -76,10 +80,6 @@ def check_call(cmd, **kwargs):
 def check_output(cmd, **kwargs):
   cwd = kwargs.get('cwd', os.getcwd())
   cmd = SpecialCases(cmd, cwd)
-  if isinstance(cmd, str):
-    c = cmd
-  else:
-    c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
-  print 'subprocess.check_output(`%s`, cwd=`%s`)' % (c, cwd)
+  LogCall('subprocess.check_output', cmd, cwd)
   sys.stdout.flush()
   return subprocess.check_output(cmd, **kwargs)
