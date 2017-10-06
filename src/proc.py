@@ -69,6 +69,7 @@ def LogCall(funcname, cmd, cwd):
 # Now we can override any parts of subprocess we want, while leaving the rest.
 def check_call(cmd, **kwargs):
   cwd = kwargs.get('cwd', os.getcwd())
+  cmd = SpecialCases(cmd, cwd)
   LogCall('subprocess.check_call', cmd, cwd)
   sys.stdout.flush()
   try:
