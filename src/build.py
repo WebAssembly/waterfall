@@ -1049,28 +1049,18 @@ def Emscripten(use_asm=True):
     src_config = os.path.join(SCRIPT_DIR, os.path.basename(config))
     WriteEmscriptenConfig(src_config, config)
     try:
-      # Build a C++ file with each active emscripten config. This causes system
-      # libs to be built and cached (so we don't have that happen when building
-      # tests in parallel). Do it with full debug output.
+      # Use emscripten's embuilder to prebuild the system libraries.
       # This depends on binaryen already being built and installed into the
       # archive/install dir.
-      #os.environ['EMCC_DEBUG'] = '2'
       os.environ['EM_CONFIG'] = config
       proc.check_call([
           sys.executable, os.path.join(emscripten_dir, 'embuilder.py'),
           'build', 'SYSTEM'])
-          #'build', 'libc', 'libc-mt', 'dlmalloc', 'dlmalloc_threadsafe',
-          #'pthreads', 'libcxx', 'libcxx_noexcept', 'libcxxabi'
-      #proc.check_call([
-      #    Executable(os.path.join(emscripten_dir, 'em++'), '.bat'),
-      #    os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'hello_libcxx.cpp'),
-      #    '-O2', '-s', 'BINARYEN=1', '-s', 'BINARYEN_METHOD="native-wasm"'])
 
     except proc.CalledProcessError:
       # Note the failure but allow the build to continue.
       buildbot.Fail()
     finally:
-      #del os.environ['EMCC_DEBUG']
       del os.environ['EM_CONFIG']
 
   wrapper = os.path.join(SCRIPT_DIR, 'emcc_wrapper.sh')
