@@ -1058,7 +1058,7 @@ def Emscripten(use_asm=True):
       os.environ['EM_CONFIG'] = config
       proc.check_call([
           sys.executable, os.path.join(emscripten_dir, 'embuilder.py'),
-          'build', 'ALL'])
+          'build', 'SYSTEM'])
           #'build', 'libc', 'libc-mt', 'dlmalloc', 'dlmalloc_threadsafe',
           #'pthreads', 'libcxx', 'libcxx_noexcept', 'libcxxabi'
       #proc.check_call([
