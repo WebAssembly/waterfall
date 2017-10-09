@@ -1054,18 +1054,23 @@ def Emscripten(use_asm=True):
       # tests in parallel). Do it with full debug output.
       # This depends on binaryen already being built and installed into the
       # archive/install dir.
-      os.environ['EMCC_DEBUG'] = '2'
+      #os.environ['EMCC_DEBUG'] = '2'
       os.environ['EM_CONFIG'] = config
       proc.check_call([
-          Executable(os.path.join(emscripten_dir, 'em++'), '.bat'),
-          os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'hello_libcxx.cpp'),
-          '-O2', '-s', 'BINARYEN=1', '-s', 'BINARYEN_METHOD="native-wasm"'])
+          sys.executable, os.path.join(emscripten_dir, 'embuilder.py'),
+          'build', 'ALL'])
+          #'build', 'libc', 'libc-mt', 'dlmalloc', 'dlmalloc_threadsafe',
+          #'pthreads', 'libcxx', 'libcxx_noexcept', 'libcxxabi'
+      #proc.check_call([
+      #    Executable(os.path.join(emscripten_dir, 'em++'), '.bat'),
+      #    os.path.join(EMSCRIPTEN_SRC_DIR, 'tests', 'hello_libcxx.cpp'),
+      #    '-O2', '-s', 'BINARYEN=1', '-s', 'BINARYEN_METHOD="native-wasm"'])
 
     except proc.CalledProcessError:
       # Note the failure but allow the build to continue.
       buildbot.Fail()
     finally:
-      del os.environ['EMCC_DEBUG']
+      #del os.environ['EMCC_DEBUG']
       del os.environ['EM_CONFIG']
 
   wrapper = os.path.join(SCRIPT_DIR, 'emcc_wrapper.sh')
