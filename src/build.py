@@ -908,12 +908,12 @@ def Jsc():
     command.extend(host_toolchains.CmakeLauncherFlags())
 
     proc.check_call(command, cwd=JSC_OUT_DIR)
-    proc.check_call(['ninja', 'jsc', 'testmasm', 'testair', 'testb3'] + jobs,
-                      cwd=JSC_OUT_DIR)
+    proc.check_call(['ninja', 'jsc'] + jobs, cwd=JSC_OUT_DIR)
     proc.check_call(['../Tools/Scripts/run-javascriptcore-tests',
                      '--root=bin',
                      '--filter', 'wasm',
-                     '--no-build', '--no-testapi', '--fast'],
+                     '--no-build', '--no-testapi', '--no-testmasm',
+                     '--no-testb3', '--no-testair', '--fast'],
                     cwd=JSC_OUT_DIR)
     to_archive = [Executable(os.path.join('bin', 'jsc'))]
     for a in to_archive:
