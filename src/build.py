@@ -77,9 +77,6 @@ PREBUILT_CLANG_BIN = os.path.join(
 CC = os.path.join(PREBUILT_CLANG_BIN, 'clang')
 CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
 
-PREBUILT_CMAKE_DIR = os.path.join(WORK_DIR, 'cmake343')
-PREBUILT_CMAKE_BIN = os.path.join(PREBUILT_CMAKE_DIR, 'bin', 'cmake')
-
 LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out.gn', 'x64.release')
 JSC_OUT_DIR = os.path.join(JSC_SRC_DIR, 'current-release')
@@ -153,17 +150,36 @@ def Executable(name, extension='.exe'):
 def WindowsFSEscape(path):
   return os.path.normpath(path).replace('\\', '/')
 
-
-# Use prebuilt Node.js because the buildbots don't have node preinstalled
-NODE_VERSION = '7.0.0'
-NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
-
-
 def NodePlatformName():
   return {'darwin': 'darwin-x64',
           'linux2': 'linux-x64',
           'win32': 'win32'}[sys.platform]
 
+def CMakePlatformName():
+  return {'linux2': 'Linux',
+          'darwin': 'Darwin',
+          'win32': 'win32'}[sys.platform]
+
+def CMakeArch():
+  return 'x86' if IsWindows() else 'x86_64'
+
+def CMakeBinDir():
+  if IsMac():
+    return os.path.join('CMake.app', 'Contents', 'bin')
+  else:
+    return 'bin'
+
+
+# Use prebuilt Node.js because the buildbots don't have node preinstalled
+NODE_VERSION = '7.0.0'
+NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
+
+PREBUILT_CMAKE_VERSION = '3.4.3'
+PREBUILT_CMAKE_BASE_NAME = 'cmake-%s-%s-%s' % (PREBUILT_CMAKE_VERSION,
+                                               CMakePlatformName(),
+                                               CMakeArch())
+PREBUILT_CMAKE_DIR = os.path.join(WORK_DIR, PREBUILT_CMAKE_BASE_NAME)
+PREBUILT_CMAKE_BIN = os.path.join(PREBUILT_CMAKE_DIR, CMakeBinDir(), 'cmake')
 
 NODE_BIN = Executable(os.path.join(WORK_DIR,
                                    NODE_BASE_NAME + NodePlatformName(),
@@ -481,17 +497,26 @@ def SyncToolchain(name, src_dir, git_repo):
     assert os.path.isfile(CXX), 'Expect clang++ at %s' % CXX
 
 
-def SyncArchive(out_dir, name, version, url):
+def SyncArchive(out_dir, name, url):
   """Download and extract an archive (zip, tar.gz or tar.xz) file from a URL.
-     The extraction happens in WORK_DIR and the convention for our archives is
-     that they contain a top-level directory containing all the files; this
-     is expected to be 'out_dir', so if 'out_dir' already exists then download
-     will be skipped.
+
+  The extraction happens in WORK_DIR and the convention for our archives is
+  that they contain a top-level directory containing all the files; this
+  is expected to be 'out_dir', so if 'out_dir' already exists then download
+  will be skipped.
   """
+
+  stamp_file = os.path.join(out_dir, 'stamp.txt')
   if os.path.isdir(out_dir):
-    print '%s directory already exists' % name
-    return
-  print 'Downloading %s %s from %s' % (name, version, url)
+    if os.path.exists(stamp_file):
+      with open(stamp_file) as f:
+        stamp_url = f.read().strip()
+      if stamp_url == url:
+        print '%s directory already exists' % name
+        return
+    print '%s directory exists but is not up-to-date' % name
+  print 'Downloading %s from %s' % (name, url)
+
   try:
     f = urllib2.urlopen(url)
     print 'URL: %s' % f.geturl()
@@ -513,26 +538,14 @@ def SyncArchive(out_dir, name, version, url):
     print 'Error downloading %s: %s' % (url, e)
     raise
 
+  with open(stamp_file, 'w') as f:
+    f.write(url + '\n')
+
 
 def SyncPrebuiltCMake(name, src_dir, git_repo):
-  if os.path.isdir(PREBUILT_CMAKE_DIR):
-    print 'Prebuilt CMake directory already exists'
-  else:
-    platform = {'linux2': 'Linux',
-                'darwin': 'Darwin',
-                'win32': 'win32'}[sys.platform]
-    arch = 'x86' if IsWindows() else 'x86_64'
-    extension = '.zip' if IsWindows() else '.tar.gz'
-    file_base = 'cmake-3.4.3-%s-%s' % (platform, arch)
-    url = WASM_STORAGE_BASE + file_base + extension
-
-    SyncArchive(PREBUILT_CMAKE_DIR, 'CMake', '3.4.3', url)
-
-    contents_dir = os.path.join(WORK_DIR, file_base)
-    if IsMac():
-      contents_dir = os.path.join(contents_dir, 'CMake.app', 'Contents')
-
-    os.rename(contents_dir, PREBUILT_CMAKE_DIR)
+  extension = '.zip' if IsWindows() else '.tar.gz'
+  url = WASM_STORAGE_BASE + PREBUILT_CMAKE_BASE_NAME + extension
+  SyncArchive(PREBUILT_CMAKE_DIR, 'cmake', url)
 
 
 def SyncWindowsNode():
@@ -561,7 +574,7 @@ def SyncPrebuiltNodeJS(name, src_dir, git_repo):
   out_dir = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName())
   tarball = NODE_BASE_NAME + NodePlatformName() + '.tar.' + extension
   node_url = WASM_STORAGE_BASE + tarball
-  return SyncArchive(out_dir, name, NODE_VERSION, node_url)
+  return SyncArchive(out_dir, name, node_url)
 
 
 # Utilities needed for running LLVM regression tests on Windows
@@ -569,7 +582,7 @@ def SyncGNUWin32(name, src_dir, git_repo):
   if not IsWindows():
     return
   url = WASM_STORAGE_BASE + GNUWIN32_ZIP
-  return SyncArchive(GNUWIN32_DIR, name, '1', url)
+  return SyncArchive(GNUWIN32_DIR, name, url)
 
 
 def NoSync(*args):
