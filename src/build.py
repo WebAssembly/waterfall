@@ -898,7 +898,7 @@ def V8():
   proc.check_call(['ninja', '-v', '-C', V8_OUT_DIR, 'd8', 'unittests'] + jobs,
                   cwd=V8_SRC_DIR)
   proc.check_call(['tools/run-tests.py', 'unittests', '--no-presubmit',
-                   '--shell-dir', V8_OUT_DIR],
+                   '--outdir', V8_OUT_DIR],
                   cwd=V8_SRC_DIR)
   # Copy the V8 blobs as well as the ICU data file for timezone data.
   # icudtl.dat is the little-endian version, which goes with x64.
