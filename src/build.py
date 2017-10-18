@@ -150,18 +150,22 @@ def Executable(name, extension='.exe'):
 def WindowsFSEscape(path):
   return os.path.normpath(path).replace('\\', '/')
 
+
 def NodePlatformName():
   return {'darwin': 'darwin-x64',
           'linux2': 'linux-x64',
           'win32': 'win32'}[sys.platform]
+
 
 def CMakePlatformName():
   return {'linux2': 'Linux',
           'darwin': 'Darwin',
           'win32': 'win32'}[sys.platform]
 
+
 def CMakeArch():
   return 'x86' if IsWindows() else 'x86_64'
+
 
 def CMakeBinDir():
   if IsMac():
