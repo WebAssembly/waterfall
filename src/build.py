@@ -508,7 +508,7 @@ def SyncArchive(out_dir, name, url):
 
   stamp_file = os.path.join(out_dir, 'stamp.txt')
   if os.path.isdir(out_dir):
-    if os.path.exists(stamp_file):
+    if os.path.isfile(stamp_file):
       with open(stamp_file) as f:
         stamp_url = f.read().strip()
       if stamp_url == url:
