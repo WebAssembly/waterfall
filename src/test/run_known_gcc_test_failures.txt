@@ -411,3 +411,8 @@ pr15262-1.c.o.wasm lld-musl,O0
 pr23135.c.o.wasm O0
 pr33142.c.o.wasm lld,O0
 pr42614.c.o.wasm O0
+
+# Clang optimizing loop into infinite loop for -O2
+930529-1.c.s.wast.wasm O2
+930529-1.c.o.wasm O2
+930529-1.c.js emwasm,O3 # asm2wasm uses different clang
