@@ -162,6 +162,7 @@ va-arg-22.c.s.wast.wasm # abort()
 va-arg-22.c.js emwasm # abort()
 va-arg-6.c.js emwasm # abort()
 
+930529-1.c.s.wast.wasm O2 # timeout
 
 ### Failures specific to hacky-linking musl (aka bare-musl)
 
@@ -411,3 +412,5 @@ pr15262-1.c.o.wasm lld-musl,O0
 pr23135.c.o.wasm O0
 pr33142.c.o.wasm lld,O0
 pr42614.c.o.wasm O0
+
+930529-1.c.o.wasm O2 # timeout
