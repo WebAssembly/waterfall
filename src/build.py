@@ -872,6 +872,8 @@ def LLVM():
 
   proc.check_call(command, cwd=LLVM_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', '-v'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
+  CopyLLVMTools(LLVM_OUT_DIR)
 
   def RunWithUnixUtils(cmd, **kwargs):
     if IsWindows():
@@ -884,9 +886,6 @@ def LLVM():
     RunWithUnixUtils(['ninja', 'check-all'], cwd=LLVM_OUT_DIR, env=cc_env)
   except proc.CalledProcessError:
     buildbot.FailUnless(lambda: IsWindows())
-  proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
-
-  CopyLLVMTools(LLVM_OUT_DIR)
 
 
 def V8():
