@@ -19,6 +19,7 @@ import json
 import os
 
 import file_util
+import multiprocessing
 import proc
 
 WORK_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'work')
@@ -116,6 +117,10 @@ def CmakeLauncherFlags():
     flags.extend(['-DCMAKE_%s_COMPILER_LAUNCHER=%s' %
                   (c, compiler_launcher) for c in ['C', 'CXX']])
   return flags
+
+
+def MakeJobs():
+  return ['-j', multiprocessing.cpu_count()]
 
 
 def NinjaJobs():
