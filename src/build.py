@@ -1102,9 +1102,10 @@ def CompilerRT():
              '-DCMAKE_C_COMPILER_TARGET=wasm32-unknown-unknown-wasm',
              '-DCMAKE_C_COMPILER_WORKS=On',
              '-DCOMPILER_RT_DEFAULT_TARGET_ONLY=On',
-             '-DLLVM_CONFIG_PATH=' + os.path.join(INSTALL_DIR, 'bin', 'llvm-config'),
+             '-DLLVM_CONFIG_PATH=' +
+             os.path.join(INSTALL_DIR, 'bin', 'llvm-config'),
              '-DCMAKE_INSTALL_PREFIX=' +
-                 os.path.join(INSTALL_DIR, 'lib', 'clang', '6.0.0')]
+             os.path.join(INSTALL_DIR, 'lib', 'clang', '6.0.0')]
 
   proc.check_call(command, cwd=COMPILER_RT_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', '-v'], cwd=COMPILER_RT_OUT_DIR, env=cc_env)
