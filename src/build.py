@@ -47,7 +47,7 @@ WORK_DIR = os.path.join(SCRIPT_DIR, 'work')
 LLVM_SRC_DIR = os.path.join(WORK_DIR, 'llvm')
 CLANG_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'clang')
 LLD_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'lld')
-COMPILER_RT_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'projects', 'compiler-rt')
+COMPILER_RT_SRC_DIR = os.path.join(WORK_DIR, 'compiler-rt')
 LLVM_TEST_SUITE_SRC_DIR = os.path.join(WORK_DIR, 'llvm-test-suite')
 
 EMSCRIPTEN_SRC_DIR = os.path.join(WORK_DIR, 'emscripten')
@@ -85,6 +85,7 @@ OCAML_OUT_DIR = os.path.join(WORK_DIR, 'ocaml-out')
 BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
 FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
 MUSL_OUT_DIR = os.path.join(WORK_DIR, 'musl-out')
+COMPILER_RT_OUT_DIR = os.path.join(WORK_DIR, 'compiler-rt-out')
 TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
 TORTURE_O_OUT_DIR = os.path.join(WORK_DIR, 'torture-o')
 ASM2WASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'asm2wasm-torture-out')
@@ -1087,6 +1088,29 @@ def Emscripten(use_asm=True):
   shutil.copy2(wrapper, os.path.join(INSTALL_BIN, 'emmake'))
 
 
+def CompilerRT():
+  # TODO(sbc): Figure out hot to do this step as part of the llvm build.
+  # I suspect that this can be done using the llvm/runtimes directory but
+  # have yet to make it actually work this way.
+  buildbot.Step('compiler-rt')
+  Mkdir(COMPILER_RT_OUT_DIR)
+  cc_env = BuildEnv(COMPILER_RT_SRC_DIR, bin_subdir=True)
+  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja',
+             os.path.join(COMPILER_RT_SRC_DIR, 'lib', 'builtins'),
+             '-DCOMPILER_RT_BAREMETAL_BUILD=On',
+             '-DCMAKE_C_COMPILER=' + os.path.join(INSTALL_BIN, 'clang'),
+             '-DCMAKE_C_COMPILER_TARGET=wasm32-unknown-unknown-wasm',
+             '-DCMAKE_C_COMPILER_WORKS=On',
+             '-DCOMPILER_RT_DEFAULT_TARGET_ONLY=On',
+             '-DLLVM_CONFIG_PATH=' + os.path.join(INSTALL_DIR, 'bin', 'llvm-config'),
+             '-DCMAKE_INSTALL_PREFIX=' +
+                 os.path.join(INSTALL_DIR, 'lib', 'clang', '6.0.0')]
+
+  proc.check_call(command, cwd=COMPILER_RT_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', '-v'], cwd=COMPILER_RT_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', 'install'], cwd=COMPILER_RT_OUT_DIR, env=cc_env)
+
+
 def Musl():
   buildbot.Step('musl')
   Mkdir(MUSL_OUT_DIR)
@@ -1327,6 +1351,7 @@ def AllBuilds(use_asm=False):
       Build('fastcomp', Fastcomp),
       Build('emscripten', Emscripten, use_asm=use_asm),
       # Target libs
+      Build('compiler-rt', CompilerRT),
       Build('musl', Musl),
       # Archive
       Build('archive', ArchiveBinaries),
