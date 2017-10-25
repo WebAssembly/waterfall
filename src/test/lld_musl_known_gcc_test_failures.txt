@@ -14,3 +14,4 @@ medce-1.c.o O0
 
 # Untriaged: Assertion `false && "Symbol not found in any segment"' failed
 pr23324.c.o O0
+pr42570.c.o
