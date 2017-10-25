@@ -1352,8 +1352,7 @@ def AllBuilds(use_asm=False):
       Build('fastcomp', Fastcomp),
       Build('emscripten', Emscripten, use_asm=use_asm),
       # Target libs
-      # TODO(sbc): Figure out why this was failing on the bots and re-enable
-      # Build('compiler-rt', CompilerRT),
+      Build('compiler-rt', CompilerRT),
       Build('musl', Musl),
       # Archive
       Build('archive', ArchiveBinaries),
