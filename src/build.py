@@ -131,6 +131,7 @@ OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 GNUWIN32_DIR = os.path.join(WORK_DIR, 'gnuwin32')
 GNUWIN32_ZIP = 'gnuwin32.zip'
 
+options = None
 
 def IsWindows():
   return sys.platform == 'win32'
@@ -843,7 +844,7 @@ def BuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
   return cc_env
 
 
-def LLVM(run_tests):
+def LLVM():
   buildbot.Step('LLVM')
   Mkdir(LLVM_OUT_DIR)
   cc_env = BuildEnv(LLVM_OUT_DIR, bin_subdir=True)
@@ -876,7 +877,7 @@ def LLVM(run_tests):
   proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
   CopyLLVMTools(LLVM_OUT_DIR)
 
-  if not run_tests:
+  if not options.run_tool_tests:
     return
 
   def RunWithUnixUtils(cmd, **kwargs):
@@ -892,7 +893,7 @@ def LLVM(run_tests):
     buildbot.FailUnless(lambda: IsWindows())
 
 
-def V8(run_tests):
+def V8():
   buildbot.Step('V8')
   proc.check_call([os.path.join(V8_SRC_DIR, 'tools', 'dev', 'v8gen.py'),
                    'x64.release'],
@@ -900,7 +901,7 @@ def V8(run_tests):
   jobs = host_toolchains.NinjaJobs()
   proc.check_call(['ninja', '-v', '-C', V8_OUT_DIR, 'd8', 'unittests'] + jobs,
                   cwd=V8_SRC_DIR)
-  if run_tests:
+  if options.run_tool_tests:
     proc.check_call(['tools/run-tests.py', 'unittests', '--no-presubmit',
                      '--shell-dir', V8_OUT_DIR],
                     cwd=V8_SRC_DIR)
@@ -946,7 +947,7 @@ def Jsc():
     buildbot.Warn()
 
 
-def Wabt(run_tests):
+def Wabt():
   buildbot.Step('WABT')
   Mkdir(WABT_OUT_DIR)
   cc_env = BuildEnv(WABT_OUT_DIR)
@@ -959,7 +960,7 @@ def Wabt(run_tests):
   proc.check_call(['ninja'], cwd=WABT_OUT_DIR, env=cc_env)
   # TODO(sbc): git submodules are not yet fetched so we can't yet endable
   # wabt tests.
-  # if run_tests:
+  # if options.run_tool_tests:
   #   proc.check_call(['ninja', 'run-tests'], cwd=WABT_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=WABT_OUT_DIR, env=cc_env)
 
@@ -990,13 +991,13 @@ def OCaml():
   assert os.path.isfile(ocamlbuild), 'Expected installed %s' % ocamlbuild
 
 
-def Spec(run_tests):
+def Spec():
   buildbot.Step('spec')
   os.environ['PATH'] = OCAML_BIN_DIR + os.pathsep + os.environ['PATH']
   # Spec builds in-tree. Always clobber.
   proc.check_call(['make', 'clean'], cwd=ML_DIR)
   proc.check_call(['make', 'opt'], cwd=ML_DIR)
-  if run_tests:
+  if options.run_tool_tests:
     proc.check_call(['make', 'test'], cwd=ML_DIR)
   wasm = os.path.join(ML_DIR, 'wasm')
   CopyBinaryToArchive(wasm)
@@ -1350,15 +1351,15 @@ def Summary(repos):
       buildbot.Link('lkgr.json', cloud.Upload(info_file, lkgr_file))
 
 
-def AllBuilds(use_asm=False, run_tests=False):
+def AllBuilds(use_asm=False):
   return [
       # Host tools
-      Build('llvm', LLVM, run_tests=run_tests),
-      Build('v8', V8, run_tests=run_tests),
+      Build('llvm', LLVM),
+      Build('v8', V8),
       Build('jsc', Jsc, no_windows=True, no_linux=True),
-      Build('wabt', Wabt, run_tests=run_tests),
+      Build('wabt', Wabt),
       Build('ocaml', OCaml, no_windows=True),
-      Build('spec', Spec, no_windows=True, run_tests=run_tests),
+      Build('spec', Spec, no_windows=True),
       Build('binaryen', Binaryen),
       Build('fastcomp', Fastcomp),
       Build('emscripten', Emscripten, use_asm=use_asm),
@@ -1371,8 +1372,8 @@ def AllBuilds(use_asm=False, run_tests=False):
   ]
 
 
-def BuildRepos(filter, use_asm, run_tests):
-  for rule in filter.Apply(AllBuilds(use_asm, run_tests)):
+def BuildRepos(filter, use_asm):
+  for rule in filter.Apply(AllBuilds(use_asm)):
     rule.Run()
 
 
@@ -1702,7 +1703,7 @@ def ParseArgs():
   return parser.parse_args()
 
 
-def run(sync_filter, build_filter, test_filter, options):
+def run(sync_filter, build_filter, test_filter):
   if options.git_status:
     for s in ALL_SOURCES:
       s.PrintGitStatus()
@@ -1729,8 +1730,7 @@ def run(sync_filter, build_filter, test_filter, options):
 
   try:
     BuildRepos(build_filter,
-               test_filter.Check('asm') or test_filter.Check('emtest-asm'),
-               options.run_tool_tests)
+               test_filter.Check('asm') or test_filter.Check('emtest-asm'))
   except Exception:
     # If any exception reaches here, do not attempt to run the tests; just
     # log the error for buildbot and exit
@@ -1750,6 +1750,7 @@ def run(sync_filter, build_filter, test_filter, options):
 
 
 def main():
+  global options
   start = time.time()
   options = ParseArgs()
 
@@ -1768,7 +1769,7 @@ def main():
     del os.environ['PYTHONPATH']
 
   try:
-    ret = run(sync_filter, build_filter, test_filter, options)
+    ret = run(sync_filter, build_filter, test_filter)
     print 'Completed in {}s'.format(time.time() - start)
     return ret
   except:
