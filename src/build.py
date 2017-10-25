@@ -131,6 +131,8 @@ OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 GNUWIN32_DIR = os.path.join(WORK_DIR, 'gnuwin32')
 GNUWIN32_ZIP = 'gnuwin32.zip'
 
+options = None
+
 
 def IsWindows():
   return sys.platform == 'win32'
@@ -876,6 +878,9 @@ def LLVM():
   proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
   CopyLLVMTools(LLVM_OUT_DIR)
 
+  if not options.run_tool_tests:
+    return
+
   def RunWithUnixUtils(cmd, **kwargs):
     if IsWindows():
       return proc.check_call(['git', 'bash'] + cmd, **kwargs)
@@ -897,9 +902,10 @@ def V8():
   jobs = host_toolchains.NinjaJobs()
   proc.check_call(['ninja', '-v', '-C', V8_OUT_DIR, 'd8', 'unittests'] + jobs,
                   cwd=V8_SRC_DIR)
-  proc.check_call(['tools/run-tests.py', 'unittests', '--no-presubmit',
-                   '--outdir', V8_OUT_DIR],
-                  cwd=V8_SRC_DIR)
+  if options.run_tool_tests:
+    proc.check_call(['tools/run-tests.py', 'unittests', '--no-presubmit',
+                     '--shell-dir', V8_OUT_DIR],
+                    cwd=V8_SRC_DIR)
   # Copy the V8 blobs as well as the ICU data file for timezone data.
   # icudtl.dat is the little-endian version, which goes with x64.
   to_archive = [Executable('d8'), 'natives_blob.bin', 'snapshot_blob.bin',
@@ -953,6 +959,10 @@ def Wabt():
                    '-DBUILD_TESTS=OFF'] + OverrideCMakeCompiler(),
                   cwd=WABT_OUT_DIR, env=cc_env)
   proc.check_call(['ninja'], cwd=WABT_OUT_DIR, env=cc_env)
+  # TODO(sbc): git submodules are not yet fetched so we can't yet endable
+  # wabt tests.
+  # if options.run_tool_tests:
+  #   proc.check_call(['ninja', 'run-tests'], cwd=WABT_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=WABT_OUT_DIR, env=cc_env)
 
 
@@ -984,9 +994,12 @@ def OCaml():
 
 def Spec():
   buildbot.Step('spec')
-  # Spec builds in-tree. Always clobber and run the tests.
+  os.environ['PATH'] = OCAML_BIN_DIR + os.pathsep + os.environ['PATH']
+  # Spec builds in-tree. Always clobber.
   proc.check_call(['make', 'clean'], cwd=ML_DIR)
-  proc.check_call(['make', 'all'], cwd=ML_DIR)
+  proc.check_call(['make', 'opt'], cwd=ML_DIR)
+  if options.run_tool_tests:
+    proc.check_call(['make', 'test'], cwd=ML_DIR)
   wasm = os.path.join(ML_DIR, 'wasm')
   CopyBinaryToArchive(wasm)
 
@@ -1034,7 +1047,7 @@ def Fastcomp():
   CopyLLVMTools(FASTCOMP_OUT_DIR, 'fastcomp')
 
 
-def Emscripten(use_asm=True):
+def Emscripten(use_asm):
   buildbot.Step('emscripten')
   # Remove cached library builds (e.g. libc, libc++) to force them to be
   # rebuilt in the step below.
@@ -1360,7 +1373,7 @@ def AllBuilds(use_asm=False):
   ]
 
 
-def BuildRepos(filter, use_asm=False):
+def BuildRepos(filter, use_asm):
   for rule in filter.Apply(AllBuilds(use_asm)):
     rule.Run()
 
@@ -1681,6 +1694,9 @@ def ParseArgs():
       help='Include only the comma-separated list of test targets')
 
   parser.add_argument(
+      '--no-tool-tests', dest='run_tool_tests', action='store_false',
+      help='Skip the testing of tools (such tools llvm, wabt, v8, spec)')
+  parser.add_argument(
       '--git-status', dest='git_status', default=False, action='store_true',
       help='Show git status for each sync target. '
            "Doesn't sync, build, or test")
@@ -1688,7 +1704,7 @@ def ParseArgs():
   return parser.parse_args()
 
 
-def run(sync_filter, build_filter, test_filter, options):
+def run(sync_filter, build_filter, test_filter):
   if options.git_status:
     for s in ALL_SOURCES:
       s.PrintGitStatus()
@@ -1735,6 +1751,7 @@ def run(sync_filter, build_filter, test_filter, options):
 
 
 def main():
+  global options
   start = time.time()
   options = ParseArgs()
 
@@ -1753,7 +1770,7 @@ def main():
     del os.environ['PYTHONPATH']
 
   try:
-    ret = run(sync_filter, build_filter, test_filter, options)
+    ret = run(sync_filter, build_filter, test_filter)
     print 'Completed in {}s'.format(time.time() - start)
     return ret
   except:
