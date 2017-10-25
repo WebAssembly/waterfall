@@ -133,6 +133,7 @@ GNUWIN32_ZIP = 'gnuwin32.zip'
 
 options = None
 
+
 def IsWindows():
   return sys.platform == 'win32'
 
