@@ -22,3 +22,4 @@ pr58831.c.o O0 # __assert_fail
 
 # Untriaged: Assertion `false && "Symbol not found in any segment"' failed
 pr23324.c.o O0
+pr42570.c.o
