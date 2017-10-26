@@ -1115,6 +1115,7 @@ def CompilerRT():
              '-DCMAKE_C_COMPILER_TARGET=wasm32-unknown-unknown-wasm',
              '-DCMAKE_C_COMPILER_WORKS=On',
              '-DCOMPILER_RT_DEFAULT_TARGET_ONLY=On',
+             '-DCOMPILER_RT_OS_DIR=.',
              '-DLLVM_CONFIG_PATH=' +
              os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config'),
              '-DCMAKE_INSTALL_PREFIX=' +
@@ -1132,14 +1133,25 @@ def Musl():
   try:
     cc_env = BuildEnv(MUSL_OUT_DIR, use_gnuwin32=True)
     # Build musl directly to wasm object files in an ar library
-    proc.check_call([
-        os.path.join(MUSL_SRC_DIR, 'libc.py'),
-        '--clang_dir', INSTALL_BIN,
-        '--binaryen_dir', os.path.join(INSTALL_BIN),
-        '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wat2wasm'),
-        '--out', os.path.join(MUSL_OUT_DIR, 'libc.a'),
-        '--musl', MUSL_SRC_DIR, '--compile-to-wasm'], env=cc_env)
-    CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'libc.a'))
+    jobs = host_toolchains.NinjaJobs()
+    with open(os.path.join(MUSL_SRC_DIR, 'config.mak'), 'w') as f:
+      f.write('sysroot=%s\n' % INSTALL_SYSROOT)
+      f.write('prefix=$(sysroot)\n')
+      f.write('exec_prefix=$(sysroot)\n')
+      f.write('ARCH=wasm32\n')
+      f.write('CC=%s\n' % os.path.join(INSTALL_BIN, 'clang'))
+      f.write('AR=%s\n' % os.path.join(INSTALL_BIN, 'llvm-ar'))
+      f.write('RANLIB=%s\n' % os.path.join(INSTALL_BIN, 'llvm-ranlib'))
+      f.write(
+          'CFLAGS=-target wasm32-unknown-unknown-wasm --sysroot=$(sysroot)\n')
+    # musl makefile doesn't include header dependencies so we need to do
+    # clean build each time
+    proc.check_call(['make', 'clean'], cwd=MUSL_SRC_DIR, env=cc_env)
+    proc.check_call(['make'] + jobs, cwd=MUSL_SRC_DIR, env=cc_env)
+
+    # Make install probably won't run on windows
+    # proc.check_call(['make', 'install'], cwd=MUSL_SRC_DIR, env=cc_env)
+    CopyLibraryToSysroot(os.path.join(MUSL_SRC_DIR, 'lib', 'libc.a'))
 
     # Build musl via s2wasm as single wasm file.
     proc.check_call([
