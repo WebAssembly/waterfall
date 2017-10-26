@@ -22,6 +22,10 @@ import sys
 
 import testing
 
+# For debugging purposes set this to a source file name to test just a single
+# file.
+TEST_FILTER = None
+
 
 def c_compile(infile, outfile, extras):
   """Create the command-line for a C compiler invocation."""
@@ -67,7 +71,9 @@ def run(c, cxx, testsuite, sysroot_dir, fails, out, config, opt):
   assert os.path.isdir(c_torture), ('Cannot find C torture tests at %s' %
                                     c_torture)
   assert os.path.isdir(out), 'Cannot find outdir %s' % out
-  c_test_files = glob.glob(os.path.join(c_torture, '*c'))
+  c_test_files = glob.glob(os.path.join(c_torture, '*.c'))
+  if TEST_FILTER:
+    c_test_files = [f for f in c_test_files if os.path.basename(f) in TEST_FILTER]
   cflags = cflags_common + cflags_extra[config]
 
   result = testing.execute(

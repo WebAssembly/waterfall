@@ -1128,7 +1128,6 @@ def CompilerRT():
 def Musl():
   buildbot.Step('musl')
   Mkdir(MUSL_OUT_DIR)
-  path = os.environ['PATH']
   try:
     cc_env = BuildEnv(MUSL_OUT_DIR, use_gnuwin32=True)
     # Build musl directly to wasm object files in an ar library
@@ -1140,6 +1139,7 @@ def Musl():
         '--out', os.path.join(MUSL_OUT_DIR, 'libc.a'),
         '--musl', MUSL_SRC_DIR, '--compile-to-wasm'], env=cc_env)
     CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'libc.a'))
+    CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'crt1.o'))
 
     # Build musl via s2wasm as single wasm file.
     proc.check_call([
@@ -1162,8 +1162,6 @@ def Musl():
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
     buildbot.Fail()
-  finally:
-    os.environ['PATH'] = path
 
 
 def ArchiveBinaries():
