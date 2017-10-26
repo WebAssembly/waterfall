@@ -254,7 +254,6 @@ vprintf-chk-1.c.js O3
 # All these failures also occur with s2wasm linked binaries
 20020406-1.c.o.wasm
 920501-8.c.o.wasm
-complex-5.c.o.wasm
 pr56982.c.o.wasm
 struct-ret-1.c.o.wasm
 va-arg-21.c.o.wasm # vprintf
@@ -275,8 +274,6 @@ vprintf-chk-1.c.o.wasm O2
 960405-1.c.o.wasm
 align-2.c.o.wasm
 complex-7.c.o.wasm
-pr49218.c.o.wasm
-pr54471.c.o.wasm
 regstack-1.c.o.wasm
 stdarg-1.c.o.wasm
 stdarg-2.c.o.wasm

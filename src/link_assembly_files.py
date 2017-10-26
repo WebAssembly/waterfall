@@ -27,7 +27,7 @@ def create_outname(outdir, infile, extras):
   """Create the output file's name."""
   basename = os.path.basename(infile)
   linker = os.path.splitext(os.path.basename(extras['linker']))[0]
-  if linker == 'lld':
+  if linker == 'clang':
     outname = basename + '.wasm'
   else:
     outname = basename + '.wast'
@@ -39,11 +39,12 @@ def link(infile, outfile, extras):
   linker = extras['linker']
   basename = os.path.splitext(os.path.basename(linker))[0]
   install_root = os.path.dirname(os.path.dirname(linker))
-  symfile = os.path.join(install_root, 'sysroot', 'lib', 'wasm.syms')
+  sysroot_dir = os.path.join(install_root, 'sysroot')
   commands = {
-      'lld': [linker, '-flavor', 'wasm', '-z', 'stack-size=1048576',
-              '-entry=main', '--allow-undefined-file=' + symfile, '-o',
-              outfile, infile],
+      'clang': [linker, '--target=wasm32-unknown-unknown',
+                '--sysroot=%s' % sysroot_dir,
+                '-Wl,-z', '-Wl,stack-size=1048576',
+              '-Wl,-entry=main', '-o', outfile, infile],
       's2wasm': [linker, '--allocate-stack', '1048576', '-o', outfile, infile],
   }
   return commands[basename] + extras['args']
