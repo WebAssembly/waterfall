@@ -371,25 +371,20 @@ strct-stdarg-1.c.o.wasm
 strct-varg-1.c.o.wasm
 va-arg-22.c.o.wasm
 
-# failures that only occur without musl
-pr58419.c.o.wasm lld
+960521-1.c.o.wasm
+20000914-1.c.o.wasm
+20051113-1.c.o.wasm
+941014-2.c.o.wasm
+990628-1.c.o.wasm
+fprintf-1.c.o.wasm
+fprintf-chk-1.c.o.wasm
+pr41395-1.c.o.wasm
+pr41395-2.c.o.wasm
+pr41463.c.o.wasm
+vfprintf-1.c.o.wasm
+vfprintf-chk-1.c.o.wasm
 
-# failures that only occur with musl
-960521-1.c.o.wasm lld-musl
-20000914-1.c.o.wasm lld-musl
-20051113-1.c.o.wasm lld-musl
-941014-2.c.o.wasm lld-musl
-990628-1.c.o.wasm lld-musl
-fprintf-1.c.o.wasm lld-musl
-fprintf-chk-1.c.o.wasm lld-musl
-pr41395-1.c.o.wasm lld-musl
-pr41395-2.c.o.wasm lld-musl
-pr41463.c.o.wasm lld-musl
-vfprintf-1.c.o.wasm lld-musl
-vfprintf-chk-1.c.o.wasm lld-musl
-
-# Untriaged lld/lld-musl O0 failures
-20000112-1.c.o.wasm lld,O0
+# Untriaged lld O0 failures
 20010605-2.c.o.wasm O0
 20021127-1.c.o.wasm O0
 20030626-1.c.o.wasm O0
@@ -399,17 +394,15 @@ vfprintf-chk-1.c.o.wasm lld-musl
 20040208-1.c.o.wasm O0
 20040709-1.c.o.wasm O0
 20040709-2.c.o.wasm O0
-20041126-1.c.o.wasm lld,O0
 20050121-1.c.o.wasm O0
-920810-1.c.o.wasm lld-musl,O0
+920810-1.c.o.wasm O0
 930622-2.c.o.wasm O0
 960327-1.c.o.wasm O0
 960513-1.c.o.wasm O0
 complex-6.c.o.wasm O0
 conversion.c.o.wasm O0
-pr15262-1.c.o.wasm lld-musl,O0
+pr15262-1.c.o.wasm O0
 pr23135.c.o.wasm O0
-pr33142.c.o.wasm lld,O0
 pr42614.c.o.wasm O0
 
 # Clang optimizing loop into infinite loop for -O2

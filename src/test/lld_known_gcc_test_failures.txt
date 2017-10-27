@@ -1,12 +1,5 @@
 # Expected failures from using lld to link on clang-generated .o files generated
-# from the GCC torture tests.
-
-# undefined symbol: stdout
-fprintf-1.c.o
-fprintf-chk-1.c.o
-gofast.c.o
-vfprintf-1.c.o
-vfprintf-chk-1.c.o
+# from the GCC torture tests, and linked with the musl libc.a
 
 # undefined symbol: bar
 # This seems to be clang bug because it occurs for native clang too.
@@ -18,4 +11,3 @@ medce-1.c.o O0
 
 # Untriaged: undefined symbol
 20070614-1.c.o O0 # __mulsc3
-pr58831.c.o O0 # __assert_fail

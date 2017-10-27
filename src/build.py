@@ -211,8 +211,6 @@ S2WASM_KNOWN_TORTURE_FAILURES = [os.path.join(BINARYEN_SRC_DIR, 'test',
                                               's2wasm_' + IT_IS_KNOWN)]
 LLD_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
                               'lld_' + IT_IS_KNOWN)]
-LLD_MUSL_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
-                                   'lld_musl_' + IT_IS_KNOWN)]
 BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = [
     os.path.join(BINARYEN_SRC_DIR, 'test',
                  's2wasm_known_binaryen_shell_test_failures.txt')]
@@ -1416,23 +1414,14 @@ def TestBare():
   libc = os.path.join(INSTALL_SYSROOT, 'lib', 'libc.a')
   for opt in BARE_TEST_OPT_FLAGS:
     LinkLLVMTorture(
-        name='lld-musl',
-        linker=Executable(os.path.join(INSTALL_BIN, 'lld')),
-        fails=LLD_MUSL_KNOWN_TORTURE_FAILURES,
-        indir=GetTortureDir('o', opt),
-        outdir=GetTortureDir('lld-musl', opt),
-        extension='o',
-        opt=opt,
-        args=[libc])
-  for opt in BARE_TEST_OPT_FLAGS:
-    LinkLLVMTorture(
         name='lld',
         linker=Executable(os.path.join(INSTALL_BIN, 'lld')),
         fails=LLD_KNOWN_TORTURE_FAILURES,
         indir=GetTortureDir('o', opt),
         outdir=GetTortureDir('lld', opt),
         extension='o',
-        opt=opt)
+        opt=opt,
+        args=[libc])
   for opt in BARE_TEST_OPT_FLAGS:
     LinkLLVMTorture(
         name='s2wasm',
@@ -1461,16 +1450,6 @@ def TestBare():
         indir=GetTortureDir('lld', opt),
         fails=RUN_KNOWN_TORTURE_FAILURES,
         attributes=common_attrs + ['d8', 'lld'],
-        extension='wasm',
-        opt=opt,
-        wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
-  for opt in BARE_TEST_OPT_FLAGS:
-    ExecuteLLVMTorture(
-        name='d8-lld-musl',
-        runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
-        indir=GetTortureDir('lld-musl', opt),
-        fails=RUN_KNOWN_TORTURE_FAILURES,
-        attributes=common_attrs + ['d8', 'lld-musl'],
         extension='wasm',
         opt=opt,
         wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
