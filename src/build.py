@@ -1111,6 +1111,8 @@ def CompilerRT():
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja',
              os.path.join(COMPILER_RT_SRC_DIR, 'lib', 'builtins'),
              '-DCOMPILER_RT_BAREMETAL_BUILD=On',
+             '-DCMAKE_AR=' + os.path.join(INSTALL_BIN, 'llvm-ar'),
+             '-DCMAKE_RANLIB=' + os.path.join(INSTALL_BIN, 'llvm-ranlib'),
              '-DCMAKE_C_COMPILER=' + os.path.join(INSTALL_BIN, 'clang'),
              '-DCMAKE_C_COMPILER_TARGET=wasm32-unknown-unknown-wasm',
              '-DCMAKE_C_COMPILER_WORKS=On',
