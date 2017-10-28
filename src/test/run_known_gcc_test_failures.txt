@@ -203,7 +203,6 @@ va-arg-6.c.s.wast.wasm bare-musl
 20040709-2.c.s.wast.wasm O0
 20041126-1.c.s.wast.wasm O0
 20050121-1.c.s.wast.wasm O0
-20070614-1.c.s.wast.wasm O0
 930622-2.c.s.wast.wasm O0
 960327-1.c.s.wast.wasm O0
 960513-1.c.s.wast.wasm O0
@@ -282,29 +281,19 @@ vprintf-chk-1.c.js O3
 # printf or other libc feature missing
 # All these failures also occur with s2wasm linked binaries
 20020406-1.c.o.wasm
-20021120-3.c.o.wasm
-20070201-1.c.o.wasm
-20121108-1.c.o.wasm
 920501-8.c.o.wasm
-920501-9.c.o.wasm
-920726-1.c.o.wasm
-980605-1.c.o.wasm
 complex-5.c.o.wasm
-ipa-sra-2.c.o.wasm
-loop-2f.c.o.wasm
-loop-2g.c.o.wasm
-pr34456.c.o.wasm
 pr56982.c.o.wasm
-printf-1.c.o.wasm
-printf-chk-1.c.o.wasm
 struct-ret-1.c.o.wasm
 va-arg-21.c.o.wasm # vprintf
-vprintf-1.c.o.wasm # vprintf
-vprintf-chk-1.c.o.wasm # vprintf
 930513-1.c.o.wasm
 builtin-bitops-1.c.o.wasm
 pr39228.c.o.wasm
 pr47237.c.o.wasm
+
+printf-1.c.o.wasm O2
+printf-chk-1.c.o.wasm O2
+vprintf-chk-1.c.o.wasm O2
 
 # TypeError: invalid type
 # All these failures also occur with s2wasm linked binaries
@@ -376,19 +365,15 @@ va-arg-22.c.o.wasm
 20051113-1.c.o.wasm
 941014-2.c.o.wasm
 990628-1.c.o.wasm
-fprintf-1.c.o.wasm
-fprintf-chk-1.c.o.wasm
+fprintf-chk-1.c.o.wasm O2
+vfprintf-chk-1.c.o.wasm O2
 pr41395-1.c.o.wasm
 pr41395-2.c.o.wasm
 pr41463.c.o.wasm
-vfprintf-1.c.o.wasm
-vfprintf-chk-1.c.o.wasm
 
 # Untriaged lld O0 failures
 20010605-2.c.o.wasm O0
 20021127-1.c.o.wasm O0
-20030626-1.c.o.wasm O0
-20030626-2.c.o.wasm O0
 20030914-1.c.o.wasm O0
 20031003-1.c.o.wasm O0
 20040208-1.c.o.wasm O0
@@ -397,13 +382,11 @@ vfprintf-chk-1.c.o.wasm
 20050121-1.c.o.wasm O0
 920810-1.c.o.wasm O0
 930622-2.c.o.wasm O0
-960327-1.c.o.wasm O0
 960513-1.c.o.wasm O0
 complex-6.c.o.wasm O0
 conversion.c.o.wasm O0
 pr15262-1.c.o.wasm O0
 pr23135.c.o.wasm O0
-pr42614.c.o.wasm O0
 
 # Clang optimizing loop into infinite loop for -O2
 930529-1.c.s.wast.wasm O2
