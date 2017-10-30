@@ -392,6 +392,7 @@ unlink
 usleep
 vfork
 write
+__syscall
 __syscall0
 __syscall1
 __syscall2
@@ -400,3 +401,4 @@ __syscall4
 __syscall5
 __syscall6
 __syscall_cp
+__unordtf2
