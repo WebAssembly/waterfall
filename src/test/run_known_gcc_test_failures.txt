@@ -388,6 +388,15 @@ conversion.c.o.wasm O0
 pr15262-1.c.o.wasm O0
 pr23135.c.o.wasm O0
 
+# Not yet implemented: __lock
+20021120-3.c.o.wasm
+920501-9.c.o.wasm
+920726-1.c.o.wasm
+960327-1.c.o.wasm O0
+980605-1.c.o.wasm
+gofast.c.o.wasm
+va-arg-24.c.o.wasm
+
 # Clang optimizing loop into infinite loop for -O2
 930529-1.c.s.wast.wasm O2
 930529-1.c.o.wasm O2
