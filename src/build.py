@@ -1151,9 +1151,15 @@ def Musl():
     for f in ['musl.wast', 'musl.wasm']:
       CopyLibraryToArchive(os.path.join(MUSL_OUT_DIR, f))
 
-    CopyLibraryToArchive(os.path.join(MUSL_SRC_DIR,
-                                      'arch', 'wasm32', 'wasm.js'))
-    CopyLibraryToSysroot(os.path.join(SCRIPT_DIR, 'wasm.syms'))
+    wasm_js = os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32', 'wasm.js')
+    CopyLibraryToArchive(wasm_js)
+
+    # Execute wasm.js to generate undefined symbols list
+    syms = proc.check_output([os.path.join(INSTALL_BIN, 'd8'),
+                              wasm_js, '--', '--dump-ffi-symbols'])
+    with open(os.path.join(INSTALL_SYSROOT, 'lib', 'wasm.syms'), 'w') as f:
+      f.write(syms)
+
     CopyTree(os.path.join(MUSL_SRC_DIR, 'include'),
              os.path.join(INSTALL_SYSROOT, 'include'))
     CopyTree(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32'),
