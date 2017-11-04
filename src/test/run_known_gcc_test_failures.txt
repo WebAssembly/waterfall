@@ -191,7 +191,6 @@ va-arg-5.c.s.wast.wasm bare-musl
 va-arg-6.c.s.wast.wasm bare-musl
 
 # Untriaged bare/bare-musl O0 failures
-20000112-1.c.s.wast.wasm O0
 20010605-2.c.s.wast.wasm O0
 20021127-1.c.s.wast.wasm O0
 20030626-1.c.s.wast.wasm O0
