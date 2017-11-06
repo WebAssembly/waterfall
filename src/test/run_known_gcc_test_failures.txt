@@ -51,31 +51,31 @@
 # See wasm.js for the list of libc functions which are missing.
 # The right place to put libc functionality would really be libc anyways.
 20020406-1.c.s.wast.wasm # printf
-20021120-3.c.s.wast.wasm bare # sprintf
-20070201-1.c.s.wast.wasm bare # sprintf
+20021120-3.c.s.wast.wasm # sprintf
+20070201-1.c.s.wast.wasm # sprintf
 20101011-1.c.s.wast.wasm # signal
 20101011-1.c.js # signal
-20121108-1.c.s.wast.wasm bare # printf
-920501-8.c.s.wast.wasm bare # sprintf
-920501-9.c.s.wast.wasm bare # sprintf
+20121108-1.c.s.wast.wasm # printf
+920501-8.c.s.wast.wasm # sprintf
+920501-9.c.s.wast.wasm # sprintf
 930513-1.c.s.wast.wasm # sprintf
-920726-1.c.s.wast.wasm bare # sprintf
-980605-1.c.s.wast.wasm bare # sprintf
+920726-1.c.s.wast.wasm # sprintf
+980605-1.c.s.wast.wasm # sprintf
 builtin-bitops-1.c.s.wast.wasm # __builtin_clrsb
 builtin-bitops-1.c.js # __builtin_clrsb
-complex-5.c.s.wast.wasm bare # __divsc3
+complex-5.c.s.wast.wasm # __divsc3
 ipa-sra-2.c.s.wast.wasm # free
-loop-2f.c.s.wast.wasm bare # mmap addr 2147450880
-loop-2g.c.s.wast.wasm bare # mmap addr 2147450880
+loop-2f.c.s.wast.wasm # mmap addr 2147450880
+loop-2g.c.s.wast.wasm # mmap addr 2147450880
 pr34456.c.s.wast.wasm # qsort
 pr47237.c.s.wast.wasm # __builtin_apply_args
 pr47237.c.js # __builtin_apply_args
-pr56982.c.s.wast.wasm bare # _setjmp
+pr56982.c.s.wast.wasm # _setjmp
 printf-1.c.s.wast.wasm # printf
 printf-chk-1.c.s.wast.wasm # vprintf
-pr39228.c.s.wast.wasm bare # isinfl
+pr39228.c.s.wast.wasm # isinfl
 pr39228.c.js #  __builtin_isinff/isinfl
-struct-ret-1.c.s.wast.wasm bare # sprintf
+struct-ret-1.c.s.wast.wasm # sprintf
 va-arg-21.c.s.wast.wasm # vprintf
 vprintf-1.c.s.wast.wasm # vprintf
 vprintf-chk-1.c.s.wast.wasm # vprintf
@@ -91,18 +91,18 @@ vfprintf-chk-1.c.s.wast.wasm
 # These compiler-rt functions are for long doubles. Also NYI.
 # TODO: These probably need re-triage, as not all of them are link failures.
 20020413-1.c.s.wast.wasm  # __lttf2
-20080502-1.c.s.wast.wasm bare # __eqtf2
+20080502-1.c.s.wast.wasm # __eqtf2
 960215-1.c.s.wast.wasm # __addtf3
 960405-1.c.s.wast.wasm  # __eqtf2
 align-2.c.s.wast.wasm # __eqtf2
-complex-7.c.s.wast.wasm bare # __netf2
+complex-7.c.s.wast.wasm # __netf2
 pr49218.c.s.wast.wasm  # __fixsfti
 pr54471.c.s.wast.wasm  # __multi3
 regstack-1.c.s.wast.wasm # __addtf3
-stdarg-1.c.s.wast.wasm bare  # __netf2
+stdarg-1.c.s.wast.wasm # __netf2
 stdarg-2.c.s.wast.wasm # __floatsitf
-va-arg-5.c.s.wast.wasm bare  # __eqtf2
-va-arg-6.c.s.wast.wasm bare  # __eqtf2
+va-arg-5.c.s.wast.wasm # __eqtf2
+va-arg-6.c.s.wast.wasm # __eqtf2
 
 # Trying to import function 'bar'. The test is likely wrong.
 va-arg-pack-1.c.s.wast.wasm
@@ -162,33 +162,6 @@ va-arg-22.c.s.wast.wasm # abort()
 va-arg-22.c.js emwasm # abort()
 va-arg-6.c.js emwasm # abort()
 
-
-### Failures specific to hacky-linking musl (aka bare-musl)
-
-# Unknown exception: memory access out of bounds. There is a suspcious amount
-# of overlap here with the list above of functions missing sprintf and friends.
-# Probably the code or linking is bad in this case.
-# TODO: re-triage these too
-20021120-3.c.s.wast.wasm bare-musl
-20070201-1.c.s.wast.wasm bare-musl
-20080502-1.c.s.wast.wasm bare-musl
-20121108-1.c.s.wast.wasm bare-musl
-920501-8.c.s.wast.wasm bare-musl
-920501-9.c.s.wast.wasm bare-musl
-920726-1.c.s.wast.wasm bare-musl
-980605-1.c.s.wast.wasm bare-musl
-complex-5.c.s.wast.wasm bare-musl
-pr56982.c.s.wast.wasm bare-musl
-struct-ret-1.c.s.wast.wasm bare-musl
-
-# TypeError
-complex-7.c.s.wast.wasm bare-musl
-loop-2f.c.s.wast.wasm bare-musl
-loop-2g.c.s.wast.wasm bare-musl
-pr39228.c.s.wast.wasm bare-musl # isinfl
-stdarg-1.c.s.wast.wasm bare-musl
-va-arg-5.c.s.wast.wasm bare-musl
-va-arg-6.c.s.wast.wasm bare-musl
 
 # Untriaged bare/bare-musl O0 failures
 20010605-2.c.s.wast.wasm O0

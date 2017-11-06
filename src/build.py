@@ -1491,17 +1491,6 @@ def TestBare():
         extension='wasm',
         opt=opt,
         wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
-  for opt in BARE_TEST_OPT_FLAGS:
-    ExecuteLLVMTorture(
-        name='d8-musl',
-        runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
-        indir=GetTortureDir('wat2wasm', opt),
-        fails=RUN_KNOWN_TORTURE_FAILURES,
-        attributes=['bare-musl', 'd8'],
-        extension='wasm',
-        opt=opt,
-        wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
-        extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
 
   if IsMac() and not buildbot.DidStepFailOrWarn('JSC'):
     for opt in BARE_TEST_OPT_FLAGS:
@@ -1515,18 +1504,6 @@ def TestBare():
           opt=opt,
           warn_only=True,
           wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
-    for opt in BARE_TEST_OPT_FLAGS:
-      ExecuteLLVMTorture(
-          name='jsc-musl',
-          runner=os.path.join(INSTALL_BIN, 'jsc'),
-          indir=GetTortureDir('wat2wasm', opt),
-          fails=RUN_KNOWN_TORTURE_FAILURES,
-          attributes=['bare-musl', 'jsc'],
-          extension='wasm',
-          opt=opt,
-          warn_only=True,
-          wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'),
-          extra_files=[os.path.join(INSTALL_LIB, 'musl.wasm')])
 
 
 def TestAsm():
