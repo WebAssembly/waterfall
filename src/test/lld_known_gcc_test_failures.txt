@@ -8,8 +8,3 @@ va-arg-pack-1.c.o
 # undefined symbol: link_error
 # Don't care. The test case is faulty. link_error() does not exist.
 medce-1.c.o O0
-
-# lld crash: https://github.com/WebAssembly/lld/issues/12
-20020108-1.c.o
-20040709-1.c.o
-20040709-2.c.o
