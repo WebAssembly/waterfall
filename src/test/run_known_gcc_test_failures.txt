@@ -268,16 +268,8 @@ vprintf-chk-1.c.o.wasm O2
 
 # TypeError: invalid type
 # All these failures also occur with s2wasm linked binaries
-20020413-1.c.o.wasm
-20080502-1.c.o.wasm
-960215-1.c.o.wasm
-960405-1.c.o.wasm
-align-2.c.o.wasm
-complex-7.c.o.wasm
-regstack-1.c.o.wasm
 stdarg-1.c.o.wasm
 stdarg-2.c.o.wasm
-va-arg-5.c.o.wasm
 va-arg-6.c.o.wasm
 
 # Don't care/won't fix:
@@ -341,19 +333,9 @@ pr41395-2.c.o.wasm
 pr41463.c.o.wasm
 
 # Untriaged lld O0 failures
-20010605-2.c.o.wasm O0
 20021127-1.c.o.wasm O0
-20030914-1.c.o.wasm O0
 20031003-1.c.o.wasm O0
-20040208-1.c.o.wasm O0
-20040709-1.c.o.wasm O0
-20040709-2.c.o.wasm O0
-20050121-1.c.o.wasm O0
 920810-1.c.o.wasm O0
-930622-2.c.o.wasm O0
-960513-1.c.o.wasm O0
-complex-6.c.o.wasm O0
-conversion.c.o.wasm O0
 pr15262-1.c.o.wasm O0
 pr23135.c.o.wasm O0
 
