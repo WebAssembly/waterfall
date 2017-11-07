@@ -1117,6 +1117,7 @@ def CompilerRT():
              '-DCOMPILER_RT_DEFAULT_TARGET_ONLY=On',
              '-DLLVM_CONFIG_PATH=' +
              os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config'),
+             '-DCOMPILER_RT_OS_DIR=.',
              '-DCMAKE_INSTALL_PREFIX=' +
              os.path.join(INSTALL_DIR, 'lib', 'clang', '6.0.0')]
 
