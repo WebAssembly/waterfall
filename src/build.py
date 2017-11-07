@@ -1140,6 +1140,7 @@ def Musl():
         '--out', os.path.join(MUSL_OUT_DIR, 'libc.a'),
         '--musl', MUSL_SRC_DIR, '--compile-to-wasm'], env=cc_env)
     CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'libc.a'))
+    CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'crt1.o'))
 
     # Build musl via s2wasm as single wasm file.
     proc.check_call([
