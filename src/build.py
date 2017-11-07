@@ -1417,17 +1417,15 @@ def TestBare():
     CompileLLVMTorture('o', GetTortureDir('o', opt), opt)
 
   # Link/Assemble
-  libc = os.path.join(INSTALL_SYSROOT, 'lib', 'libc.a')
   for opt in BARE_TEST_OPT_FLAGS:
     LinkLLVMTorture(
         name='lld',
-        linker=Executable(os.path.join(INSTALL_BIN, 'lld')),
+        linker=Executable(os.path.join(INSTALL_BIN, 'clang')),
         fails=LLD_KNOWN_TORTURE_FAILURES,
         indir=GetTortureDir('o', opt),
         outdir=GetTortureDir('lld', opt),
         extension='o',
-        opt=opt,
-        args=[libc])
+        opt=opt)
   for opt in BARE_TEST_OPT_FLAGS:
     LinkLLVMTorture(
         name='s2wasm',
