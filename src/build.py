@@ -1100,10 +1100,17 @@ def Emscripten(use_asm):
 
 
 def CompilerRT():
-  # TODO(sbc): Figure out hot to do this step as part of the llvm build.
+  # TODO(sbc): Figure out how to do this step as part of the llvm build.
   # I suspect that this can be done using the llvm/runtimes directory but
   # have yet to make it actually work this way.
   buildbot.Step('compiler-rt')
+
+  # TODO(sbc): Remove this.
+  # The compiler-rt doesn't currently rebuild libraries when a new -DCMAKE_AR
+  # value is specified.
+  if os.path.isdir(COMPILER_RT_OUT_DIR):
+    Remove(COMPILER_RT_OUT_DIR)
+
   Mkdir(COMPILER_RT_OUT_DIR)
   cc_env = BuildEnv(COMPILER_RT_SRC_DIR, bin_subdir=True)
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja',
