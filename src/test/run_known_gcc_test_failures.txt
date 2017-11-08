@@ -283,15 +283,6 @@ eeprof-1.c.o.wasm # tests -finstrument-functions
 
 ### Failures specific to lld-linked binaries
 
-# Invalid module: Expected 0 elements on the stack for fallthru
-# Seems to be a bug in the backend: https://bugs.llvm.org/show_bug.cgi?id=34317
-20001009-2.c.o.wasm O2
-960312-1.c.o.wasm O2
-pr40022.c.o.wasm O2
-pr40657.c.o.wasm O2
-pr53645-2.c.o.wasm O2
-pr53645.c.o.wasm O2
-
 # Invalid module: call[7] expected type i64, found get_local of type i32
 # Fails at compile time for s2wasm version
 pr44942.c.o.wasm
