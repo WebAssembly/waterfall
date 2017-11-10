@@ -1115,16 +1115,14 @@ def CompilerRT():
   cc_env = BuildEnv(COMPILER_RT_SRC_DIR, bin_subdir=True)
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja',
              os.path.join(COMPILER_RT_SRC_DIR, 'lib', 'builtins'),
-             '-DCMAKE_TOOLCHAIN_FILE=' + os.path.join(SCRIPT_DIR, 'wasm_standalone.cmake'),
+             '-DCMAKE_TOOLCHAIN_FILE=' + os.path.join(INSTALL_DIR, 'wasm_standalone.cmake'),
+             # TODO(dschuff): why doesn't setting CMAKE_AR in the toolchain file work?
+             '-DCMAKE_AR=' + os.path.join(INSTALL_BIN, 'llvm-ar'),
+             '-DCMAKE_RANLIB=' + os.path.join(INSTALL_BIN, 'llvm-ranlib'),
              '-DCOMPILER_RT_BAREMETAL_BUILD=On',
              '-DCOMPILER_RT_BUILD_XRAY=OFF',
              '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
              '-DCOMPILER_RT_ENABLE_IOS=OFF',
-             '-DCMAKE_AR=' + os.path.join(INSTALL_BIN, 'llvm-ar'),
-             '-DCMAKE_RANLIB=' + os.path.join(INSTALL_BIN, 'llvm-ranlib'),
-             '-DCMAKE_C_COMPILER=' + os.path.join(INSTALL_BIN, 'clang'),
-             '-DCMAKE_C_COMPILER_TARGET=wasm32-unknown-unknown-wasm',
-             '-DCMAKE_C_COMPILER_WORKS=On',
              '-DCOMPILER_RT_DEFAULT_TARGET_ONLY=On',
              '-DLLVM_CONFIG_PATH=' +
              os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config'),
@@ -1175,7 +1173,7 @@ def Musl():
              os.path.join(INSTALL_SYSROOT, 'include'))
     # Strictly speaking the CMake toolchain file isn't part of musl, but it does
     # go along with the headers and libs musl installs
-    shutil.copy2(os.path.join(SCRIPT_DIR, 'wasm_standalone.cmake'), INSTALL_SYSROOT)
+    shutil.copy2(os.path.join(SCRIPT_DIR, 'wasm_standalone.cmake'), INSTALL_DIR)
 
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
