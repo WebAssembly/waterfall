@@ -47,7 +47,7 @@ WORK_DIR = os.path.join(SCRIPT_DIR, 'work')
 LLVM_SRC_DIR = os.path.join(WORK_DIR, 'llvm')
 CLANG_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'clang')
 LLD_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'lld')
-COMPILER_RT_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'projects', 'compiler-rt')
+COMPILER_RT_SRC_DIR = os.path.join(WORK_DIR, 'compiler-rt')
 LLVM_TEST_SUITE_SRC_DIR = os.path.join(WORK_DIR, 'llvm-test-suite')
 
 EMSCRIPTEN_SRC_DIR = os.path.join(WORK_DIR, 'emscripten')
