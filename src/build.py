@@ -1115,8 +1115,9 @@ def CompilerRT():
   cc_env = BuildEnv(COMPILER_RT_SRC_DIR, bin_subdir=True)
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja',
              os.path.join(COMPILER_RT_SRC_DIR, 'lib', 'builtins'),
-             '-DCMAKE_TOOLCHAIN_FILE=' + os.path.join(INSTALL_DIR, 'wasm_standalone.cmake'),
-             # TODO(dschuff): why doesn't setting CMAKE_AR in the toolchain file work?
+             '-DCMAKE_TOOLCHAIN_FILE=' +
+             os.path.join(INSTALL_DIR, 'wasm_standalone.cmake'),
+             # TODO: why doesn't setting CMAKE_AR in the toolchain file work?
              '-DCMAKE_AR=' + os.path.join(INSTALL_BIN, 'llvm-ar'),
              '-DCMAKE_RANLIB=' + os.path.join(INSTALL_BIN, 'llvm-ranlib'),
              '-DCOMPILER_RT_BAREMETAL_BUILD=On',
@@ -1171,9 +1172,10 @@ def Musl():
              os.path.join(INSTALL_SYSROOT, 'include'))
     CopyTree(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32'),
              os.path.join(INSTALL_SYSROOT, 'include'))
-    # Strictly speaking the CMake toolchain file isn't part of musl, but it does
+    # Strictly speaking the CMake toolchain file isn't part of musl, but does
     # go along with the headers and libs musl installs
-    shutil.copy2(os.path.join(SCRIPT_DIR, 'wasm_standalone.cmake'), INSTALL_DIR)
+    shutil.copy2(os.path.join(SCRIPT_DIR, 'wasm_standalone.cmake'),
+                 INSTALL_DIR)
 
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
