@@ -1115,12 +1115,15 @@ def CompilerRT():
   cc_env = BuildEnv(COMPILER_RT_SRC_DIR, bin_subdir=True)
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja',
              os.path.join(COMPILER_RT_SRC_DIR, 'lib', 'builtins'),
-             '-DCOMPILER_RT_BAREMETAL_BUILD=On',
+             '-DCMAKE_TOOLCHAIN_FILE=' +
+             os.path.join(INSTALL_DIR, 'wasm_standalone.cmake'),
+             # TODO: why doesn't setting CMAKE_AR in the toolchain file work?
              '-DCMAKE_AR=' + os.path.join(INSTALL_BIN, 'llvm-ar'),
              '-DCMAKE_RANLIB=' + os.path.join(INSTALL_BIN, 'llvm-ranlib'),
-             '-DCMAKE_C_COMPILER=' + os.path.join(INSTALL_BIN, 'clang'),
-             '-DCMAKE_C_COMPILER_TARGET=wasm32-unknown-unknown-wasm',
-             '-DCMAKE_C_COMPILER_WORKS=On',
+             '-DCOMPILER_RT_BAREMETAL_BUILD=On',
+             '-DCOMPILER_RT_BUILD_XRAY=OFF',
+             '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
+             '-DCOMPILER_RT_ENABLE_IOS=OFF',
              '-DCOMPILER_RT_DEFAULT_TARGET_ONLY=On',
              '-DLLVM_CONFIG_PATH=' +
              os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config'),
@@ -1169,6 +1172,10 @@ def Musl():
              os.path.join(INSTALL_SYSROOT, 'include'))
     CopyTree(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32'),
              os.path.join(INSTALL_SYSROOT, 'include'))
+    # Strictly speaking the CMake toolchain file isn't part of musl, but does
+    # go along with the headers and libs musl installs
+    shutil.copy2(os.path.join(SCRIPT_DIR, 'wasm_standalone.cmake'),
+                 INSTALL_DIR)
 
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
@@ -1376,8 +1383,8 @@ def AllBuilds(use_asm=False):
       Build('fastcomp', Fastcomp),
       Build('emscripten', Emscripten, use_asm=use_asm),
       # Target libs
-      Build('compiler-rt', CompilerRT),
       Build('musl', Musl),
+      Build('compiler-rt', CompilerRT),
       # Archive
       Build('archive', ArchiveBinaries),
       Build('debian', DebianPackage),
