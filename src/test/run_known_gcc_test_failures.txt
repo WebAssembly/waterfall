@@ -312,32 +312,14 @@ strct-stdarg-1.c.o.wasm
 strct-varg-1.c.o.wasm
 va-arg-22.c.o.wasm
 
-960521-1.c.o.wasm
-20000914-1.c.o.wasm
-20051113-1.c.o.wasm
-941014-2.c.o.wasm
-990628-1.c.o.wasm
+960521-1.c.o.wasm O0
 fprintf-chk-1.c.o.wasm O2
 vfprintf-chk-1.c.o.wasm O2
-pr41395-1.c.o.wasm
-pr41395-2.c.o.wasm
-pr41463.c.o.wasm
 
 # Untriaged lld O0 failures
 20021127-1.c.o.wasm O0
 20031003-1.c.o.wasm O0
-920810-1.c.o.wasm O0
-pr15262-1.c.o.wasm O0
 pr23135.c.o.wasm O0
-
-# Not yet implemented: __lock
-20021120-3.c.o.wasm
-920501-9.c.o.wasm
-920726-1.c.o.wasm
-960327-1.c.o.wasm O0
-980605-1.c.o.wasm
-gofast.c.o.wasm
-va-arg-24.c.o.wasm
 
 # Clang optimizing loop into infinite loop for -O2
 930529-1.c.s.wast.wasm O2
