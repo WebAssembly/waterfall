@@ -113,10 +113,6 @@ MUSL_GIT_BASE = 'https://github.com/jfbastien/'
 WEBKIT_GIT_BASE = 'https://github.com/WebKit/'
 OCAML_GIT_BASE = 'https://github.com/ocaml/'
 
-# TODO(sbc): Remove this once lld changes are upstream
-LLD_GIT_BASE = 'https://github.com/WebAssembly/'
-LLD_BRANCH = 'wasm'
-
 # Name of remote for build script to use. Don't touch origin to avoid
 # clobbering any local development.
 WATERFALL_REMOTE = '_waterfall'
@@ -605,8 +601,7 @@ ALL_SOURCES = [
     Source('llvm-test-suite', LLVM_TEST_SUITE_SRC_DIR,
            LLVM_MIRROR_BASE + 'test-suite.git'),
     Source('lld', LLD_SRC_DIR,
-           LLD_GIT_BASE + 'lld.git',
-           checkout=RemoteBranch(LLD_BRANCH)),
+           LLVM_MIRROR_BASE + 'lld.git'),
     Source('emscripten', EMSCRIPTEN_SRC_DIR,
            EMSCRIPTEN_GIT_BASE + 'emscripten.git',
            checkout=RemoteBranch('incoming')),
