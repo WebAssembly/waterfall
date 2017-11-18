@@ -28,7 +28,7 @@ NODE_JS = os.path.expanduser(os.getenv('NODE') or prebuilt_node  or '/usr/bin/no
 SPIDERMONKEY_ENGINE = [os.path.expanduser(os.getenv('SPIDERMONKEY') or 'js')] # executable
 V8_ENGINE = os.path.join(WASM_INSTALL, 'bin', 'd8') # executable
 
-JAVA = 'java' # executable
+JAVA = '{{PREBUILT_JAVA}}' # executable
 
 TEMP_DIR = '/tmp'
 
