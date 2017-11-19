@@ -608,8 +608,12 @@ def SyncGNUWin32(name, src_dir, git_repo):
 
 def SyncPrebuiltJava(name, src_dir, git_repo):
   # FIXME test
-  CopyTree('/usr/local/google/home/aheejin/Downloads/jre/linux/jre-9.0.1',
-           WORK_DIR + '/jre-9.0.1')
+  if IsLinux():
+    CopyTree('/usr/local/google/home/aheejin/Downloads/jre/linux/jre-9.0.1',
+             WORK_DIR + '/jre-9.0.1')
+  if IsMac():
+    CopyTree('/Users/aheejin/Downloads/jre/mac/jre-9.0.1.jre',
+             WORK_DIR + '/jre-9.0.1.jre')
   return
 
   platform = {'linux2': 'linux', 'darwin': 'osx', 'win32': 'x64'}[sys.platform]
