@@ -188,6 +188,29 @@ NODE_BIN = Executable(os.path.join(WORK_DIR,
                                    NODE_BASE_NAME + NodePlatformName(),
                                    'bin', 'node'))
 
+
+# Java installed in the buildbots are too old while emscripten uses closure
+# compiler that requires Java SE 8.0 (version 52) or above
+JAVA_VERSION = '9.0.1'
+
+
+def JavaDir():
+  outdir = 'jre-' + JAVA_VERSION
+  if IsMac():
+    outdir += '.jre'
+  return outdir
+
+
+def JavaBinDir():
+  if IsMac():
+    return os.path.join('Contents', 'Home', 'bin')
+  return 'bin'
+
+
+JAVA_DIR = os.path.join(WORK_DIR, JavaDir())
+JAVA_BIN = Executable(os.path.join(JAVA_DIR, JavaBinDir(), 'java'))
+
+
 # Known failures.
 IT_IS_KNOWN = 'known_gcc_test_failures.txt'
 LLVM_KNOWN_TORTURE_FAILURES = [os.path.join(LLVM_SRC_DIR, 'lib', 'Target',
@@ -586,6 +609,14 @@ def SyncGNUWin32(name, src_dir, git_repo):
   return SyncArchive(GNUWIN32_DIR, name, url)
 
 
+def SyncPrebuiltJava(name, src_dir, git_repo):
+  platform = {'linux2': 'linux', 'darwin': 'osx',
+              'win32': 'windows'}[sys.platform]
+  tarball = 'jre-' + JAVA_VERSION + '_' + platform + '-x64_bin.tar.gz'
+  java_url = WASM_STORAGE_BASE + tarball
+  SyncArchive(JAVA_DIR, name, java_url)
+
+
 def NoSync(*args):
   pass
 
@@ -646,7 +677,9 @@ ALL_SOURCES = [
            WASM_GIT_BASE + 'binaryen.git'),
     Source('musl', MUSL_SRC_DIR,
            MUSL_GIT_BASE + 'musl.git',
-           checkout=RemoteBranch('wasm-prototype-1'))
+           checkout=RemoteBranch('wasm-prototype-1')),
+    Source('java', '', '',  # The source and git args are ignored.
+           custom_sync=SyncPrebuiltJava)
 ]
 
 
@@ -1059,6 +1092,7 @@ def Emscripten(use_asm):
       text = config.read().replace('{{WASM_INSTALL}}',
                                    WindowsFSEscape(INSTALL_DIR))
       text = text.replace('{{PREBUILT_NODE}}', WindowsFSEscape(NODE_BIN))
+      text = text.replace('{{PREBUILT_JAVA}}', WindowsFSEscape(JAVA_BIN))
     with open(outfile, 'w') as config:
       config.write(text)
 
