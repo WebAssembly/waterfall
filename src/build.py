@@ -610,7 +610,8 @@ def SyncGNUWin32(name, src_dir, git_repo):
 
 
 def SyncPrebuiltJava(name, src_dir, git_repo):
-  platform = {'linux2': 'linux', 'darwin': 'osx', 'win32': 'x64'}[sys.platform]
+  platform = {'linux2': 'linux', 'darwin': 'osx',
+              'win32': 'windows'}[sys.platform]
   tarball = 'jre-' + JAVA_VERSION + '_' + platform + '-x64_bin.tar.gz'
   java_url = WASM_STORAGE_BASE + tarball
   SyncArchive(JAVA_DIR, name, java_url)
