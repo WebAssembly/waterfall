@@ -607,18 +607,9 @@ def SyncGNUWin32(name, src_dir, git_repo):
 
 
 def SyncPrebuiltJava(name, src_dir, git_repo):
-  # FIXME test
-  if IsLinux():
-    CopyTree('/usr/local/google/home/aheejin/Downloads/jre/linux/jre-9.0.1',
-             WORK_DIR + '/jre-9.0.1')
-  if IsMac():
-    CopyTree('/Users/aheejin/Downloads/jre/mac/jre-9.0.1.jre',
-             WORK_DIR + '/jre-9.0.1.jre')
-  return
-
   platform = {'linux2': 'linux', 'darwin': 'osx', 'win32': 'x64'}[sys.platform]
-  tarball = 'jre-' + JAVA_VERSION + '_' + platform + '_bin.tar.gz'
-  java_url = WASM_STORGE_BASE + tarball
+  tarball = 'jre-' + JAVA_VERSION + '_' + platform + '-x64_bin.tar.gz'
+  java_url = WASM_STORAGE_BASE + tarball
   SyncArchive(JAVA_DIR, name, java_url)
 
 
