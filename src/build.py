@@ -193,16 +193,19 @@ NODE_BIN = Executable(os.path.join(WORK_DIR,
 # compiler that requires Java SE 8.0 (version 52) or above
 JAVA_VERSION = '9.0.1'
 
+
 def JavaDir():
   outdir = 'jre-' + JAVA_VERSION
   if IsMac():
     return outdir + '.jre'
   return outdir
 
+
 def JavaBinDir():
   if IsMac():
     return os.path.join('Contents', 'Home', 'bin')
   return 'bin'
+
 
 JAVA_DIR = os.path.join(WORK_DIR, JavaDir())
 JAVA_BIN = Executable(os.path.join(JAVA_DIR, JavaBinDir(), 'java'))
@@ -674,7 +677,7 @@ ALL_SOURCES = [
     Source('musl', MUSL_SRC_DIR,
            MUSL_GIT_BASE + 'musl.git',
            checkout=RemoteBranch('wasm-prototype-1')),
-    Source('java', '', '', # The source and git args are ignored.
+    Source('java', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltJava)
 ]
 
