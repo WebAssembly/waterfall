@@ -197,7 +197,7 @@ JAVA_VERSION = '9.0.1'
 def JavaDir():
   outdir = 'jre-' + JAVA_VERSION
   if IsMac():
-    return outdir + '.jre'
+    outdir += '.jre'
   return outdir
 
 
