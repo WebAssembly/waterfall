@@ -262,7 +262,6 @@ builtin-bitops-1.c.o.wasm
 pr39228.c.o.wasm
 pr47237.c.o.wasm
 
-printf-1.c.o.wasm O2
 printf-chk-1.c.o.wasm O2
 vprintf-chk-1.c.o.wasm O2
 
