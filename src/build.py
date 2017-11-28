@@ -1117,14 +1117,14 @@ def Emscripten(use_asm):
     # unnecessary anyway, and we are planning to fix it. But this is also
     # causing problems for Mac and Windows build in waterfall. The first emcc
     # process sees the configuration file has changed, deletes cache, and
-    # rewrites the sanity file. Then, Mac OS X and Windows' timestamps for mtime
-    # only have 1~2 seconds resolution, which makes it possible that other emcc
-    # processes launched later by the initial emcc process again think the cache
-    # is invalid and delete the cache again, which would then contain half-built
-    # libraries, if less than 1 seconds has elapsed after the first deletion. So
-    # here we make sure that enough time has elapsed between configuration file
-    # writing and sanity checking, so that it would temporarily work on Mac and
-    # Windows.
+    # rewrites the sanity file. Then, Mac OS X and Windows' timestamps for
+    # mtime only have 1~2 seconds resolution, which makes it possible that
+    # other emcc processes launched later by the initial emcc process again
+    # think the cache is invalid and delete the cache again, which would then
+    # contain half-built libraries, if less than 1 seconds has elapsed after
+    # the first deletion. So here we make sure that enough time has elapsed
+    # between configuration file writing and sanity checking, so that it would
+    # temporarily work on Mac and Windows.
     time.sleep(3)
 
     try:
