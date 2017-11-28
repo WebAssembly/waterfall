@@ -1111,6 +1111,7 @@ def Emscripten(use_asm):
       # This depends on binaryen already being built and installed into the
       # archive/install dir.
       os.environ['EM_CONFIG'] = config
+      os.environ['EMCC_SKIP_SANITY_CHECK'] = '1'
       proc.check_call([
           sys.executable, os.path.join(emscripten_dir, 'embuilder.py'),
           'build', 'SYSTEM'])
@@ -1120,6 +1121,7 @@ def Emscripten(use_asm):
       buildbot.Fail()
     finally:
       del os.environ['EM_CONFIG']
+      del os.environ['EMCC_SKIP_SANITY_CHECK']
 
   wrapper = os.path.join(SCRIPT_DIR, 'emcc_wrapper.sh')
   shutil.copy2(wrapper, os.path.join(INSTALL_BIN, 'emcc'))
