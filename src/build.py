@@ -1106,6 +1106,27 @@ def Emscripten(use_asm):
     print 'Config file: ', config
     src_config = os.path.join(SCRIPT_DIR, os.path.basename(config))
     WriteEmscriptenConfig(src_config, config)
+
+    # FIXME HACK emcc does sanity check by comparing mtime of the sanity file
+    # with that of emscripten config file. The sanity check process in
+    # emscripten thinks current cache is invalid when 'sanity file's mtime <=
+    # config file's mtime'. embuilder launches emcc for each of system library
+    # we need to build, and each of those emcc process in turn launches several
+    # more emcc processes for each of .c source file included in the library.
+    # Each of these emcc processes runs its own sanity check, which is
+    # unnecessary anyway, and we are planning to fix it. But this is also
+    # causing problems for Mac and Windows build in waterfall. The first emcc
+    # process sees the configuration file has changed, deletes cache, and
+    # rewrites the sanity file. Then, Mac OS X and Windows' timestamps for
+    # mtime only have 1~2 seconds resolution, which makes it possible that
+    # other emcc processes launched later by the initial emcc process again
+    # think the cache is invalid and delete the cache again, which would then
+    # contain half-built libraries, if less than 1 seconds has elapsed after
+    # the first deletion. So here we make sure that enough time has elapsed
+    # between configuration file writing and sanity checking, so that it would
+    # temporarily work on Mac and Windows.
+    time.sleep(3)
+
     try:
       # Use emscripten's embuilder to prebuild the system libraries.
       # This depends on binaryen already being built and installed into the
