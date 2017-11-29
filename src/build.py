@@ -48,6 +48,8 @@ LLVM_SRC_DIR = os.path.join(WORK_DIR, 'llvm')
 CLANG_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'clang')
 LLD_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'lld')
 COMPILER_RT_SRC_DIR = os.path.join(WORK_DIR, 'compiler-rt')
+LIBCXX_SRC_DIR = os.path.join(WORK_DIR, 'libcxx')
+LIBCXXABI_SRC_DIR = os.path.join(WORK_DIR, 'libcxxabi')
 LLVM_TEST_SUITE_SRC_DIR = os.path.join(WORK_DIR, 'llvm-test-suite')
 
 EMSCRIPTEN_SRC_DIR = os.path.join(WORK_DIR, 'emscripten')
@@ -86,6 +88,8 @@ BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
 FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
 MUSL_OUT_DIR = os.path.join(WORK_DIR, 'musl-out')
 COMPILER_RT_OUT_DIR = os.path.join(WORK_DIR, 'compiler-rt-out')
+LIBCXX_OUT_DIR = os.path.join(WORK_DIR, 'libcxx-out')
+LIBCXXABI_OUT_DIR = os.path.join(WORK_DIR, 'libcxxabi-out')
 TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
 TORTURE_O_OUT_DIR = os.path.join(WORK_DIR, 'torture-o')
 ASM2WASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'asm2wasm-torture-out')
@@ -635,6 +639,10 @@ ALL_SOURCES = [
            LLVM_MIRROR_BASE + 'clang.git'),
     Source('compiler-rt', COMPILER_RT_SRC_DIR,
            LLVM_MIRROR_BASE + 'compiler-rt.git'),
+    Source('libcxx', LIBCXX_SRC_DIR,
+           LLVM_MIRROR_BASE + 'libcxx.git'),
+    Source('libcxxabi', LIBCXXABI_SRC_DIR,
+           LLVM_MIRROR_BASE + 'libcxxabi.git'),
     Source('llvm-test-suite', LLVM_TEST_SUITE_SRC_DIR,
            LLVM_MIRROR_BASE + 'test-suite.git'),
     Source('lld', LLD_SRC_DIR,
@@ -1190,6 +1198,51 @@ def CompilerRT():
   proc.check_call(['ninja', 'install'], cwd=COMPILER_RT_OUT_DIR, env=cc_env)
 
 
+def LibCXX():
+  buildbot.Step('libcxx')
+  if os.path.isdir(LIBCXX_OUT_DIR):
+    Remove(LIBCXX_OUT_DIR)
+  Mkdir(LIBCXX_OUT_DIR)
+  cc_env = BuildEnv(LIBCXX_SRC_DIR, bin_subdir=True)
+  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', os.path.join(LIBCXX_SRC_DIR),
+             '-DCMAKE_CXX_COMPILER_WORKS=ON',
+             '-DCMAKE_C_COMPILER_WORKS=ON',
+             '-DLIBCXX_HAS_PTHREAD_API=ON',
+             '-DLIBCXX_ENABLE_SHARED=OFF',
+             '-DLIBCXX_HAS_MUSL_LIBC=ON',
+             '-DLLVM_CONFIG_PATH=' +
+             os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config'),
+             '-DCMAKE_TOOLCHAIN_FILE=' +
+             os.path.join(INSTALL_DIR, 'wasm_standalone.cmake')]
+
+  proc.check_call(command, cwd=LIBCXX_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', '-v'], cwd=LIBCXX_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', 'install'], cwd=LIBCXX_OUT_DIR, env=cc_env)
+
+
+def LibCXXABI():
+  buildbot.Step('libcxxabi')
+  if os.path.isdir(LIBCXXABI_OUT_DIR):
+    Remove(LIBCXXABI_OUT_DIR)
+  Mkdir(LIBCXXABI_OUT_DIR)
+  cc_env = BuildEnv(LIBCXXABI_SRC_DIR, bin_subdir=True)
+  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', os.path.join(LIBCXXABI_SRC_DIR),
+             '-DCMAKE_CXX_COMPILER_WORKS=ON',
+             '-DCMAKE_C_COMPILER_WORKS=ON',
+             '-DLIBCXXABI_ENABLE_SHARED=OFF',
+             '-DLIBCXXABI_LIBCXX_PATH=' + LIBCXX_SRC_DIR,
+             '-DLIBCXXABI_LIBCXX_INCLUDES=' +
+             os.path.join(INSTALL_SYSROOT, 'include', 'c++', 'v1'),
+             '-DLLVM_CONFIG_PATH=' +
+             os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config'),
+             '-DCMAKE_TOOLCHAIN_FILE=' +
+             os.path.join(INSTALL_DIR, 'wasm_standalone.cmake')]
+
+  proc.check_call(command, cwd=LIBCXXABI_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', '-v'], cwd=LIBCXXABI_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', 'install'], cwd=LIBCXXABI_OUT_DIR, env=cc_env)
+
+
 def Musl():
   buildbot.Step('musl')
   Mkdir(MUSL_OUT_DIR)
@@ -1204,7 +1257,10 @@ def Musl():
         '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wat2wasm'),
         '--out', os.path.join(MUSL_OUT_DIR, 'libc.a'),
         '--musl', MUSL_SRC_DIR, '--compile-to-wasm'], env=cc_env)
+    AR = os.path.join(INSTALL_BIN, 'llvm-ar')
+    proc.check_call([AR, 'rc', os.path.join(MUSL_OUT_DIR, 'libm.a')])
     CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'libc.a'))
+    CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'libm.a'))
     CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'crt1.o'))
     CopyLibraryToSysroot(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32',
                                       'libc.imports'))
@@ -1447,6 +1503,8 @@ def AllBuilds(use_asm=False):
       # Target libs
       Build('musl', Musl),
       Build('compiler-rt', CompilerRT),
+      Build('libcxx', LibCXX),
+      Build('libcxxabi', LibCXXABI),
       # Archive
       Build('archive', ArchiveBinaries),
       Build('debian', DebianPackage),
