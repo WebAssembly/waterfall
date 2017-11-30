@@ -1225,6 +1225,8 @@ def Musl():
              os.path.join(INSTALL_SYSROOT, 'include', 'bits'))
     CopyTree(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32', 'bits'),
              os.path.join(INSTALL_SYSROOT, 'include', 'bits'))
+    CopyTree(os.path.join(MUSL_OUT_DIR, 'obj', 'include', 'bits'),
+             os.path.join(INSTALL_SYSROOT, 'include', 'bits'))
     # Strictly speaking the CMake toolchain file isn't part of musl, but does
     # go along with the headers and libs musl installs
     shutil.copy2(os.path.join(SCRIPT_DIR, 'wasm_standalone.cmake'),
