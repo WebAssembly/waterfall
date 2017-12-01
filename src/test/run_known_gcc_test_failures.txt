@@ -319,7 +319,6 @@ vfprintf-chk-1.c.o.wasm O2
 20021127-1.c.o.wasm O0
 20031003-1.c.o.wasm O0
 pr23135.c.o.wasm O0
-pr58419.c.o.wasm O2 # getpid linkage issue
 
 # Clang optimizing loop into infinite loop for -O2
 930529-1.c.s.wast.wasm O2
