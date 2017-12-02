@@ -43,7 +43,7 @@ def link(infile, outfile, extras):
   commands = {
       'clang': [linker, '--target=wasm32-unknown-unknown',
                 '--sysroot=%s' % sysroot_dir, '-Wl,-zstack-size=1048576',
-                '-o', outfile, infile],
+                '-Wl,--entry=main', '-o', outfile, infile],
       's2wasm': [linker, '--allocate-stack', '1048576', '-o', outfile, infile],
   }
   return commands[basename] + extras['args']
