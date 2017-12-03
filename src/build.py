@@ -1616,12 +1616,16 @@ def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only):
   buildbot.Step('Execute emscripten testsuite (%s)' % name)
   Mkdir(outdir)
   try:
+    env = os.environ.copy()
+    env['EM_BUILD_VERBOSE'] = '3'
     proc.check_call(
         [os.path.join(INSTALL_DIR, 'emscripten', 'tests', 'runner.py'),
-         'binaryen2', '--em-config', config],
-        cwd=outdir)
+         'binaryen2.test_the_bullet', '--em-config', config],
+        cwd=outdir, env=env)
   except proc.CalledProcessError:
     buildbot.FailUnless(lambda: warn_only)
+  finally:
+    del env['EM_BUILD_VERBOSE']
 
 
 def TestEmtest():
