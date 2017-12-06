@@ -1168,9 +1168,6 @@ def CompilerRT():
              '-DCMAKE_TOOLCHAIN_FILE=' +
              os.path.join(INSTALL_DIR, 'wasm_standalone.cmake'),
              '-DCMAKE_C_COMPILER_WORKS=ON',
-             # TODO: why doesn't setting CMAKE_AR in the toolchain file work?
-             #'-DCMAKE_AR=' + os.path.join(INSTALL_BIN, 'llvm-ar'),
-             #'-DCMAKE_RANLIB=' + os.path.join(INSTALL_BIN, 'llvm-ranlib'),
              '-DCOMPILER_RT_BAREMETAL_BUILD=On',
              '-DCOMPILER_RT_BUILD_XRAY=OFF',
              '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
