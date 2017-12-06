@@ -34,8 +34,6 @@
 
 ### Undefined behavior: native clang also fails
 
-# Unlike gcc, libm functions are not replaced with builtins in clang.
-20030125-1.c.s.wast.wasm O2 # abort()
 
 # Results of signed integer overflow are undefined in C, so don't care.
 # 'clang -O2' runs -instcombine pass that does these transformations:
@@ -287,7 +285,6 @@ eeprof-1.c.o.wasm # tests -finstrument-functions
 pr44942.c.o.wasm
 
 # abort()
-20030125-1.c.o.wasm O2
 20040409-1.c.o.wasm O2
 20040409-2.c.o.wasm O2
 20040409-3.c.o.wasm O2
