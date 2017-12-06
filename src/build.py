@@ -159,11 +159,11 @@ def NodePlatformName():
 def CMakePlatformName():
   return {'linux2': 'Linux',
           'darwin': 'Darwin',
-          'win32': 'win32'}[sys.platform]
+          'win32': 'win64'}[sys.platform]
 
 
 def CMakeArch():
-  return 'x86' if IsWindows() else 'x86_64'
+  return 'x64' if IsWindows() else 'x86_64'
 
 
 def CMakeBinDir():
@@ -177,7 +177,7 @@ def CMakeBinDir():
 NODE_VERSION = '7.0.0'
 NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
 
-PREBUILT_CMAKE_VERSION = '3.4.3'
+PREBUILT_CMAKE_VERSION = '3.7.2'
 PREBUILT_CMAKE_BASE_NAME = 'cmake-%s-%s-%s' % (PREBUILT_CMAKE_VERSION,
                                                CMakePlatformName(),
                                                CMakeArch())
