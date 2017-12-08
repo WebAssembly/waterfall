@@ -948,7 +948,7 @@ def Jsc():
     command = ['xcrun', PREBUILT_CMAKE_BIN, '-Wno-dev',
                '..', '-G', 'Ninja',
                '-DCMAKE_BUILD_TYPE="Release"',
-               '-DPORT=Mac',
+               '-DPORT=JSCOnly',
                '-DENABLE_WEBASSEMBLY=ON']
 
     command.extend(OverrideCMakeCompiler())
@@ -1427,7 +1427,7 @@ def AllBuilds(use_asm=False):
       # Host tools
       Build('llvm', LLVM),
       Build('v8', V8),
-      Build('jsc', Jsc, no_windows=True, no_linux=True),
+      Build('jsc', Jsc),
       Build('wabt', Wabt),
       Build('ocaml', OCaml, no_windows=True),
       Build('spec', Spec, no_windows=True),
