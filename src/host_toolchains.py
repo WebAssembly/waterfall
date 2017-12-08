@@ -29,8 +29,6 @@ V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
 VS_TOOLCHAIN = os.path.join(V8_SRC_DIR, 'build', 'vs_toolchain.py')
 WIN_TOOLCHAIN_JSON = os.path.join(V8_SRC_DIR, 'build', 'win_toolchain.json')
 
-os.environ['GYP_MSVS_VERSION'] = '2015'
-
 
 def SyncPrebuiltClang(name, src_dir, git_repo):
   """Update the prebuilt clang toolchain used by chromium bots"""
