@@ -174,7 +174,7 @@ def CMakeBinDir():
 
 
 # Use prebuilt Node.js because the buildbots don't have node preinstalled
-NODE_VERSION = '7.0.0'
+NODE_VERSION = '8.9.3'
 NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
 
 PREBUILT_CMAKE_VERSION = '3.7.2'
