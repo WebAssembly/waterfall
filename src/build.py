@@ -1514,7 +1514,7 @@ def TestBare():
   for opt in BARE_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
         name='d8-lld',
-        runner=NODE_BIN,
+        runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
         indir=GetTortureDir('lld', opt),
         fails=RUN_KNOWN_TORTURE_FAILURES,
         attributes=common_attrs + ['d8', 'lld'],
@@ -1546,7 +1546,7 @@ def TestBare():
   for opt in BARE_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
         name='d8',
-        runner=NODE_BIN,
+        runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
         indir=GetTortureDir('wat2wasm', opt),
         fails=RUN_KNOWN_TORTURE_FAILURES,
         attributes=common_attrs + ['d8'],
