@@ -1579,7 +1579,7 @@ def TestAsm():
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
         name='asm2wasm',
-        runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
+        runner=NODE_BIN,
         indir=GetTortureDir('asm2wasm', opt),
         fails=RUN_KNOWN_TORTURE_FAILURES,
         attributes=['asm2wasm', 'd8'],
@@ -1600,7 +1600,7 @@ def TestEmwasm():
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
         name='emwasm',
-        runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
+        runner=NODE_BIN,
         indir=GetTortureDir('emwasm', opt),
         fails=RUN_KNOWN_TORTURE_FAILURES,
         attributes=['emwasm', 'd8'],
