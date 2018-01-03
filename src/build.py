@@ -1353,6 +1353,10 @@ def ExecuteLLVMTorture(name, runner, indir, fails, attributes, extension, opt,
     return None
   assert os.path.isfile(runner), 'Cannot find runner at %s' % runner
   files = os.path.join(indir, '*.%s' % extension)
+  if len(glob.glob(files)) == 0:
+    print "No files found by", files
+    buildbot.Fail()
+    return
   unexpected_result_count = execute_files.run(
       runner=runner,
       files=files,
