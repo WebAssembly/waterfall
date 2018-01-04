@@ -1177,7 +1177,7 @@ def CompilerRT():
              os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config'),
              '-DCOMPILER_RT_OS_DIR=.',
              '-DCMAKE_INSTALL_PREFIX=' +
-             os.path.join(INSTALL_DIR, 'lib', 'clang', '6.0.0')]
+             os.path.join(INSTALL_DIR, 'lib', 'clang', '7.0.0')]
 
   proc.check_call(command, cwd=COMPILER_RT_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', '-v'], cwd=COMPILER_RT_OUT_DIR, env=cc_env)
