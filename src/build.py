@@ -127,6 +127,12 @@ OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 GNUWIN32_DIR = os.path.join(WORK_DIR, 'gnuwin32')
 GNUWIN32_ZIP = 'gnuwin32.zip'
 
+# This version is the current LLVM version in development. This needs to be
+# manually updated to the latest x.0.0 version whenever LLVM starts development
+# on a new major version. This is so our manual build of compiler-rt is put
+# where LLVM expects it.
+LLVM_VERSION = '7.0.0'
+
 options = None
 
 
@@ -1177,7 +1183,7 @@ def CompilerRT():
              os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config'),
              '-DCOMPILER_RT_OS_DIR=.',
              '-DCMAKE_INSTALL_PREFIX=' +
-             os.path.join(INSTALL_DIR, 'lib', 'clang', '6.0.0')]
+             os.path.join(INSTALL_DIR, 'lib', 'clang', LLVM_VERSION)]
 
   proc.check_call(command, cwd=COMPILER_RT_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', '-v'], cwd=COMPILER_RT_OUT_DIR, env=cc_env)
