@@ -89,6 +89,7 @@ vfprintf-chk-1.c.s.wast.wasm
 # These compiler-rt functions are for long doubles. Also NYI.
 # TODO: These probably need re-triage, as not all of them are link failures.
 20020413-1.c.s.wast.wasm  # __lttf2
+20030914-1.c.s.wast.wasm # __floatsitf
 20080502-1.c.s.wast.wasm # __eqtf2
 960215-1.c.s.wast.wasm # __addtf3
 960405-1.c.s.wast.wasm  # __eqtf2
@@ -166,7 +167,6 @@ va-arg-6.c.js emwasm # abort()
 20021127-1.c.s.wast.wasm O0
 20030626-1.c.s.wast.wasm O0
 20030626-2.c.s.wast.wasm O0
-20030914-1.c.s.wast.wasm O0
 20031003-1.c.s.wast.wasm O0
 20040208-1.c.s.wast.wasm O0
 20040709-1.c.s.wast.wasm O0
