@@ -1,0 +1,2 @@
+# Clang optimizes loop into infinite loop for -O2
+930529-1.c
