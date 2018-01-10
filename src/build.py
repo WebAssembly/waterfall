@@ -1758,7 +1758,7 @@ def run(sync_filter, build_filter, test_filter):
     Mkdir(INSTALL_LIB)
 
   # Add prebuilt cmake to PATH so any subprocesses use a consistent cmake.
-  os.environ['PATH'] = (os.path.join(PREBUILT_CMAKE_DIR, 'bin') +
+  os.environ['PATH'] = (os.path.join(PREBUILT_CMAKE_DIR, CMakeBinDir()) +
                         os.pathsep + os.environ['PATH'])
 
   # TODO(dschuff): Figure out how to make these statically linked?
