@@ -220,8 +220,11 @@ def similarity(results, cutoff):
   return similar_groups
 
 
-def execute(tester, inputs, fails, attributes=None):
+def execute(tester, inputs, fails, exclusions=None, attributes=None):
   """Execute tests in parallel, output results, return failure count."""
+  if exclusions:
+    input_exclusions = parse_exclude_files(exclusions, None)
+    inputs = [i for i in inputs if os.path.basename(i) not in input_exclusions]
   if fails:
     input_expected_failures = parse_exclude_files(fails, attributes)
   else:

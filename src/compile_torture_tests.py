@@ -34,7 +34,7 @@ def create_outname(outdir, infile, extras):
   return os.path.join(outdir, outname)
 
 
-def run(c, cxx, testsuite, sysroot_dir, fails, out, config, opt):
+def run(c, cxx, testsuite, sysroot_dir, fails, exclusions, out, config, opt):
   """Compile all torture tests."""
   cflags_common = ['--std=gnu89', '-DSTACK_SIZE=524288',
                    '-w', '-Wno-implicit-function-declaration', '-' + opt]
@@ -78,6 +78,7 @@ def run(c, cxx, testsuite, sysroot_dir, fails, out, config, opt):
           extras={'c': c, 'cflags': cflags, 'suffix': suffix}),
       inputs=c_test_files,
       fails=fails,
+      exclusions=exclusions,
       attributes=[config, opt])
 
   return result
