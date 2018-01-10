@@ -1314,6 +1314,7 @@ def CompileLLVMTortureBinaryen(name, em_config, outdir, fails, opt):
       c=c, cxx=cxx, testsuite=GCC_TEST_DIR,
       sysroot_dir=INSTALL_SYSROOT,
       fails=fails,
+      exclusions=LLVM_TORTURE_EXCLUSIONS,
       out=outdir,
       config='binaryen-native',
       opt=opt)
