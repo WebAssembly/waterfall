@@ -240,10 +240,11 @@ BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = [
     os.path.join(BINARYEN_SRC_DIR, 'test',
                  's2wasm_known_binaryen_shell_test_failures.txt')]
 
-# Exclusions (known failures are compiled and run, and expected to fail, whereas
-# exclusions are not even run, e.g. because they have UB which results in
-# infinite loops)
-LLVM_TORTURE_EXCLUSIONS = [os.path.join(SCRIPT_DIR, 'test', 'llvm_torture_exclusions')]
+# Exclusions (known failures are compiled and run, and expected to fail,
+# whereas exclusions are not even run, e.g. because they have UB which
+# results in infinite loops)
+LLVM_TORTURE_EXCLUSIONS = [os.path.join(SCRIPT_DIR, 'test',
+                                        'llvm_torture_exclusions')]
 
 # Optimization levels
 BARE_TEST_OPT_FLAGS = ['O0', 'O2']
