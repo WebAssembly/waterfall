@@ -1207,9 +1207,12 @@ def LibCXX():
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', os.path.join(LIBCXX_SRC_DIR),
              '-DCMAKE_CXX_COMPILER_WORKS=ON',
              '-DCMAKE_C_COMPILER_WORKS=ON',
-             '-DLIBCXX_HAS_PTHREAD_API=ON',
+             '-DLIBCXX_ENABLE_THREADS=OFF',
              '-DLIBCXX_ENABLE_SHARED=OFF',
              '-DLIBCXX_HAS_MUSL_LIBC=ON',
+             '-DLIBCXX_CXX_ABI=libcxxabi',
+             '-DLIBCXX_CXX_ABI_INCLUDE_PATHS=' +
+             os.path.join(LIBCXXABI_SRC_DIR, 'include'),
              '-DLLVM_CONFIG_PATH=' +
              os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config'),
              '-DCMAKE_TOOLCHAIN_FILE=' +
@@ -1230,6 +1233,7 @@ def LibCXXABI():
              '-DCMAKE_CXX_COMPILER_WORKS=ON',
              '-DCMAKE_C_COMPILER_WORKS=ON',
              '-DLIBCXXABI_ENABLE_SHARED=OFF',
+             '-DLIBCXXABI_ENABLE_THREADS=OFF',
              '-DLIBCXXABI_LIBCXX_PATH=' + LIBCXX_SRC_DIR,
              '-DLIBCXXABI_LIBCXX_INCLUDES=' +
              os.path.join(INSTALL_SYSROOT, 'include', 'c++', 'v1'),
@@ -1241,6 +1245,7 @@ def LibCXXABI():
   proc.check_call(command, cwd=LIBCXXABI_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', '-v'], cwd=LIBCXXABI_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=LIBCXXABI_OUT_DIR, env=cc_env)
+  CopyLibraryToSysroot(os.path.join(SCRIPT_DIR, 'libc++abi.imports'))
 
 
 def Musl():
