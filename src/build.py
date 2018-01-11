@@ -1229,7 +1229,8 @@ def LibCXXABI():
     Remove(LIBCXXABI_OUT_DIR)
   Mkdir(LIBCXXABI_OUT_DIR)
   cc_env = BuildEnv(LIBCXXABI_SRC_DIR, bin_subdir=True)
-  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', os.path.join(LIBCXXABI_SRC_DIR),
+  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja',
+             os.path.join(LIBCXXABI_SRC_DIR),
              '-DCMAKE_CXX_COMPILER_WORKS=ON',
              '-DCMAKE_C_COMPILER_WORKS=ON',
              '-DLIBCXXABI_ENABLE_SHARED=OFF',
