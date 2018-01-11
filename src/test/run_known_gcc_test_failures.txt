@@ -316,8 +316,3 @@ vfprintf-chk-1.c.o.wasm O2
 20021127-1.c.o.wasm O0
 20031003-1.c.o.wasm O0
 pr23135.c.o.wasm O0
-
-# Clang optimizing loop into infinite loop for -O2
-930529-1.c.s.wast.wasm O2
-930529-1.c.o.wasm O2
-930529-1.c.js emwasm,O3 # asm2wasm uses different clang
