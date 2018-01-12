@@ -102,6 +102,10 @@ INSTALL_BIN = os.path.join(INSTALL_DIR, 'bin')
 INSTALL_LIB = os.path.join(INSTALL_DIR, 'lib')
 INSTALL_SYSROOT = os.path.join(INSTALL_DIR, 'sysroot')
 
+# This file has a special path to avoid warnings about the system being unknown
+CMAKE_TOOLCHAIN_FILE = os.path.join(
+    INSTALL_DIR, 'cmake', 'Modules', 'Platform', 'Wasm.cmake')
+
 EMSCRIPTEN_CONFIG_ASMJS = os.path.join(INSTALL_DIR, 'emscripten_config')
 EMSCRIPTEN_CONFIG_WASM = os.path.join(INSTALL_DIR, 'emscripten_config_vanilla')
 
@@ -1185,8 +1189,7 @@ def CompilerRT():
   cc_env = BuildEnv(COMPILER_RT_SRC_DIR, bin_subdir=True)
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja',
              os.path.join(COMPILER_RT_SRC_DIR, 'lib', 'builtins'),
-             '-DCMAKE_TOOLCHAIN_FILE=' +
-             os.path.join(INSTALL_DIR, 'wasm_standalone.cmake'),
+             '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE,
              '-DCMAKE_C_COMPILER_WORKS=ON',
              '-DCOMPILER_RT_BAREMETAL_BUILD=On',
              '-DCOMPILER_RT_BUILD_XRAY=OFF',
@@ -1221,8 +1224,7 @@ def LibCXX():
              os.path.join(LIBCXXABI_SRC_DIR, 'include'),
              '-DLLVM_CONFIG_PATH=' +
              os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config'),
-             '-DCMAKE_TOOLCHAIN_FILE=' +
-             os.path.join(INSTALL_DIR, 'wasm_standalone.cmake')]
+             '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE]
 
   proc.check_call(command, cwd=LIBCXX_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', '-v'], cwd=LIBCXX_OUT_DIR, env=cc_env)
@@ -1246,8 +1248,7 @@ def LibCXXABI():
              os.path.join(INSTALL_SYSROOT, 'include', 'c++', 'v1'),
              '-DLLVM_CONFIG_PATH=' +
              os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config'),
-             '-DCMAKE_TOOLCHAIN_FILE=' +
-             os.path.join(INSTALL_DIR, 'wasm_standalone.cmake')]
+             '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE]
 
   proc.check_call(command, cwd=LIBCXXABI_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', '-v'], cwd=LIBCXXABI_OUT_DIR, env=cc_env)
@@ -1299,9 +1300,12 @@ def Musl():
     CopyTree(os.path.join(MUSL_OUT_DIR, 'obj', 'include', 'bits'),
              os.path.join(INSTALL_SYSROOT, 'include', 'bits'))
     # Strictly speaking the CMake toolchain file isn't part of musl, but does
-    # go along with the headers and libs musl installs
+    # go along with the headers and libs musl installs. Give it a special
+    # path to avoid warnings about the system being unknown.
+    cmake_path = os.path.dirname(CMAKE_TOOLCHAIN_FILE)
+    Mkdir(cmake_path)
     shutil.copy2(os.path.join(SCRIPT_DIR, 'wasm_standalone.cmake'),
-                 INSTALL_DIR)
+                 CMAKE_TOOLCHAIN_FILE)
 
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.

@@ -8,7 +8,10 @@ set(CMAKE_SYSTEM_VERSION 1)
 set(CMAKE_SYSTEM_PROCESSOR wasm32)
 set(triple wasm32-unknown-unknown-wasm)
 
-set(WASM_SDKROOT ${CMAKE_CURRENT_LIST_DIR})
+get_filename_component(WASM_SDKROOT "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
+
+list(APPEND CMAKE_MODULE_PATH "${WASM_SDKROOT}/cmake/Modules")
+
 
 if (CMAKE_HOST_WIN32)
         set(EXE_SUFFIX ".exe")
@@ -29,8 +32,8 @@ if ("${CMAKE_RANLIB}" STREQUAL "")
 endif()
 set(CMAKE_C_COMPILER_TARGET ${triple})
 set(CMAKE_CXX_COMPILER_TARGET ${triple})
-set(CMAKE_C_FLAGS --target=${triple})
-set(CMAKE_CXX_FLAGS --target=${triple})
+set(CMAKE_REQUIRED_FLAGS --target=${triple})
+
 
 set(CMAKE_SYSROOT ${WASM_SDKROOT}/sysroot)
 set(CMAKE_STAGING_PREFIX ${WASM_SDKROOT}/sysroot)
