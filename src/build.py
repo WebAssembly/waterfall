@@ -1518,7 +1518,8 @@ def AllBuilds(use_asm=False):
       Build('musl', Musl),
       Build('compiler-rt', CompilerRT),
       Build('libcxx', LibCXX),
-      Build('libcxxabi', LibCXXABI),
+      # TODO(sbc): reenable once we figure out why the bot can't build this
+      #Build('libcxxabi', LibCXXABI),
       # Archive
       Build('archive', ArchiveBinaries),
       Build('debian', DebianPackage),
