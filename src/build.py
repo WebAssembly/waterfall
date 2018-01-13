@@ -1243,6 +1243,10 @@ def LibCXXABI():
              '-DCMAKE_C_COMPILER_WORKS=ON',
              '-DLIBCXXABI_ENABLE_SHARED=OFF',
              '-DLIBCXXABI_ENABLE_THREADS=OFF',
+             # Workaround for CheckCompilerVersion.cmake which check
+             # for working <atomic> header, which in turn errors out on
+             # systems with threads disabled
+             '-DLLVM_COMPILER_CHECKED=ON',
              '-DLIBCXXABI_LIBCXX_PATH=' + LIBCXX_SRC_DIR,
              '-DLIBCXXABI_LIBCXX_INCLUDES=' +
              os.path.join(INSTALL_SYSROOT, 'include', 'c++', 'v1'),
@@ -1522,8 +1526,7 @@ def AllBuilds(use_asm=False):
       Build('musl', Musl),
       Build('compiler-rt', CompilerRT),
       Build('libcxx', LibCXX),
-      # TODO(sbc): reenable once we figure out why the bot can't build this
-      # Build('libcxxabi', LibCXXABI),
+      Build('libcxxabi', LibCXXABI),
       # Archive
       Build('archive', ArchiveBinaries),
       Build('debian', DebianPackage),
