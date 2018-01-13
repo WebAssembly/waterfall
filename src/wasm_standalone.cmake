@@ -8,6 +8,8 @@ set(CMAKE_SYSTEM_VERSION 1)
 set(CMAKE_SYSTEM_PROCESSOR wasm32)
 set(triple wasm32-unknown-unknown-wasm)
 
+# This file should be installed as $SDKROOT/cmake/Modules/Platform/Wasm.cmake.
+# That suppresses noisy CMake warnings: "System is unknown to cmake"
 get_filename_component(WASM_SDKROOT "${CMAKE_CURRENT_LIST_DIR}/../../.." ABSOLUTE)
 
 list(APPEND CMAKE_MODULE_PATH "${WASM_SDKROOT}/cmake/Modules")
