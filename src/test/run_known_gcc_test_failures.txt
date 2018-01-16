@@ -250,11 +250,9 @@ vprintf-chk-1.c.js O3
 
 # printf or other libc feature missing
 # All these failures also occur with s2wasm linked binaries
-20020406-1.c.o.wasm
 920501-8.c.o.wasm
 pr56982.c.o.wasm
 struct-ret-1.c.o.wasm
-va-arg-21.c.o.wasm # vprintf
 930513-1.c.o.wasm
 builtin-bitops-1.c.o.wasm
 pr39228.c.o.wasm
@@ -308,7 +306,6 @@ strct-stdarg-1.c.o.wasm
 strct-varg-1.c.o.wasm
 va-arg-22.c.o.wasm
 
-960521-1.c.o.wasm O0
 fprintf-chk-1.c.o.wasm O2
 vfprintf-chk-1.c.o.wasm O2
 
