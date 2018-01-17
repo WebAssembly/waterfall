@@ -750,8 +750,8 @@ def SyncLLVMClang(good_hashes=None):
   primary = LLVM_SRC_DIR if SCHEDULER == 'llvm' else CLANG_SRC_DIR
   primary_svn_rev = CurrentSvnRev(primary)
   print 'SVN REV for %s: %d' % (primary, primary_svn_rev)
-  # TODO(sbc): Add LLD_SRC_DIR to this list once LLD is upstream
-  for srcdir in (LLVM_SRC_DIR, CLANG_SRC_DIR):
+  for srcdir in (LLVM_SRC_DIR, CLANG_SRC_DIR, LLD_SRC_DIR,
+                 COMPILER_RT_SRC_DIR):
     if srcdir != primary:
       SyncToSvnRev(srcdir, primary_svn_rev)
 
