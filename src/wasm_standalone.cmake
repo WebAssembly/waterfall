@@ -46,3 +46,8 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+
+# Make HandleLLVMOptions.cmake happy.
+# TODO(sbc): We should probably fix llvm or libcxxabi instead.
+# See: https://reviews.llvm.org/D33753
+set(UNIX 1)
