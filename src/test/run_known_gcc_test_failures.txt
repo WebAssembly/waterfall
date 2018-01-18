@@ -309,7 +309,108 @@ va-arg-22.c.o.wasm
 fprintf-chk-1.c.o.wasm O2
 vfprintf-chk-1.c.o.wasm O2
 
-# Untriaged lld O0 failures
+# Missing _Unwind_* functions
+cleanup-5.C.o.wasm
+
+# Untriaged lld failures
+tc1__dr20.C.o.wasm O2
+torture__pr48695.C.o.wasm O2
+
 20021127-1.c.o.wasm O0
 20031003-1.c.o.wasm O0
 pr23135.c.o.wasm O0
+abi__covariant3.C.o.wasm O0
+expr__cast4.C.o.wasm O0
+inherit__thunk7.C.o.wasm O0
+init__array33.C.o.wasm O0
+init__attrib1.C.o.wasm O0
+ipa__pr60640-3.C.o.wasm O0
+ipa__pr60640-4.C.o.wasm O0
+rtti__dyncast2.C.o.wasm O0
+template__arg6.C.o.wasm O0
+template__ctor2.C.o.wasm O0
+tree-ssa__pr28003.C.o.wasm O0
+ubsan__return-1.C.o.wasm O0
+
+abi__bitfield1.C.o.wasm
+abi__vbase13.C.o.wasm
+asan__deep-stack-uaf-1.C.o.wasm
+asan__symbolize-callback-1.C.o.wasm
+eh__alias1.C.o.wasm
+eh__cond1.C.o.wasm
+eh__cond4.C.o.wasm
+eh__cond5.C.o.wasm
+eh__cond6.C.o.wasm
+eh__crossjump1.C.o.wasm
+eh__ctor1.C.o.wasm
+eh__ctor2.C.o.wasm
+eh__defarg1.C.o.wasm
+eh__delayslot1.C.o.wasm
+eh__dtor1.C.o.wasm
+eh__elide1.C.o.wasm
+eh__elide2.C.o.wasm
+eh__filter1.C.o.wasm
+eh__filter2.C.o.wasm
+eh__fp-regs.C.o.wasm
+eh__ia64-2.C.o.wasm
+eh__init-temp1.C.o.wasm
+eh__loop1.C.o.wasm
+eh__loop2.C.o.wasm
+eh__new1.C.o.wasm
+eh__omit-frame-pointer.C.o.wasm
+eh__omit-frame-pointer2.C.o.wasm
+eh__partial1.C.o.wasm
+eh__pr29166.C.o.wasm
+eh__registers1.C.o.wasm
+eh__simd-1.C.o.wasm
+eh__simd-2.C.o.wasm
+eh__simd-3.C.o.wasm
+eh__spbp.C.o.wasm
+eh__spec10.C.o.wasm
+eh__spec3.C.o.wasm
+eh__spec7.C.o.wasm
+eh__spec9.C.o.wasm
+eh__synth2.C.o.wasm
+eh__template1.C.o.wasm
+eh__uncaught1.C.o.wasm
+eh__uncaught4.C.o.wasm
+eh__unexpected1.C.o.wasm
+expr__cond12.C.o.wasm
+expr__cond6.C.o.wasm
+init__array12.C.o.wasm
+init__array5.C.o.wasm
+init__copy3.C.o.wasm
+init__ctor1.C.o.wasm
+init__init-ref2.C.o.wasm
+init__new36.C.o.wasm
+init__placement2.C.o.wasm
+init__ref19.C.o.wasm
+init__ref9.C.o.wasm
+ipa__pr63838.C.o.wasm
+opt__20050511-1.C.o.wasm
+opt__const3.C.o.wasm
+opt__eh2.C.o.wasm
+opt__eh3.C.o.wasm
+opt__eh4.C.o.wasm
+opt__pr23299.C.o.wasm
+opt__pr23478.C.o.wasm
+opt__pr36449.C.o.wasm
+opt__static5.C.o.wasm
+other__copy2.C.o.wasm
+rtti__dyncast3.C.o.wasm
+rtti__typeid10.C.o.wasm
+rtti__typeid4.C.o.wasm
+template__friend10.C.o.wasm
+template__pretty1.C.o.wasm
+torture__pr49115.C.o.wasm
+torture__pr60750.C.o.wasm
+torture__stackalign__eh-alloca-1.C.o.wasm
+torture__stackalign__eh-global-1.C.o.wasm
+torture__stackalign__eh-inline-1.C.o.wasm
+torture__stackalign__eh-inline-2.C.o.wasm
+torture__stackalign__eh-vararg-1.C.o.wasm
+torture__stackalign__eh-vararg-2.C.o.wasm
+torture__stackalign__throw-1.C.o.wasm
+torture__stackalign__throw-2.C.o.wasm
+torture__stackalign__throw-3.C.o.wasm
+tree-ssa__pr33604.C.o.wasm

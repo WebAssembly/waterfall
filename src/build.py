@@ -1568,7 +1568,7 @@ def TestBare():
   for opt in BARE_TEST_OPT_FLAGS:
     LinkLLVMTorture(
         name='lld',
-        linker=Executable(os.path.join(INSTALL_BIN, 'clang')),
+        linker=Executable(os.path.join(INSTALL_BIN, 'clang++')),
         fails=LLD_KNOWN_TORTURE_FAILURES,
         indir=GetTortureDir('o', opt),
         outdir=GetTortureDir('lld', opt),
