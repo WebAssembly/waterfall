@@ -23,7 +23,8 @@ import sys
 
 import proc
 
-SINGLE_THREADED = False
+# Set to True to disable execution via thread pool
+single_threaded = False
 
 class Result:
   """Result from a single test that was run."""
@@ -231,14 +232,15 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
   else:
     input_expected_failures = []
   sys.stdout.write('Executing tests.')
-  if SINGLE_THREADED:
+  if single_threaded:
     results = map(tester, inputs)
   else:
     pool = multiprocessing.Pool()
-    results = sorted(pool.map(tester, inputs))
+    results = pool.map(tester, inputs)
     pool.close()
     pool.join()
   sys.stdout.write('\nDone.')
+  results = sorted(results)
   successes = [r for r in results if r]
   failures = [r for r in results if not r]
   if not fails:

@@ -39,6 +39,7 @@ from file_util import Chdir, CopyTree, Mkdir, Remove
 import host_toolchains
 import link_assembly_files
 import proc
+import testing
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -1804,6 +1805,9 @@ def ParseArgs():
       help='Include only the comma-separated list of test targets')
 
   parser.add_argument(
+      '--no-threads', action='store_true',
+      help='Disable use of thread pool to building and testing')
+  parser.add_argument(
       '--no-tool-tests', dest='run_tool_tests', action='store_false',
       help='Skip the testing of tools (such tools llvm, wabt, v8, spec)')
   parser.add_argument(
@@ -1864,6 +1868,9 @@ def main():
   global options
   start = time.time()
   options = ParseArgs()
+
+  if options.no_threads:
+    testing.single_threaded = True
 
   sync_include = options.sync_include if options.sync else []
   sync_filter = Filter('sync', sync_include, options.sync_exclude)
