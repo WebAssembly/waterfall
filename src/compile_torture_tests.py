@@ -35,7 +35,7 @@ def do_compile(infile, outfile, extras):
 def create_outname(outdir, infile, extras):
   if os.path.splitext(infile)[1] == '.C':
     parts = infile.split(os.path.sep)
-    parts = parts[parts.index('testsuite')+2:]
+    parts = parts[parts.index('testsuite') + 2:]
     basename = '__'.join(parts)
   else:
     basename = os.path.basename(infile)
