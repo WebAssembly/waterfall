@@ -257,6 +257,7 @@ LLVM_TORTURE_EXCLUSIONS = [os.path.join(SCRIPT_DIR, 'test',
 # Optimization levels
 BARE_TEST_OPT_FLAGS = ['O0', 'O2']
 EMSCRIPTEN_TEST_OPT_FLAGS = ['O0', 'O3']
+EMSCRIPTEN_TESTSUITE_MODES = ['binaryen0', 'binaryen2']
 
 
 NPROC = multiprocessing.cpu_count()
@@ -1693,32 +1694,36 @@ def TestEmwasm():
         outdir=GetTortureDir('emwasm', opt))
 
 
-def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only):
-  buildbot.Step('Execute emscripten testsuite (%s)' % name)
+def ExecuteEmscriptenTestSuite(name, config, outdir, mode, warn_only):
+  buildbot.Step('Execute emscripten testsuite (%s, %s)' % (name, mode))
   Mkdir(outdir)
   try:
     proc.check_call(
         [os.path.join(INSTALL_DIR, 'emscripten', 'tests', 'runner.py'),
-         'binaryen2', '--em-config', config],
+         mode, '--em-config', config],
         cwd=outdir)
   except proc.CalledProcessError:
     buildbot.FailUnless(lambda: warn_only)
 
 
 def TestEmtest():
-  ExecuteEmscriptenTestSuite(
-      'emwasm',
-      EMSCRIPTEN_CONFIG_WASM,
-      EMSCRIPTEN_TEST_OUT_DIR,
-      warn_only=False)
+  for mode in EMSCRIPTEN_TESTSUITE_MODES:
+    ExecuteEmscriptenTestSuite(
+        'emwasm',
+        EMSCRIPTEN_CONFIG_WASM,
+        EMSCRIPTEN_TEST_OUT_DIR,
+        mode,
+        warn_only=False)
 
 
 def TestEmtestAsm2Wasm():
-  ExecuteEmscriptenTestSuite(
-      'asm2wasm',
-      EMSCRIPTEN_CONFIG_ASMJS,
-      EMSCRIPTEN_ASMJS_TEST_OUT_DIR,
-      warn_only=False)
+  for mode in EMSCRIPTEN_TESTSUITE_MODES:
+    ExecuteEmscriptenTestSuite(
+        'asm2wasm',
+        EMSCRIPTEN_CONFIG_ASMJS,
+        EMSCRIPTEN_ASMJS_TEST_OUT_DIR,
+        mode,
+        warn_only=False)
 
 
 def TestWasmSimd():
