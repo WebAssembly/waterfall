@@ -1286,16 +1286,6 @@ def Musl():
     CopyLibraryToSysroot(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32',
                                       'libc.imports'))
 
-    # Build musl via s2wasm as single wasm file.
-    proc.check_call([
-        os.path.join(MUSL_SRC_DIR, 'libc.py'),
-        '--clang_dir', INSTALL_BIN,
-        '--binaryen_dir', os.path.join(INSTALL_BIN),
-        '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wat2wasm'),
-        '--musl', MUSL_SRC_DIR], cwd=MUSL_OUT_DIR, env=cc_env)
-    for f in ['musl.wast', 'musl.wasm']:
-      CopyLibraryToArchive(os.path.join(MUSL_OUT_DIR, f))
-
     wasm_js = os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32', 'wasm.js')
     CopyLibraryToArchive(wasm_js)
 
