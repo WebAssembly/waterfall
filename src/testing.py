@@ -23,6 +23,7 @@ import sys
 
 import proc
 
+SINGLE_THREADED = False
 
 class Result:
   """Result from a single test that was run."""
@@ -229,11 +230,14 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
     input_expected_failures = parse_exclude_files(fails, attributes)
   else:
     input_expected_failures = []
-  pool = multiprocessing.Pool()
   sys.stdout.write('Executing tests.')
-  results = sorted(pool.map(tester, inputs))
-  pool.close()
-  pool.join()
+  if SINGLE_THREADED:
+    results = map(tester, inputs)
+  else:
+    pool = multiprocessing.Pool()
+    results = sorted(pool.map(tester, inputs))
+    pool.close()
+    pool.join()
   sys.stdout.write('\nDone.')
   successes = [r for r in results if r]
   failures = [r for r in results if not r]
