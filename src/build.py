@@ -1360,12 +1360,12 @@ def DebianPackage():
 def CompileLLVMTorture(extension, outdir, opt):
   name = 'Compile LLVM Torture (%s, %s)' % (extension, opt)
   buildbot.Step(name)
-  c = Executable(os.path.join(INSTALL_BIN, 'clang'))
+  cc = Executable(os.path.join(INSTALL_BIN, 'clang'))
   cxx = Executable(os.path.join(INSTALL_BIN, 'clang++'))
   Remove(outdir)
   Mkdir(outdir)
   unexpected_result_count = compile_torture_tests.run(
-      c=c, cxx=cxx, testsuite=GCC_TEST_DIR,
+      cc=cc, cxx=cxx, testsuite=GCC_TEST_DIR,
       sysroot_dir=INSTALL_SYSROOT,
       fails=LLVM_KNOWN_TORTURE_FAILURES,
       exclusions=LLVM_TORTURE_EXCLUSIONS,
@@ -1380,12 +1380,12 @@ def CompileLLVMTorture(extension, outdir, opt):
 def CompileLLVMTortureBinaryen(name, em_config, outdir, fails, opt):
   buildbot.Step('Compile LLVM Torture (%s, %s)' % (name, opt))
   os.environ['EM_CONFIG'] = em_config
-  c = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'emcc'), '.bat')
+  cc = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'emcc'), '.bat')
   cxx = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'em++'), '.bat')
   Remove(outdir)
   Mkdir(outdir)
   unexpected_result_count = compile_torture_tests.run(
-      c=c, cxx=cxx, testsuite=GCC_TEST_DIR,
+      cc=cc, cxx=cxx, testsuite=GCC_TEST_DIR,
       sysroot_dir=INSTALL_SYSROOT,
       fails=fails,
       exclusions=LLVM_TORTURE_EXCLUSIONS,

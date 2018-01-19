@@ -25,7 +25,7 @@ import testing
 
 def c_compile(infile, outfile, extras):
   """Create the command-line for a C compiler invocation."""
-  return [extras['c'], infile, '-o', outfile] + extras['cflags']
+  return [extras['cc'], infile, '-o', outfile] + extras['cflags']
 
 
 def create_outname(outdir, infile, extras):
@@ -34,7 +34,7 @@ def create_outname(outdir, infile, extras):
   return os.path.join(outdir, outname)
 
 
-def run(c, cxx, testsuite, sysroot_dir, fails, exclusions, out, config, opt):
+def run(cc, cxx, testsuite, sysroot_dir, fails, exclusions, out, config, opt):
   """Compile all torture tests."""
   cflags_common = ['--std=gnu89', '-DSTACK_SIZE=524288',
                    '-w', '-Wno-implicit-function-declaration', '-' + opt]
@@ -59,7 +59,7 @@ def run(c, cxx, testsuite, sysroot_dir, fails, exclusions, out, config, opt):
       'binaryen-inputs': '.js',
   }[config]
 
-  assert os.path.isfile(c), 'Cannot find C compiler at %s' % c
+  assert os.path.isfile(cc), 'Cannot find C compiler at %s' % cc
   assert os.path.isfile(cxx), 'Cannot find C++ compiler at %s' % cxx
   assert os.path.isdir(testsuite), 'Cannot find testsuite at %s' % testsuite
   # TODO(jfb) Also compile other C tests, as well as C++ tests under g++.dg.
@@ -75,7 +75,7 @@ def run(c, cxx, testsuite, sysroot_dir, fails, exclusions, out, config, opt):
           command_ctor=c_compile,
           outname_ctor=create_outname,
           outdir=out,
-          extras={'c': c, 'cflags': cflags, 'suffix': suffix}),
+          extras={'cc': cc, 'cflags': cflags, 'suffix': suffix}),
       inputs=c_test_files,
       fails=fails,
       exclusions=exclusions,
@@ -86,7 +86,7 @@ def run(c, cxx, testsuite, sysroot_dir, fails, exclusions, out, config, opt):
 
 def main():
   parser = argparse.ArgumentParser(description='Compile GCC torture tests.')
-  parser.add_argument('--c', type=str, required=True,
+  parser.add_argument('--cc', type=str, required=True,
                       help='C compiler path')
   parser.add_argument('--cxx', type=str, required=True,
                       help='C++ compiler path')
@@ -101,7 +101,7 @@ def main():
   parser.add_argument('--config', type=str, required=True,
                       help='configuration to use')
   args = parser.parse_args()
-  return run(c=args.c,
+  return run(cc=args.cc,
              cxx=args.cxx,
              testsuite=args.testsuite,
              sysroot_dir=args.sysroot,
