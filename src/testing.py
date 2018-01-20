@@ -26,6 +26,7 @@ import proc
 # Set to True to disable execution via thread pool
 single_threaded = False
 
+
 class Result:
   """Result from a single test that was run."""
 
