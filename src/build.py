@@ -1267,7 +1267,6 @@ def LibCXXABI():
 def Musl():
   buildbot.Step('musl')
   Mkdir(MUSL_OUT_DIR)
-  path = os.environ['PATH']
   try:
     cc_env = BuildEnv(MUSL_OUT_DIR, use_gnuwin32=True)
     # Build musl directly to wasm object files in an ar library
@@ -1308,8 +1307,6 @@ def Musl():
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
     buildbot.Fail()
-  finally:
-    os.environ['PATH'] = path
 
 
 def ArchiveBinaries():
