@@ -1805,6 +1805,9 @@ def ParseArgs():
       '--no-threads', action='store_true',
       help='Disable use of thread pool to building and testing')
   parser.add_argument(
+      '--torture-filter',
+      help='Limit which torture tests are run by applying the given glob')
+  parser.add_argument(
       '--no-tool-tests', dest='run_tool_tests', action='store_false',
       help='Skip the testing of tools (such tools llvm, wabt, v8, spec)')
   parser.add_argument(
@@ -1868,6 +1871,8 @@ def main():
 
   if options.no_threads:
     testing.single_threaded = True
+  if options.torture_filter:
+    compile_torture_tests.test_filter = options.torture_filter
 
   sync_include = options.sync_include if options.sync else []
   sync_filter = Filter('sync', sync_include, options.sync_exclude)
