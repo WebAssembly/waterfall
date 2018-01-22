@@ -52,7 +52,8 @@ def execute(infile, outfile, extras):
       'jsc-wasm': [runner, '--useWebAssembly=1'] + wasmjs + [
           '--', infile] + extra_files,
       'jsc-asm2wasm': [runner, '--useWebAssembly=1', infile],
-      'wasm': [runner, infile]
+      'wasm': [runner, infile],
+      'node': [runner] + wasmjs + [infile] + extra_files
   }
   return commands[config]
 

@@ -34,8 +34,6 @@
 
 ### Undefined behavior: native clang also fails
 
-# Unlike gcc, libm functions are not replaced with builtins in clang.
-20030125-1.c.s.wast.wasm O2 # abort()
 
 # Results of signed integer overflow are undefined in C, so don't care.
 # 'clang -O2' runs -instcombine pass that does these transformations:
@@ -91,6 +89,7 @@ vfprintf-chk-1.c.s.wast.wasm
 # These compiler-rt functions are for long doubles. Also NYI.
 # TODO: These probably need re-triage, as not all of them are link failures.
 20020413-1.c.s.wast.wasm  # __lttf2
+20030914-1.c.s.wast.wasm # __floatsitf
 20080502-1.c.s.wast.wasm # __eqtf2
 960215-1.c.s.wast.wasm # __addtf3
 960405-1.c.s.wast.wasm  # __eqtf2
@@ -168,7 +167,6 @@ va-arg-6.c.js emwasm # abort()
 20021127-1.c.s.wast.wasm O0
 20030626-1.c.s.wast.wasm O0
 20030626-2.c.s.wast.wasm O0
-20030914-1.c.s.wast.wasm O0
 20031003-1.c.s.wast.wasm O0
 20040208-1.c.s.wast.wasm O0
 20040709-1.c.s.wast.wasm O0
@@ -252,17 +250,14 @@ vprintf-chk-1.c.js O3
 
 # printf or other libc feature missing
 # All these failures also occur with s2wasm linked binaries
-20020406-1.c.o.wasm
 920501-8.c.o.wasm
 pr56982.c.o.wasm
 struct-ret-1.c.o.wasm
-va-arg-21.c.o.wasm # vprintf
 930513-1.c.o.wasm
 builtin-bitops-1.c.o.wasm
 pr39228.c.o.wasm
 pr47237.c.o.wasm
 
-printf-1.c.o.wasm O2
 printf-chk-1.c.o.wasm O2
 vprintf-chk-1.c.o.wasm O2
 
@@ -283,21 +278,11 @@ eeprof-1.c.o.wasm # tests -finstrument-functions
 
 ### Failures specific to lld-linked binaries
 
-# Invalid module: Expected 0 elements on the stack for fallthru
-# Seems to be a bug in the backend: https://bugs.llvm.org/show_bug.cgi?id=34317
-20001009-2.c.o.wasm O2
-960312-1.c.o.wasm O2
-pr40022.c.o.wasm O2
-pr40657.c.o.wasm O2
-pr53645-2.c.o.wasm O2
-pr53645.c.o.wasm O2
-
 # Invalid module: call[7] expected type i64, found get_local of type i32
 # Fails at compile time for s2wasm version
 pr44942.c.o.wasm
 
 # abort()
-20030125-1.c.o.wasm O2
 20040409-1.c.o.wasm O2
 20040409-2.c.o.wasm O2
 20040409-3.c.o.wasm O2
@@ -321,34 +306,111 @@ strct-stdarg-1.c.o.wasm
 strct-varg-1.c.o.wasm
 va-arg-22.c.o.wasm
 
-960521-1.c.o.wasm
-20000914-1.c.o.wasm
-20051113-1.c.o.wasm
-941014-2.c.o.wasm
-990628-1.c.o.wasm
 fprintf-chk-1.c.o.wasm O2
 vfprintf-chk-1.c.o.wasm O2
-pr41395-1.c.o.wasm
-pr41395-2.c.o.wasm
-pr41463.c.o.wasm
 
-# Untriaged lld O0 failures
+# Missing _Unwind_* functions
+cleanup-5.C.o.wasm
+
+# Untriaged lld failures
+tc1__dr20.C.o.wasm O2
+torture__pr48695.C.o.wasm O2
+
 20021127-1.c.o.wasm O0
 20031003-1.c.o.wasm O0
-920810-1.c.o.wasm O0
-pr15262-1.c.o.wasm O0
 pr23135.c.o.wasm O0
+abi__covariant3.C.o.wasm O0
+expr__cast4.C.o.wasm O0
+inherit__thunk7.C.o.wasm O0
+init__array33.C.o.wasm O0
+init__attrib1.C.o.wasm O0
+ipa__pr60640-3.C.o.wasm O0
+ipa__pr60640-4.C.o.wasm O0
+rtti__dyncast2.C.o.wasm O0
+template__arg6.C.o.wasm O0
+template__ctor2.C.o.wasm O0
+tree-ssa__pr28003.C.o.wasm O0
+ubsan__return-1.C.o.wasm O0
 
-# Not yet implemented: __lock
-20021120-3.c.o.wasm
-920501-9.c.o.wasm
-920726-1.c.o.wasm
-960327-1.c.o.wasm O0
-980605-1.c.o.wasm
-gofast.c.o.wasm
-va-arg-24.c.o.wasm
-
-# Clang optimizing loop into infinite loop for -O2
-930529-1.c.s.wast.wasm O2
-930529-1.c.o.wasm O2
-930529-1.c.js emwasm,O3 # asm2wasm uses different clang
+abi__bitfield1.C.o.wasm
+abi__vbase13.C.o.wasm
+asan__deep-stack-uaf-1.C.o.wasm
+asan__symbolize-callback-1.C.o.wasm
+eh__alias1.C.o.wasm
+eh__cond1.C.o.wasm
+eh__cond4.C.o.wasm
+eh__cond5.C.o.wasm
+eh__cond6.C.o.wasm
+eh__crossjump1.C.o.wasm
+eh__ctor1.C.o.wasm
+eh__ctor2.C.o.wasm
+eh__defarg1.C.o.wasm
+eh__delayslot1.C.o.wasm
+eh__dtor1.C.o.wasm
+eh__elide1.C.o.wasm
+eh__elide2.C.o.wasm
+eh__filter1.C.o.wasm
+eh__filter2.C.o.wasm
+eh__fp-regs.C.o.wasm
+eh__ia64-2.C.o.wasm
+eh__init-temp1.C.o.wasm
+eh__loop1.C.o.wasm
+eh__loop2.C.o.wasm
+eh__new1.C.o.wasm
+eh__omit-frame-pointer.C.o.wasm
+eh__omit-frame-pointer2.C.o.wasm
+eh__partial1.C.o.wasm
+eh__pr29166.C.o.wasm
+eh__registers1.C.o.wasm
+eh__simd-1.C.o.wasm
+eh__simd-2.C.o.wasm
+eh__simd-3.C.o.wasm
+eh__spbp.C.o.wasm
+eh__spec10.C.o.wasm
+eh__spec3.C.o.wasm
+eh__spec7.C.o.wasm
+eh__spec9.C.o.wasm
+eh__synth2.C.o.wasm
+eh__template1.C.o.wasm
+eh__uncaught1.C.o.wasm
+eh__uncaught4.C.o.wasm
+eh__unexpected1.C.o.wasm
+expr__cond12.C.o.wasm
+expr__cond6.C.o.wasm
+init__array12.C.o.wasm
+init__array5.C.o.wasm
+init__copy3.C.o.wasm
+init__ctor1.C.o.wasm
+init__init-ref2.C.o.wasm
+init__new36.C.o.wasm
+init__placement2.C.o.wasm
+init__ref19.C.o.wasm
+init__ref9.C.o.wasm
+ipa__pr63838.C.o.wasm
+opt__20050511-1.C.o.wasm
+opt__const3.C.o.wasm
+opt__eh2.C.o.wasm
+opt__eh3.C.o.wasm
+opt__eh4.C.o.wasm
+opt__pr23299.C.o.wasm
+opt__pr23478.C.o.wasm
+opt__pr36449.C.o.wasm
+opt__static5.C.o.wasm
+other__copy2.C.o.wasm
+rtti__dyncast3.C.o.wasm
+rtti__typeid10.C.o.wasm
+rtti__typeid4.C.o.wasm
+template__friend10.C.o.wasm
+template__pretty1.C.o.wasm
+torture__pr49115.C.o.wasm
+torture__pr60750.C.o.wasm
+torture__stackalign__eh-alloca-1.C.o.wasm
+torture__stackalign__eh-global-1.C.o.wasm
+torture__stackalign__eh-inline-1.C.o.wasm
+torture__stackalign__eh-inline-2.C.o.wasm
+torture__stackalign__eh-vararg-1.C.o.wasm
+torture__stackalign__eh-vararg-2.C.o.wasm
+torture__stackalign__throw-1.C.o.wasm
+torture__stackalign__throw-2.C.o.wasm
+torture__stackalign__throw-3.C.o.wasm
+tree-ssa__pr33604.C.o.wasm

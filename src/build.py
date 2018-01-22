@@ -39,6 +39,7 @@ from file_util import Chdir, CopyTree, Mkdir, Remove
 import host_toolchains
 import link_assembly_files
 import proc
+import testing
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -48,6 +49,8 @@ LLVM_SRC_DIR = os.path.join(WORK_DIR, 'llvm')
 CLANG_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'clang')
 LLD_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'lld')
 COMPILER_RT_SRC_DIR = os.path.join(WORK_DIR, 'compiler-rt')
+LIBCXX_SRC_DIR = os.path.join(WORK_DIR, 'libcxx')
+LIBCXXABI_SRC_DIR = os.path.join(WORK_DIR, 'libcxxabi')
 LLVM_TEST_SUITE_SRC_DIR = os.path.join(WORK_DIR, 'llvm-test-suite')
 
 EMSCRIPTEN_SRC_DIR = os.path.join(WORK_DIR, 'emscripten')
@@ -86,6 +89,8 @@ BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
 FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
 MUSL_OUT_DIR = os.path.join(WORK_DIR, 'musl-out')
 COMPILER_RT_OUT_DIR = os.path.join(WORK_DIR, 'compiler-rt-out')
+LIBCXX_OUT_DIR = os.path.join(WORK_DIR, 'libcxx-out')
+LIBCXXABI_OUT_DIR = os.path.join(WORK_DIR, 'libcxxabi-out')
 TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
 TORTURE_O_OUT_DIR = os.path.join(WORK_DIR, 'torture-o')
 ASM2WASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'asm2wasm-torture-out')
@@ -97,6 +102,10 @@ INSTALL_DIR = os.path.join(WORK_DIR, 'wasm-install')
 INSTALL_BIN = os.path.join(INSTALL_DIR, 'bin')
 INSTALL_LIB = os.path.join(INSTALL_DIR, 'lib')
 INSTALL_SYSROOT = os.path.join(INSTALL_DIR, 'sysroot')
+
+# This file has a special path to avoid warnings about the system being unknown
+CMAKE_TOOLCHAIN_FILE = os.path.join(
+    INSTALL_DIR, 'cmake', 'Modules', 'Platform', 'Wasm.cmake')
 
 EMSCRIPTEN_CONFIG_ASMJS = os.path.join(INSTALL_DIR, 'emscripten_config')
 EMSCRIPTEN_CONFIG_WASM = os.path.join(INSTALL_DIR, 'emscripten_config_vanilla')
@@ -113,10 +122,6 @@ MUSL_GIT_BASE = 'https://github.com/jfbastien/'
 WEBKIT_GIT_BASE = 'https://github.com/WebKit/'
 OCAML_GIT_BASE = 'https://github.com/ocaml/'
 
-# TODO(sbc): Remove this once lld changes are upstream
-LLD_GIT_BASE = 'https://github.com/WebAssembly/'
-LLD_BRANCH = 'wasm'
-
 # Name of remote for build script to use. Don't touch origin to avoid
 # clobbering any local development.
 WATERFALL_REMOTE = '_waterfall'
@@ -130,6 +135,12 @@ OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 
 GNUWIN32_DIR = os.path.join(WORK_DIR, 'gnuwin32')
 GNUWIN32_ZIP = 'gnuwin32.zip'
+
+# This version is the current LLVM version in development. This needs to be
+# manually updated to the latest x.0.0 version whenever LLVM starts development
+# on a new major version. This is so our manual build of compiler-rt is put
+# where LLVM expects it.
+LLVM_VERSION = '7.0.0'
 
 options = None
 
@@ -163,11 +174,11 @@ def NodePlatformName():
 def CMakePlatformName():
   return {'linux2': 'Linux',
           'darwin': 'Darwin',
-          'win32': 'win32'}[sys.platform]
+          'win32': 'win64'}[sys.platform]
 
 
 def CMakeArch():
-  return 'x86' if IsWindows() else 'x86_64'
+  return 'x64' if IsWindows() else 'x86_64'
 
 
 def CMakeBinDir():
@@ -178,10 +189,10 @@ def CMakeBinDir():
 
 
 # Use prebuilt Node.js because the buildbots don't have node preinstalled
-NODE_VERSION = '7.0.0'
+NODE_VERSION = '8.9.3'
 NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
 
-PREBUILT_CMAKE_VERSION = '3.4.3'
+PREBUILT_CMAKE_VERSION = '3.7.2'
 PREBUILT_CMAKE_BASE_NAME = 'cmake-%s-%s-%s' % (PREBUILT_CMAKE_VERSION,
                                                CMakePlatformName(),
                                                CMakeArch())
@@ -191,6 +202,29 @@ PREBUILT_CMAKE_BIN = os.path.join(PREBUILT_CMAKE_DIR, CMakeBinDir(), 'cmake')
 NODE_BIN = Executable(os.path.join(WORK_DIR,
                                    NODE_BASE_NAME + NodePlatformName(),
                                    'bin', 'node'))
+
+
+# Java installed in the buildbots are too old while emscripten uses closure
+# compiler that requires Java SE 8.0 (version 52) or above
+JAVA_VERSION = '9.0.1'
+
+
+def JavaDir():
+  outdir = 'jre-' + JAVA_VERSION
+  if IsMac():
+    outdir += '.jre'
+  return outdir
+
+
+def JavaBinDir():
+  if IsMac():
+    return os.path.join('Contents', 'Home', 'bin')
+  return 'bin'
+
+
+JAVA_DIR = os.path.join(WORK_DIR, JavaDir())
+JAVA_BIN = Executable(os.path.join(JAVA_DIR, JavaBinDir(), 'java'))
+
 
 # Known failures.
 IT_IS_KNOWN = 'known_gcc_test_failures.txt'
@@ -214,6 +248,12 @@ LLD_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
 BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = [
     os.path.join(BINARYEN_SRC_DIR, 'test',
                  's2wasm_known_binaryen_shell_test_failures.txt')]
+
+# Exclusions (known failures are compiled and run, and expected to fail,
+# whereas exclusions are not even run, e.g. because they have UB which
+# results in infinite loops)
+LLVM_TORTURE_EXCLUSIONS = [os.path.join(SCRIPT_DIR, 'test',
+                                        'llvm_torture_exclusions')]
 
 # Optimization levels
 BARE_TEST_OPT_FLAGS = ['O0', 'O2']
@@ -590,6 +630,14 @@ def SyncGNUWin32(name, src_dir, git_repo):
   return SyncArchive(GNUWIN32_DIR, name, url)
 
 
+def SyncPrebuiltJava(name, src_dir, git_repo):
+  platform = {'linux2': 'linux', 'darwin': 'osx',
+              'win32': 'windows'}[sys.platform]
+  tarball = 'jre-' + JAVA_VERSION + '_' + platform + '-x64_bin.tar.gz'
+  java_url = WASM_STORAGE_BASE + tarball
+  SyncArchive(JAVA_DIR, name, java_url)
+
+
 def NoSync(*args):
   pass
 
@@ -602,11 +650,14 @@ ALL_SOURCES = [
            LLVM_MIRROR_BASE + 'clang.git'),
     Source('compiler-rt', COMPILER_RT_SRC_DIR,
            LLVM_MIRROR_BASE + 'compiler-rt.git'),
+    Source('libcxx', LIBCXX_SRC_DIR,
+           LLVM_MIRROR_BASE + 'libcxx.git'),
+    Source('libcxxabi', LIBCXXABI_SRC_DIR,
+           LLVM_MIRROR_BASE + 'libcxxabi.git'),
     Source('llvm-test-suite', LLVM_TEST_SUITE_SRC_DIR,
            LLVM_MIRROR_BASE + 'test-suite.git'),
     Source('lld', LLD_SRC_DIR,
-           LLD_GIT_BASE + 'lld.git',
-           checkout=RemoteBranch(LLD_BRANCH)),
+           LLVM_MIRROR_BASE + 'lld.git'),
     Source('emscripten', EMSCRIPTEN_SRC_DIR,
            EMSCRIPTEN_GIT_BASE + 'emscripten.git',
            checkout=RemoteBranch('incoming')),
@@ -651,7 +702,9 @@ ALL_SOURCES = [
            WASM_GIT_BASE + 'binaryen.git'),
     Source('musl', MUSL_SRC_DIR,
            MUSL_GIT_BASE + 'musl.git',
-           checkout=RemoteBranch('wasm-prototype-1'))
+           checkout=RemoteBranch('wasm-prototype-1')),
+    Source('java', '', '',  # The source and git args are ignored.
+           custom_sync=SyncPrebuiltJava)
 ]
 
 
@@ -698,8 +751,8 @@ def SyncLLVMClang(good_hashes=None):
   primary = LLVM_SRC_DIR if SCHEDULER == 'llvm' else CLANG_SRC_DIR
   primary_svn_rev = CurrentSvnRev(primary)
   print 'SVN REV for %s: %d' % (primary, primary_svn_rev)
-  # TODO(sbc): Add LLD_SRC_DIR to this list once LLD is upstream
-  for srcdir in (LLVM_SRC_DIR, CLANG_SRC_DIR):
+  for srcdir in (LLVM_SRC_DIR, CLANG_SRC_DIR, LLD_SRC_DIR,
+                 COMPILER_RT_SRC_DIR):
     if srcdir != primary:
       SyncToSvnRev(srcdir, primary_svn_rev)
 
@@ -1064,6 +1117,7 @@ def Emscripten(use_asm):
       text = config.read().replace('{{WASM_INSTALL}}',
                                    WindowsFSEscape(INSTALL_DIR))
       text = text.replace('{{PREBUILT_NODE}}', WindowsFSEscape(NODE_BIN))
+      text = text.replace('{{PREBUILT_JAVA}}', WindowsFSEscape(JAVA_BIN))
     with open(outfile, 'w') as config:
       config.write(text)
 
@@ -1077,6 +1131,27 @@ def Emscripten(use_asm):
     print 'Config file: ', config
     src_config = os.path.join(SCRIPT_DIR, os.path.basename(config))
     WriteEmscriptenConfig(src_config, config)
+
+    # FIXME HACK emcc does sanity check by comparing mtime of the sanity file
+    # with that of emscripten config file. The sanity check process in
+    # emscripten thinks current cache is invalid when 'sanity file's mtime <=
+    # config file's mtime'. embuilder launches emcc for each of system library
+    # we need to build, and each of those emcc process in turn launches several
+    # more emcc processes for each of .c source file included in the library.
+    # Each of these emcc processes runs its own sanity check, which is
+    # unnecessary anyway, and we are planning to fix it. But this is also
+    # causing problems for Mac and Windows build in waterfall. The first emcc
+    # process sees the configuration file has changed, deletes cache, and
+    # rewrites the sanity file. Then, Mac OS X and Windows' timestamps for
+    # mtime only have 1~2 seconds resolution, which makes it possible that
+    # other emcc processes launched later by the initial emcc process again
+    # think the cache is invalid and delete the cache again, which would then
+    # contain half-built libraries, if less than 1 seconds has elapsed after
+    # the first deletion. So here we make sure that enough time has elapsed
+    # between configuration file writing and sanity checking, so that it would
+    # temporarily work on Mac and Windows.
+    time.sleep(3)
+
     try:
       # Use emscripten's embuilder to prebuild the system libraries.
       # This depends on binaryen already being built and installed into the
@@ -1100,30 +1175,94 @@ def Emscripten(use_asm):
 
 
 def CompilerRT():
-  # TODO(sbc): Figure out hot to do this step as part of the llvm build.
+  # TODO(sbc): Figure out how to do this step as part of the llvm build.
   # I suspect that this can be done using the llvm/runtimes directory but
   # have yet to make it actually work this way.
   buildbot.Step('compiler-rt')
+
+  # TODO(sbc): Remove this.
+  # The compiler-rt doesn't currently rebuild libraries when a new -DCMAKE_AR
+  # value is specified.
+  if os.path.isdir(COMPILER_RT_OUT_DIR):
+    Remove(COMPILER_RT_OUT_DIR)
+
   Mkdir(COMPILER_RT_OUT_DIR)
   cc_env = BuildEnv(COMPILER_RT_SRC_DIR, bin_subdir=True)
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja',
              os.path.join(COMPILER_RT_SRC_DIR, 'lib', 'builtins'),
+             '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE,
+             '-DCMAKE_C_COMPILER_WORKS=ON',
              '-DCOMPILER_RT_BAREMETAL_BUILD=On',
-             '-DCMAKE_AR=' + os.path.join(INSTALL_BIN, 'llvm-ar'),
-             '-DCMAKE_RANLIB=' + os.path.join(INSTALL_BIN, 'llvm-ranlib'),
-             '-DCMAKE_C_COMPILER=' + os.path.join(INSTALL_BIN, 'clang'),
-             '-DCMAKE_C_COMPILER_TARGET=wasm32-unknown-unknown-wasm',
-             '-DCMAKE_C_COMPILER_WORKS=On',
+             '-DCOMPILER_RT_BUILD_XRAY=OFF',
+             '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
+             '-DCOMPILER_RT_ENABLE_IOS=OFF',
              '-DCOMPILER_RT_DEFAULT_TARGET_ONLY=On',
              '-DLLVM_CONFIG_PATH=' +
              os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config'),
              '-DCOMPILER_RT_OS_DIR=.',
              '-DCMAKE_INSTALL_PREFIX=' +
-             os.path.join(INSTALL_DIR, 'lib', 'clang', '6.0.0')]
+             os.path.join(INSTALL_DIR, 'lib', 'clang', LLVM_VERSION)]
 
   proc.check_call(command, cwd=COMPILER_RT_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', '-v'], cwd=COMPILER_RT_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=COMPILER_RT_OUT_DIR, env=cc_env)
+
+
+def LibCXX():
+  buildbot.Step('libcxx')
+  if os.path.isdir(LIBCXX_OUT_DIR):
+    Remove(LIBCXX_OUT_DIR)
+  Mkdir(LIBCXX_OUT_DIR)
+  cc_env = BuildEnv(LIBCXX_SRC_DIR, bin_subdir=True)
+  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', os.path.join(LIBCXX_SRC_DIR),
+             '-DCMAKE_CXX_COMPILER_WORKS=ON',
+             '-DCMAKE_C_COMPILER_WORKS=ON',
+             '-DLIBCXX_ENABLE_THREADS=OFF',
+             '-DLIBCXX_ENABLE_SHARED=OFF',
+             '-DLIBCXX_HAS_MUSL_LIBC=ON',
+             '-DLIBCXX_CXX_ABI=libcxxabi',
+             '-DLIBCXX_CXX_ABI_INCLUDE_PATHS=' +
+             os.path.join(LIBCXXABI_SRC_DIR, 'include'),
+             '-DLLVM_CONFIG_PATH=' +
+             os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config'),
+             '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE]
+
+  proc.check_call(command, cwd=LIBCXX_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', '-v'], cwd=LIBCXX_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', 'install'], cwd=LIBCXX_OUT_DIR, env=cc_env)
+
+
+def LibCXXABI():
+  buildbot.Step('libcxxabi')
+  if os.path.isdir(LIBCXXABI_OUT_DIR):
+    Remove(LIBCXXABI_OUT_DIR)
+  Mkdir(LIBCXXABI_OUT_DIR)
+  cc_env = BuildEnv(LIBCXXABI_SRC_DIR, bin_subdir=True)
+  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja',
+             os.path.join(LIBCXXABI_SRC_DIR),
+             '-DCMAKE_CXX_COMPILER_WORKS=ON',
+             '-DCMAKE_C_COMPILER_WORKS=ON',
+             '-DLIBCXXABI_ENABLE_SHARED=OFF',
+             '-DLIBCXXABI_ENABLE_THREADS=OFF',
+             # Make HandleLLVMOptions.cmake (it can't check for c++11 support
+             # because no C++ programs can be linked until libc++abi is
+             # installed, so chicken and egg.
+             '-DCXX_SUPPORTS_CXX11=ON',
+             # HandleLLVMOptions.cmake include CheckCompilerVersion.cmake.
+             # This checks for working <atomic> header, which in turn errors
+             # out on systems with threads disabled
+             '-DLLVM_COMPILER_CHECKED=ON',
+             '-DLIBCXXABI_LIBCXX_PATH=' + LIBCXX_SRC_DIR,
+             '-DLIBCXXABI_LIBCXX_INCLUDES=' +
+             os.path.join(INSTALL_SYSROOT, 'include', 'c++', 'v1'),
+             '-DLLVM_CONFIG_PATH=' +
+             os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config'),
+             '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE]
+
+  proc.check_call(command, cwd=LIBCXXABI_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', '-v'], cwd=LIBCXXABI_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', 'install'], cwd=LIBCXXABI_OUT_DIR, env=cc_env)
+  CopyLibraryToSysroot(os.path.join(SCRIPT_DIR, 'libc++abi.imports'))
 
 
 def Musl():
@@ -1139,32 +1278,32 @@ def Musl():
         '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wat2wasm'),
         '--out', os.path.join(MUSL_OUT_DIR, 'libc.a'),
         '--musl', MUSL_SRC_DIR, '--compile-to-wasm'], env=cc_env)
+    AR = os.path.join(INSTALL_BIN, 'llvm-ar')
+    proc.check_call([AR, 'rc', os.path.join(MUSL_OUT_DIR, 'libm.a')])
     CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'libc.a'))
+    CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'libm.a'))
     CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'crt1.o'))
-
-    # Build musl via s2wasm as single wasm file.
-    proc.check_call([
-        os.path.join(MUSL_SRC_DIR, 'libc.py'),
-        '--clang_dir', INSTALL_BIN,
-        '--binaryen_dir', os.path.join(INSTALL_BIN),
-        '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wat2wasm'),
-        '--musl', MUSL_SRC_DIR], cwd=MUSL_OUT_DIR, env=cc_env)
-    for f in ['musl.wast', 'musl.wasm']:
-      CopyLibraryToArchive(os.path.join(MUSL_OUT_DIR, f))
+    CopyLibraryToSysroot(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32',
+                                      'libc.imports'))
 
     wasm_js = os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32', 'wasm.js')
     CopyLibraryToArchive(wasm_js)
 
-    # Execute wasm.js to generate undefined symbols list
-    syms = proc.check_output([os.path.join(INSTALL_BIN, 'd8'),
-                              wasm_js, '--', '--dump-ffi-symbols'])
-    with open(os.path.join(INSTALL_SYSROOT, 'lib', 'wasm.syms'), 'w') as f:
-      f.write(syms)
-
     CopyTree(os.path.join(MUSL_SRC_DIR, 'include'),
              os.path.join(INSTALL_SYSROOT, 'include'))
-    CopyTree(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32'),
-             os.path.join(INSTALL_SYSROOT, 'include'))
+    CopyTree(os.path.join(MUSL_SRC_DIR, 'arch', 'generic', 'bits'),
+             os.path.join(INSTALL_SYSROOT, 'include', 'bits'))
+    CopyTree(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32', 'bits'),
+             os.path.join(INSTALL_SYSROOT, 'include', 'bits'))
+    CopyTree(os.path.join(MUSL_OUT_DIR, 'obj', 'include', 'bits'),
+             os.path.join(INSTALL_SYSROOT, 'include', 'bits'))
+    # Strictly speaking the CMake toolchain file isn't part of musl, but does
+    # go along with the headers and libs musl installs. Give it a special
+    # path to avoid warnings about the system being unknown.
+    cmake_path = os.path.dirname(CMAKE_TOOLCHAIN_FILE)
+    Mkdir(cmake_path)
+    shutil.copy2(os.path.join(SCRIPT_DIR, 'wasm_standalone.cmake'),
+                 CMAKE_TOOLCHAIN_FILE)
 
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
@@ -1209,14 +1348,15 @@ def DebianPackage():
 def CompileLLVMTorture(extension, outdir, opt):
   name = 'Compile LLVM Torture (%s, %s)' % (extension, opt)
   buildbot.Step(name)
-  c = Executable(os.path.join(INSTALL_BIN, 'clang'))
+  cc = Executable(os.path.join(INSTALL_BIN, 'clang'))
   cxx = Executable(os.path.join(INSTALL_BIN, 'clang++'))
   Remove(outdir)
   Mkdir(outdir)
   unexpected_result_count = compile_torture_tests.run(
-      c=c, cxx=cxx, testsuite=GCC_TEST_DIR,
+      cc=cc, cxx=cxx, testsuite=GCC_TEST_DIR,
       sysroot_dir=INSTALL_SYSROOT,
       fails=LLVM_KNOWN_TORTURE_FAILURES,
+      exclusions=LLVM_TORTURE_EXCLUSIONS,
       out=outdir,
       config='wasm-' + extension,
       opt=opt)
@@ -1228,14 +1368,15 @@ def CompileLLVMTorture(extension, outdir, opt):
 def CompileLLVMTortureBinaryen(name, em_config, outdir, fails, opt):
   buildbot.Step('Compile LLVM Torture (%s, %s)' % (name, opt))
   os.environ['EM_CONFIG'] = em_config
-  c = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'emcc'), '.bat')
+  cc = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'emcc'), '.bat')
   cxx = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'em++'), '.bat')
   Remove(outdir)
   Mkdir(outdir)
   unexpected_result_count = compile_torture_tests.run(
-      c=c, cxx=cxx, testsuite=GCC_TEST_DIR,
+      cc=cc, cxx=cxx, testsuite=GCC_TEST_DIR,
       sysroot_dir=INSTALL_SYSROOT,
       fails=fails,
+      exclusions=LLVM_TORTURE_EXCLUSIONS,
       out=outdir,
       config='binaryen-native',
       opt=opt)
@@ -1288,6 +1429,10 @@ def ExecuteLLVMTorture(name, runner, indir, fails, attributes, extension, opt,
     return None
   assert os.path.isfile(runner), 'Cannot find runner at %s' % runner
   files = os.path.join(indir, '*.%s' % extension)
+  if len(glob.glob(files)) == 0:
+    print "No files found by", files
+    buildbot.Fail()
+    return
   unexpected_result_count = execute_files.run(
       runner=runner,
       files=files,
@@ -1370,8 +1515,10 @@ def AllBuilds(use_asm=False):
       Build('fastcomp', Fastcomp),
       Build('emscripten', Emscripten, use_asm=use_asm),
       # Target libs
-      Build('compiler-rt', CompilerRT),
       Build('musl', Musl),
+      Build('compiler-rt', CompilerRT),
+      Build('libcxx', LibCXX),
+      Build('libcxxabi', LibCXXABI),
       # Archive
       Build('archive', ArchiveBinaries),
       Build('debian', DebianPackage),
@@ -1419,7 +1566,7 @@ def TestBare():
   for opt in BARE_TEST_OPT_FLAGS:
     LinkLLVMTorture(
         name='lld',
-        linker=Executable(os.path.join(INSTALL_BIN, 'clang')),
+        linker=Executable(os.path.join(INSTALL_BIN, 'clang++')),
         fails=LLD_KNOWN_TORTURE_FAILURES,
         indir=GetTortureDir('o', opt),
         outdir=GetTortureDir('lld', opt),
@@ -1514,7 +1661,7 @@ def TestAsm():
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
         name='asm2wasm',
-        runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
+        runner=NODE_BIN,
         indir=GetTortureDir('asm2wasm', opt),
         fails=RUN_KNOWN_TORTURE_FAILURES,
         attributes=['asm2wasm', 'd8'],
@@ -1535,7 +1682,7 @@ def TestEmwasm():
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
         name='emwasm',
-        runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
+        runner=NODE_BIN,
         indir=GetTortureDir('emwasm', opt),
         fails=RUN_KNOWN_TORTURE_FAILURES,
         attributes=['emwasm', 'd8'],
@@ -1655,6 +1802,9 @@ def ParseArgs():
       help='Include only the comma-separated list of test targets')
 
   parser.add_argument(
+      '--no-threads', action='store_true',
+      help='Disable use of thread pool to building and testing')
+  parser.add_argument(
       '--no-tool-tests', dest='run_tool_tests', action='store_false',
       help='Skip the testing of tools (such tools llvm, wabt, v8, spec)')
   parser.add_argument(
@@ -1683,7 +1833,7 @@ def run(sync_filter, build_filter, test_filter):
     Mkdir(INSTALL_LIB)
 
   # Add prebuilt cmake to PATH so any subprocesses use a consistent cmake.
-  os.environ['PATH'] = (os.path.join(PREBUILT_CMAKE_DIR, 'bin') +
+  os.environ['PATH'] = (os.path.join(PREBUILT_CMAKE_DIR, CMakeBinDir()) +
                         os.pathsep + os.environ['PATH'])
 
   # TODO(dschuff): Figure out how to make these statically linked?
@@ -1715,6 +1865,9 @@ def main():
   global options
   start = time.time()
   options = ParseArgs()
+
+  if options.no_threads:
+    testing.single_threaded = True
 
   sync_include = options.sync_include if options.sync else []
   sync_filter = Filter('sync', sync_include, options.sync_exclude)

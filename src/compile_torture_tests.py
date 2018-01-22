@@ -15,6 +15,7 @@
 #   limitations under the License.
 
 import argparse
+import fnmatch
 import glob
 import os
 import os.path
@@ -27,21 +28,48 @@ import testing
 TEST_FILTER = None
 
 
-def c_compile(infile, outfile, extras):
+def do_compile(infile, outfile, extras):
   """Create the command-line for a C compiler invocation."""
-  return [extras['c'], infile, '-o', outfile] + extras['cflags']
+  if os.path.splitext(infile)[1] == '.C':
+    return [extras['cxx'], infile, '-o', outfile] + extras['cxxflags']
+  else:
+    return [extras['cc'], infile, '-o', outfile] + extras['cflags']
 
 
 def create_outname(outdir, infile, extras):
-  basename = os.path.basename(infile)
-  outname = basename + extras['suffix']
-  return os.path.join(outdir, outname)
+  if os.path.splitext(infile)[1] == '.C':
+    parts = infile.split(os.path.sep)
+    parts = parts[parts.index('testsuite') + 2:]
+    basename = '__'.join(parts)
+  else:
+    basename = os.path.basename(infile)
+  rtn = os.path.join(outdir, basename + extras['suffix'])
+  if os.path.exists(rtn):
+    raise Exception("already exists: " + rtn)
+  return rtn
 
 
-def run(c, cxx, testsuite, sysroot_dir, fails, out, config, opt):
+def find_runnable_tests(directory, pattern):
+  results = []
+  for root, dirs, files in os.walk(directory):
+    if os.path.basename(root) == 'ext':
+      continue
+    for filename in files:
+      if fnmatch.fnmatch(filename, pattern):
+        fullname = os.path.join(root, filename)
+        with open(fullname, 'r') as f:
+          header = f.read(1024)
+        if '{ dg-do run }' in header and 'dg-additional-sources' not in header:
+          results.append(fullname)
+  return results
+
+
+def run(cc, cxx, testsuite, sysroot_dir, fails, exclusions, out, config, opt):
   """Compile all torture tests."""
-  cflags_common = ['--std=gnu89', '-DSTACK_SIZE=524288',
+  cflags_common = ['-DSTACK_SIZE=524288',
                    '-w', '-Wno-implicit-function-declaration', '-' + opt]
+  cflags_c = ['--std=gnu89']
+  cflags_cxx = []
   cflags_extra = {
       'wasm-s': ['--target=wasm32-unknown-unknown', '-S',
                  '--sysroot=%s' % sysroot_dir],
@@ -63,27 +91,42 @@ def run(c, cxx, testsuite, sysroot_dir, fails, out, config, opt):
       'binaryen-inputs': '.js',
   }[config]
 
-  assert os.path.isfile(c), 'Cannot find C compiler at %s' % c
+  assert os.path.isdir(out), 'Cannot find outdir %s' % out
+  assert os.path.isfile(cc), 'Cannot find C compiler at %s' % cc
   assert os.path.isfile(cxx), 'Cannot find C++ compiler at %s' % cxx
   assert os.path.isdir(testsuite), 'Cannot find testsuite at %s' % testsuite
-  # TODO(jfb) Also compile other C tests, as well as C++ tests under g++.dg.
+
+  # Currently we build the following parts of the gcc test suite:
+  #  - testsuite/gcc.c-torture/execute/*.c
+  #  - testsuite/g++.dg (all executable tests)
+  # TODO(sbc) Also more parts of the test suite
   c_torture = os.path.join(testsuite, 'gcc.c-torture', 'execute')
-  assert os.path.isdir(c_torture), ('Cannot find C torture tests at %s' %
-                                    c_torture)
-  assert os.path.isdir(out), 'Cannot find outdir %s' % out
-  c_test_files = glob.glob(os.path.join(c_torture, '*.c'))
+  assert os.path.isdir(c_torture), ('Cannot find C tests at %s' % c_torture)
+  test_files = glob.glob(os.path.join(c_torture, '*.c'))
+
+  if config == 'wasm-o':
+    # Only build the C++ tests when linking with lld
+    cxx_test_dir = os.path.join(testsuite, 'g++.dg')
+    assert os.path.isdir(cxx_test_dir), ('Cannot find C++ tests at %s' %
+                                         cxx_test_dir)
+    test_files += find_runnable_tests(cxx_test_dir, '*.C')
+
+  cflags = cflags_common + cflags_c + cflags_extra[config]
+  cxxflags = cflags_common + cflags_cxx + cflags_extra[config]
+
   if TEST_FILTER:
-    c_test_files = [f for f in c_test_files if os.path.basename(f) in TEST_FILTER]
-  cflags = cflags_common + cflags_extra[config]
+    test_files = [f for f in test_files if os.path.basename(f) in TEST_FILTER]
 
   result = testing.execute(
       tester=testing.Tester(
-          command_ctor=c_compile,
+          command_ctor=do_compile,
           outname_ctor=create_outname,
           outdir=out,
-          extras={'c': c, 'cflags': cflags, 'suffix': suffix}),
-      inputs=c_test_files,
+          extras={'cc': cc, 'cxx': cxx, 'cflags': cflags,
+                  'cxxflags': cxxflags, 'suffix': suffix}),
+      inputs=test_files,
       fails=fails,
+      exclusions=exclusions,
       attributes=[config, opt])
 
   return result
@@ -91,7 +134,7 @@ def run(c, cxx, testsuite, sysroot_dir, fails, out, config, opt):
 
 def main():
   parser = argparse.ArgumentParser(description='Compile GCC torture tests.')
-  parser.add_argument('--c', type=str, required=True,
+  parser.add_argument('--cc', type=str, required=True,
                       help='C compiler path')
   parser.add_argument('--cxx', type=str, required=True,
                       help='C++ compiler path')
@@ -106,7 +149,7 @@ def main():
   parser.add_argument('--config', type=str, required=True,
                       help='configuration to use')
   args = parser.parse_args()
-  return run(c=args.c,
+  return run(cc=args.cc,
              cxx=args.cxx,
              testsuite=args.testsuite,
              sysroot_dir=args.sysroot,
