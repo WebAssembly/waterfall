@@ -23,6 +23,10 @@ import sys
 
 import testing
 
+# For debugging purposes set this to a source file name to test just a single
+# file.
+test_filter = None
+
 
 def do_compile(infile, outfile, extras):
   """Create the command-line for a C compiler invocation."""
@@ -109,6 +113,9 @@ def run(cc, cxx, testsuite, sysroot_dir, fails, exclusions, out, config, opt):
 
   cflags = cflags_common + cflags_c + cflags_extra[config]
   cxxflags = cflags_common + cflags_cxx + cflags_extra[config]
+
+  if test_filter:
+    test_files = fnmatch.filter(test_files, test_filter)
 
   result = testing.execute(
       tester=testing.Tester(
