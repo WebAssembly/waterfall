@@ -73,7 +73,7 @@ def run(cc, cxx, testsuite, sysroot_dir, fails, exclusions, out, config, opt):
   cflags_extra = {
       'wasm-s': ['--target=wasm32-unknown-unknown-elf', '-S',
                  '--sysroot=%s' % sysroot_dir],
-      'wasm-o': ['--target=wasm32-unknown-unknown-wasm', '-c',
+      'wasm-o': ['--target=wasm32-unknown-unknown', '-c',
                  '--sysroot=%s' % sysroot_dir],
       # Binaryen's native-wasm method uses the JS engine's native support for
       # wasm rather than interpreting the wasm with wasm.js.
