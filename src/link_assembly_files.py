@@ -54,7 +54,9 @@ def run(linker, files, fails, attributes, out, args):
   assert os.path.isfile(linker), 'Cannot find linker at %s' % linker
   assert os.path.isdir(out), 'Cannot find outdir %s' % out
   input_files = glob.glob(files)
-  assert len(input_files), 'No files found by %s' % files
+  if len(input_files) == 0:
+    print 'No files found by %s' % files
+    return 1
   if not args:
     args = []
   return testing.execute(
