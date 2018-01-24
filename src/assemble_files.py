@@ -46,7 +46,9 @@ def run(assembler, files, fails, attributes, out):
   assert os.path.isfile(assembler), 'Cannot find assembler at %s' % assembler
   assert os.path.isdir(out), 'Cannot find outdir %s' % out
   assembler_files = glob.glob(files)
-  assert len(assembler_files), 'No files found by %s' % files
+  if len(assembler_files) == 0:
+    print 'No files found by %s' % files
+    return 1
   return testing.execute(
       tester=testing.Tester(
           command_ctor=assemble,
