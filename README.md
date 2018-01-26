@@ -47,9 +47,10 @@ you make a change and only want to run a subset of steps, you can apply filters 
 command line, via exclusions (to prevent specified steps from running) or inclusions
 (to run only the specified steps). Sync, build, and test exclusions are specified separately.
 For example:
-1. Do not sync any sources, build everything except LLVM, and run all tests: 
-`$ src/build.py --no-sync --build-exclude=llvm`
+1. Do not sync any sources, build everything except LLVM, and run all tests:
+  `$ src/build.py --no-sync --build-exclude=llvm`
 2. Sync only WABT, build WABT and Binaryen, run everything other than the emscripten testsuites: 
-`$ src/build.py --sync-include=wabt --build-include=wabt,binaryen --test-exclude=emtest,emtest-asm`
+  `$ src/build.py --sync-include=wabt --build-include=wabt,binaryen --test-exclude=emtest,emtest-asm`
+
 The script should throw an error if you specify nonexistent steps or if you specify both includes and excludes for the
 same type of action.
