@@ -35,7 +35,7 @@ We should keep process to a minimum, try things out, see what works.
 
 # How do I run it?
 
-    1. Get the sources: `$ git clone https://github.com/WebAssembly/waterfall.git`
-    2. Run build.py `python src/build.py`
+1. Get the sources: `$ git clone https://github.com/WebAssembly/waterfall.git`
+2. Run build.py `python src/build.py`
 
 When 
