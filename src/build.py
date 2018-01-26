@@ -59,6 +59,8 @@ FASTCOMP_SRC_DIR = os.path.join(WORK_DIR, 'emscripten-fastcomp')
 GCC_SRC_DIR = os.path.join(WORK_DIR, 'gcc')
 GCC_TEST_DIR = os.path.join(GCC_SRC_DIR, 'gcc', 'testsuite')
 
+JSVU_DIR = os.path.join(WORK_DIR, 'jsvu')
+
 V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
 JSC_SRC_DIR = os.path.join(WORK_DIR, 'jsc')
 WABT_SRC_DIR = os.path.join(WORK_DIR, 'wabt')
@@ -199,10 +201,16 @@ PREBUILT_CMAKE_BASE_NAME = 'cmake-%s-%s-%s' % (PREBUILT_CMAKE_VERSION,
 PREBUILT_CMAKE_DIR = os.path.join(WORK_DIR, PREBUILT_CMAKE_BASE_NAME)
 PREBUILT_CMAKE_BIN = os.path.join(PREBUILT_CMAKE_DIR, CMakeBinDir(), 'cmake')
 
-NODE_BIN = Executable(os.path.join(WORK_DIR,
-                                   NODE_BASE_NAME + NodePlatformName(),
-                                   'bin', 'node'))
+NODE_DIR = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName())
+NODE_BIN_DIR = os.path.join(NODE_DIR, 'bin')
+# `npm` uses whatever `node` is in `PATH`. To make sure it uses the
+# Node.js version we want, we prepend `NODE_BIN_DIR` to `PATH`.
+os.environ['PATH'] = NODE_BIN_DIR + os.pathsep + os.environ['PATH']
+NODE_BIN = Executable(os.path.join(NODE_BIN_DIR, 'node'))
+NPM_BIN = Executable(os.path.join(NODE_BIN_DIR, 'npm'))
 
+JSVU_BIN = Executable(os.path.join(JSVU_DIR,
+                                   'node_modules', 'jsvu', 'cli.js'))
 
 # Java installed in the buildbots are too old while emscripten uses closure
 # compiler that requires Java SE 8.0 (version 52) or above
@@ -965,6 +973,38 @@ def V8():
     CopyBinaryToArchive(os.path.join(V8_OUT_DIR, a))
 
 
+def Jsvu():
+  buildbot.Step('jsvu')
+  Mkdir(JSVU_DIR)
+
+  try:
+    if IsWindows():
+      # jsvu OS identifiers:
+      # https://github.com/GoogleChromeLabs/jsvu#supported-engines
+      os_id = 'windows64'
+      js_engines = 'chakra'
+    elif IsMac():
+      os_id = 'mac64'
+      js_engines = 'javascriptcore'
+    else:
+      return
+
+    # https://github.com/GoogleChromeLabs/jsvu#installation
+    # ...except we install it locally instead of globally.
+    proc.check_call([NPM_BIN, 'install', 'jsvu'], cwd=JSVU_DIR)
+
+    # https://github.com/GoogleChromeLabs/jsvu#integration-with-non-interactive-environments
+    proc.check_call([JSVU_BIN,
+                     '--os=%s' % os_id,
+                     '--engines=%s' % js_engines])
+
+    # $HOME/.jsvu/chakra is now available on Windows.
+    # $HOME/.jsvu/javascriptcore is now available on Mac.
+
+  except:
+    buildbot.Warn()
+
+
 def Jsc():
   buildbot.Step('JSC')
   Mkdir(JSC_OUT_DIR)
@@ -1508,6 +1548,7 @@ def AllBuilds(use_asm=False):
       Build('llvm', LLVM),
       Build('v8', V8),
       Build('jsc', Jsc, no_windows=True, no_linux=True),
+      Build('jsvu', Jsvu, no_linux=True),
       Build('wabt', Wabt),
       Build('ocaml', OCaml, no_windows=True),
       Build('spec', Spec, no_windows=True),
