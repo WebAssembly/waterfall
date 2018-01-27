@@ -40,7 +40,7 @@ We should keep process to a minimum, try things out, see what works.
 2. Run build.py `python src/build.py`
 
 Build.py has 3 types of actions: downloading/updating sources for tools and engines (sync), 
-building those sources (build), and runnint tests against them (test). Each of these types
+building those sources (build), and running tests against them (test). Each of these types
 has multiple steps (e.g. a build step for each component).
 If you run build.py with no arguments, it will run all the sync, build, and test steps. If
 you make a change and only want to run a subset of steps, you can apply filters from the
