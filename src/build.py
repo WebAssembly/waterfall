@@ -192,7 +192,7 @@ def CMakeBinDir():
 NODE_VERSION = '8.9.3'
 NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
 
-PREBUILT_CMAKE_VERSION = '3.7.2'
+PREBUILT_CMAKE_VERSION = '3.9.0'
 PREBUILT_CMAKE_BASE_NAME = 'cmake-%s-%s-%s' % (PREBUILT_CMAKE_VERSION,
                                                CMakePlatformName(),
                                                CMakeArch())
@@ -1214,7 +1214,7 @@ def LibCXX():
     Remove(LIBCXX_OUT_DIR)
   Mkdir(LIBCXX_OUT_DIR)
   cc_env = BuildEnv(LIBCXX_SRC_DIR, bin_subdir=True)
-  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', os.path.join(LIBCXX_SRC_DIR),
+  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', LIBCXX_SRC_DIR,
              '-DCMAKE_CXX_COMPILER_WORKS=ON',
              '-DCMAKE_C_COMPILER_WORKS=ON',
              '-DLIBCXX_ENABLE_THREADS=OFF',
@@ -1238,8 +1238,7 @@ def LibCXXABI():
     Remove(LIBCXXABI_OUT_DIR)
   Mkdir(LIBCXXABI_OUT_DIR)
   cc_env = BuildEnv(LIBCXXABI_SRC_DIR, bin_subdir=True)
-  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja',
-             os.path.join(LIBCXXABI_SRC_DIR),
+  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', LIBCXXABI_SRC_DIR,
              '-DCMAKE_CXX_COMPILER_WORKS=ON',
              '-DCMAKE_C_COMPILER_WORKS=ON',
              '-DLIBCXXABI_ENABLE_SHARED=OFF',
@@ -1267,47 +1266,31 @@ def LibCXXABI():
 
 def Musl():
   buildbot.Step('musl')
+
+  # Strictly speaking the CMake toolchain file isn't part of musl, but does
+  # go along with the headers and libs musl installs. Give it a special
+  # path to avoid warnings about the system being unknown.
+  Mkdir(os.path.dirname(CMAKE_TOOLCHAIN_FILE))
+  shutil.copy2(os.path.join(SCRIPT_DIR, 'wasm_standalone.cmake'),
+               CMAKE_TOOLCHAIN_FILE)
+
   Mkdir(MUSL_OUT_DIR)
-  try:
-    cc_env = BuildEnv(MUSL_OUT_DIR, use_gnuwin32=True)
-    # Build musl directly to wasm object files in an ar library
-    proc.check_call([
-        os.path.join(MUSL_SRC_DIR, 'libc.py'),
-        '--clang_dir', INSTALL_BIN,
-        '--binaryen_dir', os.path.join(INSTALL_BIN),
-        '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wat2wasm'),
-        '--out', os.path.join(MUSL_OUT_DIR, 'libc.a'),
-        '--musl', MUSL_SRC_DIR, '--compile-to-wasm'], env=cc_env)
-    AR = os.path.join(INSTALL_BIN, 'llvm-ar')
-    proc.check_call([AR, 'rc', os.path.join(MUSL_OUT_DIR, 'libm.a')])
-    CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'libc.a'))
-    CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'libm.a'))
-    CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'crt1.o'))
-    CopyLibraryToSysroot(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32',
-                                      'libc.imports'))
+  cc_env = BuildEnv(MUSL_OUT_DIR, use_gnuwin32=True)
 
-    wasm_js = os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32', 'wasm.js')
-    CopyLibraryToArchive(wasm_js)
+  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', MUSL_SRC_DIR,
+             '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE]
 
-    CopyTree(os.path.join(MUSL_SRC_DIR, 'include'),
-             os.path.join(INSTALL_SYSROOT, 'include'))
-    CopyTree(os.path.join(MUSL_SRC_DIR, 'arch', 'generic', 'bits'),
-             os.path.join(INSTALL_SYSROOT, 'include', 'bits'))
-    CopyTree(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32', 'bits'),
-             os.path.join(INSTALL_SYSROOT, 'include', 'bits'))
-    CopyTree(os.path.join(MUSL_OUT_DIR, 'obj', 'include', 'bits'),
-             os.path.join(INSTALL_SYSROOT, 'include', 'bits'))
-    # Strictly speaking the CMake toolchain file isn't part of musl, but does
-    # go along with the headers and libs musl installs. Give it a special
-    # path to avoid warnings about the system being unknown.
-    cmake_path = os.path.dirname(CMAKE_TOOLCHAIN_FILE)
-    Mkdir(cmake_path)
-    shutil.copy2(os.path.join(SCRIPT_DIR, 'wasm_standalone.cmake'),
-                 CMAKE_TOOLCHAIN_FILE)
+  proc.check_call(command, cwd=MUSL_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', '-v'], cwd=MUSL_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja', 'install'], cwd=MUSL_OUT_DIR, env=cc_env)
 
-  except proc.CalledProcessError:
-    # Note the failure but allow the build to continue.
-    buildbot.Fail()
+  #CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'crt1.o'))
+
+  CopyLibraryToSysroot(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32',
+                                    'libc.imports'))
+
+  wasm_js = os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32', 'wasm.js')
+  CopyLibraryToArchive(wasm_js)
 
 
 def ArchiveBinaries():
