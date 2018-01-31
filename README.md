@@ -39,9 +39,11 @@ We should keep process to a minimum, try things out, see what works.
 1. Get the sources: `$ git clone https://github.com/WebAssembly/waterfall.git`
 2. Run build.py `python src/build.py`
 
-Build.py has 3 types of actions: downloading/updating sources for tools and engines (sync), 
-building those sources (build), and running tests against them (test). Each of these types
-has multiple steps (e.g. a build step for each component).
+Build.py has 3 types of actions: 
+* downloading/updating sources for tools and engines (sync)
+* building those sources (build)
+* running tests against them (test). 
+Each of these types has multiple steps (e.g. a build step for each component).
 If you run build.py with no arguments, it will run all the sync, build, and test steps. If
 you make a change and only want to run a subset of steps, you can apply filters from the
 command line, via exclusions (to prevent specified steps from running) or inclusions
@@ -54,3 +56,9 @@ For example:
 
 The script should throw an error if you specify nonexistent steps or if you specify both includes and excludes for the
 same type of action.
+
+When run, the script creates a directory `src/work` inside the waterfall's git checkout. All modifications are 
+made inside this directory (checking and out and building the sources, as well as the test builds and execution
+results). You can also use the git checkouts (e.g. `src/work/llvm`) with your own branches; the sync steps
+will check out the latest revision from the script's remote repositories but will not overwrite or destroy any
+local work.
