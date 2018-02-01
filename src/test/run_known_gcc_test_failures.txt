@@ -244,6 +244,9 @@ pr22493-1.c.js O3
 printf-chk-1.c.js O3
 vfprintf-chk-1.c.js O3
 vprintf-chk-1.c.js O3
+20040409-1.c.js O3
+20040409-2.c.js O3
+20040409-3.c.js O3
 
 
 ### Failures for lld-linked binaries
