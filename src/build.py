@@ -927,6 +927,16 @@ def LLVM():
   proc.check_call(['ninja', '-v'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
   CopyLLVMTools(LLVM_OUT_DIR)
+  install_bin = os.path.join(INSTALL_DIR, 'bin')
+  for target in ('clang', 'clang++'):
+    link = os.path.join(install_bin, 'wasm32-' + target)
+    try:
+      os.symlink(Executable(link), Executable(target))
+    except AttributeError:
+      # Windows has no symlinks (at least not from python). Also clang won't
+      # work as a native compiler anyway, so just install it as wasm32-clang
+      os.rename(Executable(os.path.join(install_bin, target)), Executable(link))
+
 
   if not options.run_tool_tests:
     return
@@ -1216,7 +1226,7 @@ def LibCXX():
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', os.path.join(LIBCXX_SRC_DIR),
              '-DCMAKE_CXX_COMPILER_WORKS=ON',
              '-DCMAKE_C_COMPILER_WORKS=ON',
-             '-DCMAKE_EXE_LINKER_FLAGS=-nodefaultlibs',
+             '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
              '-DLIBCXX_ENABLE_THREADS=OFF',
              '-DLIBCXX_ENABLE_SHARED=OFF',
              '-DLIBCXX_HAS_MUSL_LIBC=ON',
@@ -1349,8 +1359,8 @@ def DebianPackage():
 def CompileLLVMTorture(extension, outdir, opt):
   name = 'Compile LLVM Torture (%s, %s)' % (extension, opt)
   buildbot.Step(name)
-  cc = Executable(os.path.join(INSTALL_BIN, 'clang'))
-  cxx = Executable(os.path.join(INSTALL_BIN, 'clang++'))
+  cc = Executable(os.path.join(INSTALL_BIN, 'wasm32-clang'))
+  cxx = Executable(os.path.join(INSTALL_BIN, 'wasm32-clang++'))
   Remove(outdir)
   Mkdir(outdir)
   unexpected_result_count = compile_torture_tests.run(
@@ -1567,7 +1577,7 @@ def TestBare():
   for opt in BARE_TEST_OPT_FLAGS:
     LinkLLVMTorture(
         name='lld',
-        linker=Executable(os.path.join(INSTALL_BIN, 'clang++')),
+        linker=Executable(os.path.join(INSTALL_BIN, 'wasm32-clang++')),
         fails=LLD_KNOWN_TORTURE_FAILURES,
         indir=GetTortureDir('o', opt),
         outdir=GetTortureDir('lld', opt),
@@ -1722,7 +1732,7 @@ def TestEmtestAsm2Wasm():
 
 def TestWasmSimd():
   script = os.path.join(SCRIPT_DIR, 'test_wasm_simd.py')
-  clang = Executable(os.path.join(INSTALL_BIN, 'clang'))
+  clang = Executable(os.path.join(INSTALL_BIN, 'wasm32-clang'))
   include = os.path.join(EMSCRIPTEN_SRC_DIR, 'system', 'include')
   try:
     proc.check_call([script, clang, include])
