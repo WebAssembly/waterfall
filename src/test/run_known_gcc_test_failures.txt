@@ -231,9 +231,9 @@ pr53645.c.js asm2wasm
 pr60960.c.js asm2wasm # actually fails in asm2wasm, but JS file is still there
 
 # Untriaged emscripten O3 failures
-20040409-1.c.js emwasm,O3
-20040409-2.c.js emwasm,O3
-20040409-3.c.js emwasm,O3
+20040409-1.c.js O3
+20040409-2.c.js O3
+20040409-3.c.js O3
 920612-1.c.js O3
 920711-1.c.js O3
 990208-1.c.js O3

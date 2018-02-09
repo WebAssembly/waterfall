@@ -66,7 +66,9 @@ def run(runner, files, fails, attributes, out, wasmjs='', extra_files=[]):
   if wasmjs:
     assert os.path.isfile(wasmjs), 'Cannot find wasm.js %s' % wasmjs
   executable_files = glob.glob(files)
-  assert len(executable_files), 'No files found by %s' % files
+  if len(executable_files) == 0:
+    print 'No files found by %s' % files
+    return 1
   return testing.execute(
       tester=testing.Tester(
           command_ctor=execute,

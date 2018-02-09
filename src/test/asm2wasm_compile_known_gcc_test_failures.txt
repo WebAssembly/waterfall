@@ -43,8 +43,9 @@
 	pr60003.c
 	scal-to-vec1.c
 	scal-to-vec2.c
-	scal-to-vec3.c
-        pr60960.c
+	scal-to-vec3.c O0
+	scal-to-vec3.c O2
+	pr60960.c
 
 
 # Works with direct LLVM wasm backend (but fails with emcc)

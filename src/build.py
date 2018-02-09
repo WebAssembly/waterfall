@@ -39,6 +39,7 @@ from file_util import Chdir, CopyTree, Mkdir, Remove
 import host_toolchains
 import link_assembly_files
 import proc
+import testing
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -1268,7 +1269,6 @@ def LibCXXABI():
 def Musl():
   buildbot.Step('musl')
   Mkdir(MUSL_OUT_DIR)
-  path = os.environ['PATH']
   try:
     cc_env = BuildEnv(MUSL_OUT_DIR, use_gnuwin32=True)
     # Build musl directly to wasm object files in an ar library
@@ -1309,8 +1309,6 @@ def Musl():
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
     buildbot.Fail()
-  finally:
-    os.environ['PATH'] = path
 
 
 def ArchiveBinaries():
@@ -1809,6 +1807,12 @@ def ParseArgs():
       help='Include only the comma-separated list of test targets')
 
   parser.add_argument(
+      '--no-threads', action='store_true',
+      help='Disable use of thread pool to building and testing')
+  parser.add_argument(
+      '--torture-filter',
+      help='Limit which torture tests are run by applying the given glob')
+  parser.add_argument(
       '--no-tool-tests', dest='run_tool_tests', action='store_false',
       help='Skip the testing of tools (such tools llvm, wabt, v8, spec)')
   parser.add_argument(
@@ -1869,6 +1873,11 @@ def main():
   global options
   start = time.time()
   options = ParseArgs()
+
+  if options.no_threads:
+    testing.single_threaded = True
+  if options.torture_filter:
+    compile_torture_tests.test_filter = options.torture_filter
 
   sync_include = options.sync_include if options.sync else []
   sync_filter = Filter('sync', sync_include, options.sync_exclude)
