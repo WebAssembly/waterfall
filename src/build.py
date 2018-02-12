@@ -1720,13 +1720,14 @@ def TestEmtestAsm2Wasm():
 
 
 def TestWasmSimd():
+  buildbot.Step('Execute emscripten wasm simd')
   script = os.path.join(SCRIPT_DIR, 'test_wasm_simd.py')
   clang = Executable(os.path.join(INSTALL_BIN, 'clang'))
   include = os.path.join(EMSCRIPTEN_SRC_DIR, 'system', 'include')
   try:
     proc.check_call([script, clang, include])
   except proc.CalledProcessError:
-    buildbot.Fail()
+    buildbot.Warn()
 
 
 ALL_TESTS = [
