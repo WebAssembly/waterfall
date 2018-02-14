@@ -1548,7 +1548,7 @@ def AllBuilds(use_asm=False):
       Build('llvm', LLVM),
       Build('v8', V8),
       Build('jsc', Jsc, no_windows=True, no_linux=True),
-      Build('jsvu', Jsvu, no_linux=True),
+      Build('jsvu', Jsvu, no_windows=True, no_linux=True),
       Build('wabt', Wabt),
       Build('ocaml', OCaml, no_windows=True),
       Build('spec', Spec, no_windows=True),
