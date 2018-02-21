@@ -17,3 +17,7 @@ warn__weak1.C.o
 
 # Untriaged
 warn__pr33738.C.o
+
+# Calls to user-defined-new is elided by clang (effects non-wasm too)
+init__new41.C.o.wasm O2
+template__new11.C.o.wasm O2
