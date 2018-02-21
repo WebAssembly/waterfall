@@ -282,6 +282,10 @@ eeprof-1.c.o.wasm # tests -finstrument-functions
 # Fails at compile time for s2wasm version
 pr44942.c.o.wasm
 
+# Calls to user-defined-new is elided by clang (effects non-wasm too)
+init__new41.C.o.wasm O2
+template__new11.C.o.wasm O2
+
 # abort()
 20040409-1.c.o.wasm O2
 20040409-2.c.o.wasm O2
