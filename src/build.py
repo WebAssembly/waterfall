@@ -94,7 +94,7 @@ LIBCXXABI_OUT_DIR = os.path.join(WORK_DIR, 'libcxxabi-out')
 TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
 TORTURE_O_OUT_DIR = os.path.join(WORK_DIR, 'torture-o')
 ASM2WASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'asm2wasm-torture-out')
-EMSCRIPTENWASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-torture-out')
+EMWASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-torture-out')
 EMSCRIPTEN_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-out')
 EMSCRIPTEN_ASMJS_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-asm2wasm-out')
 
@@ -232,7 +232,7 @@ LLVM_KNOWN_TORTURE_FAILURES = [os.path.join(LLVM_SRC_DIR, 'lib', 'Target',
                                             'WebAssembly', IT_IS_KNOWN)]
 ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
     SCRIPT_DIR, 'test', 'asm2wasm_compile_' + IT_IS_KNOWN)]
-EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
+EMWASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
     SCRIPT_DIR, 'test', 'emwasm_compile_' + IT_IS_KNOWN)]
 
 RUN_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
@@ -1150,13 +1150,14 @@ def Emscripten(use_asm):
     # the first deletion. So here we make sure that enough time has elapsed
     # between configuration file writing and sanity checking, so that it would
     # temporarily work on Mac and Windows.
-    time.sleep(3)
+    if not IsLinux():
+      time.sleep(3)
 
+    os.environ['EM_CONFIG'] = config
     try:
       # Use emscripten's embuilder to prebuild the system libraries.
       # This depends on binaryen already being built and installed into the
       # archive/install dir.
-      os.environ['EM_CONFIG'] = config
       proc.check_call([
           sys.executable, os.path.join(emscripten_dir, 'embuilder.py'),
           'build', 'SYSTEM'])
@@ -1318,8 +1319,7 @@ def ArchiveBinaries():
 
 
 def DebianPackage():
-  is_linux = sys.platform.startswith('linux')
-  if not (is_linux and IsBuildbot()):
+  if not (IsLinux() and IsBuildbot()):
     return
 
   buildbot.Step('Debian package')
@@ -1548,7 +1548,7 @@ def GetTortureDir(name, opt):
       's': os.path.join(TORTURE_S_OUT_DIR, opt),
       'o': os.path.join(TORTURE_O_OUT_DIR, opt),
       'asm2wasm': os.path.join(ASM2WASM_TORTURE_OUT_DIR, opt),
-      'emwasm': os.path.join(EMSCRIPTENWASM_TORTURE_OUT_DIR, opt)
+      'emwasm': os.path.join(EMWASM_TORTURE_OUT_DIR, opt),
   }
   if name in dirs:
     return dirs[name]
@@ -1677,7 +1677,7 @@ def TestEmwasm():
         'emwasm',
         EMSCRIPTEN_CONFIG_WASM,
         GetTortureDir('emwasm', opt),
-        EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES,
+        EMWASM_KNOWN_TORTURE_COMPILE_FAILURES,
         opt)
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
