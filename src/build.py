@@ -1378,7 +1378,7 @@ def CompileLLVMTortureBinaryen(name, em_config, outdir, fails, opt):
       fails=fails,
       exclusions=LLVM_TORTURE_EXCLUSIONS,
       out=outdir,
-      config='binaryen-native',
+      config='binaryen',
       opt=opt)
   UploadArchive('torture-%s-%s' % (name, opt), Archive(outdir))
   if 0 != unexpected_result_count:
