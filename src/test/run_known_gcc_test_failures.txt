@@ -189,6 +189,7 @@ pr58831.c.s.wast.wasm O0
 20010122-1.c.js asm2wasm
 frame-address.c.js asm2wasm
 pr17377.c.js
+pr56982.c.js lld,O0
 
 # inline assembly tricks
 20030222-1.c.js asm2wasm
@@ -200,6 +201,8 @@ pr49279.c.js asm2wasm
 
 # aborts in native clang
 20031003-1.c.js O0 # abort() in emwasm
+
+frame-address.c.js emwasm,lld,O3
 
 # hoisting of conditional cast causing wasm float->int conversion trap
 # https://github.com/WebAssembly/binaryen/issues/983

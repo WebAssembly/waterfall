@@ -97,6 +97,7 @@ TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
 TORTURE_O_OUT_DIR = os.path.join(WORK_DIR, 'torture-o')
 ASM2WASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'asm2wasm-torture-out')
 EMWASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-torture-out')
+EMWASM_LLD_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-lld-torture-out')
 EMSCRIPTEN_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-out')
 EMSCRIPTEN_ASMJS_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-asm2wasm-out')
 
@@ -1405,20 +1406,24 @@ def CompileLLVMTorture(extension, outdir, opt):
     buildbot.Fail()
 
 
-def CompileLLVMTortureBinaryen(name, em_config, outdir, fails, opt):
+def CompileLLVMTortureBinaryen(name, em_config, outdir, fails, opt, lld):
   buildbot.Step('Compile LLVM Torture (%s, %s)' % (name, opt))
   os.environ['EM_CONFIG'] = em_config
   cc = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'emcc'), '.bat')
   cxx = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'em++'), '.bat')
   Remove(outdir)
   Mkdir(outdir)
+  if lld:
+    config = 'binaryen-lld'
+  else:
+    config = 'binaryen'
   unexpected_result_count = compile_torture_tests.run(
       cc=cc, cxx=cxx, testsuite=GCC_TEST_DIR,
       sysroot_dir=INSTALL_SYSROOT,
       fails=fails,
       exclusions=LLVM_TORTURE_EXCLUSIONS,
       out=outdir,
-      config='binaryen',
+      config=config,
       opt=opt)
   UploadArchive('torture-%s-%s' % (name, opt), Archive(outdir))
   if 0 != unexpected_result_count:
@@ -1590,6 +1595,7 @@ def GetTortureDir(name, opt):
       'o': os.path.join(TORTURE_O_OUT_DIR, opt),
       'asm2wasm': os.path.join(ASM2WASM_TORTURE_OUT_DIR, opt),
       'emwasm': os.path.join(EMWASM_TORTURE_OUT_DIR, opt),
+      'emwasm-lld': os.path.join(EMWASM_LLD_TORTURE_OUT_DIR, opt)
   }
   if name in dirs:
     return dirs[name]
@@ -1698,7 +1704,7 @@ def TestAsm():
         EMSCRIPTEN_CONFIG_ASMJS,
         GetTortureDir('asm2wasm', opt),
         ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES,
-        opt)
+        opt, lld=False)
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
         name='asm2wasm',
@@ -1714,12 +1720,26 @@ def TestAsm():
 
 def TestEmwasm():
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
+    os.environ['EMCC_EXPERIMENTAL_USE_LLD'] = '1'
+    try:
+        CompileLLVMTortureBinaryen(
+            'emwasm-lld',
+            EMSCRIPTEN_CONFIG_WASM,
+            GetTortureDir('emwasm-lld', opt),
+            EMWASM_KNOWN_TORTURE_COMPILE_FAILURES,
+            opt,
+            lld=True)
+    finally:
+      del os.environ['EMCC_EXPERIMENTAL_USE_LLD']
+
     CompileLLVMTortureBinaryen(
         'emwasm',
         EMSCRIPTEN_CONFIG_WASM,
         GetTortureDir('emwasm', opt),
         EMWASM_KNOWN_TORTURE_COMPILE_FAILURES,
-        opt)
+        opt,
+        lld=False)
+
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
         name='emwasm',
@@ -1730,6 +1750,15 @@ def TestEmwasm():
         extension='c.js',
         opt=opt,
         outdir=GetTortureDir('emwasm', opt))
+    ExecuteLLVMTorture(
+        name='emwasm-lld',
+        runner=NODE_BIN,
+        indir=GetTortureDir('emwasm-lld', opt),
+        fails=RUN_KNOWN_TORTURE_FAILURES,
+        attributes=['emwasm', 'lld', 'd8'],
+        extension='c.js',
+        opt=opt,
+        outdir=GetTortureDir('emwasm-lld', opt))
 
 
 def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only):

@@ -1,8 +1,8 @@
 # Expected failures from using lld to link on clang-generated .o files generated
 # from the GCC torture tests, and linked with the musl libc.a
 
-# undefined symbol: bar
-# This seems to be clang bug because it occurs for native clang too.
+# undefined symbol: __builtin_va_arg_pack
+# This builtin is not supported by clang
 va-arg-pack-1.c.o
 
 # undefined symbol: link_error
