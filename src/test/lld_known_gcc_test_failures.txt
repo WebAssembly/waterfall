@@ -12,8 +12,5 @@ medce-1.c.o O0
 asan__interception-test-1.C.o  # Undefined symbol: __interceptor_strtol
 tree-ssa__pr20458.C.o  # Undefined symbol: std::locale::locale
 
-# Crash in lld
-warn__weak1.C.o
-
 # Untriaged
 warn__pr33738.C.o
