@@ -83,7 +83,6 @@
 
 # Only fails at link time in lld, due to the fact that s2wasm infers the
 # types of the missing builtin functions from the call sites but lld doesn't
-builtin-bitops-1.c binaryen-lld # __builtin_clrsb
+builtin-bitops-1.c binaryen-lld,O3 # __builtin_clrsb
 va-arg-pack-1.c binaryen-lld # __builtin_va_arg_pack
-pr47237.c binaryen-lld,O0 # __builtin_apply_args
-pr39228.c binaryen-lld # __builtin_isinff
+pr39228.c binaryen-lld,O3 # __builtin_isinff
