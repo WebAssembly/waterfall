@@ -62,7 +62,6 @@ GCC_TEST_DIR = os.path.join(GCC_SRC_DIR, 'gcc', 'testsuite')
 JSVU_DIR = os.path.join(WORK_DIR, 'jsvu')
 
 V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
-JSC_SRC_DIR = os.path.join(WORK_DIR, 'jsc')
 WABT_SRC_DIR = os.path.join(WORK_DIR, 'wabt')
 
 OCAML_DIR = os.path.join(WORK_DIR, 'ocaml')  # OCaml always does in-tree build
@@ -84,7 +83,7 @@ CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
 
 LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out.gn', 'x64.release')
-JSC_OUT_DIR = os.path.join(JSC_SRC_DIR, 'current-release')
+JSC_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
 WABT_OUT_DIR = os.path.join(WORK_DIR, 'wabt-out')
 OCAML_OUT_DIR = os.path.join(WORK_DIR, 'ocaml-out')
 BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
@@ -122,7 +121,6 @@ GITHUB_MIRROR_BASE = GIT_MIRROR_BASE + 'external/github.com/'
 WASM_GIT_BASE = GITHUB_MIRROR_BASE + 'WebAssembly/'
 EMSCRIPTEN_GIT_BASE = GITHUB_MIRROR_BASE + 'kripken/'
 MUSL_GIT_BASE = 'https://github.com/jfbastien/'
-WEBKIT_GIT_BASE = 'https://github.com/WebKit/'
 OCAML_GIT_BASE = 'https://github.com/ocaml/'
 
 # Name of remote for build script to use. Don't touch origin to avoid
@@ -683,9 +681,6 @@ ALL_SOURCES = [
     Source('v8', V8_SRC_DIR,
            GIT_MIRROR_BASE + 'v8/v8.git',
            custom_sync=ChromiumFetchSync),
-    Source('jsc', JSC_SRC_DIR,
-           WEBKIT_GIT_BASE + 'webkit.git', depth=1000,
-           no_windows=True, no_linux=True),
     Source('host-toolchain', PREBUILT_CLANG,
            GIT_MIRROR_BASE + 'chromium/src/tools/clang.git',
            custom_sync=SyncToolchain),
@@ -1003,40 +998,6 @@ def Jsvu():
     # $HOME/.jsvu/javascriptcore is now available on Mac.
 
   except:
-    buildbot.Warn()
-
-
-def Jsc():
-  buildbot.Step('JSC')
-  Mkdir(JSC_OUT_DIR)
-
-  try:
-    command = ['xcrun', PREBUILT_CMAKE_BIN, '-Wno-dev',
-               '..', '-G', 'Ninja',
-               '-DCMAKE_BUILD_TYPE="Release"',
-               '-DPORT=Mac',
-               '-DENABLE_WEBASSEMBLY=ON']
-
-    command.extend(OverrideCMakeCompiler())
-
-    jobs = host_toolchains.NinjaJobs()
-    command.extend(host_toolchains.CmakeLauncherFlags())
-
-    proc.check_call(command, cwd=JSC_OUT_DIR)
-    proc.check_call(['ninja', 'jsc'] + jobs, cwd=JSC_OUT_DIR)
-    proc.check_call(['../Tools/Scripts/run-javascriptcore-tests',
-                     '--root=bin',
-                     '--filter', 'wasm',
-                     '--no-build', '--no-testapi', '--no-testmasm',
-                     '--no-testb3', '--no-testair', '--fast'],
-                    cwd=JSC_OUT_DIR)
-    to_archive = [Executable(os.path.join('bin', 'jsc'))]
-    for a in to_archive:
-      CopyBinaryToArchive(os.path.join(JSC_OUT_DIR, a))
-
-  except proc.CalledProcessError:
-    # JSC cmake build is flaky because it is not the official build. For the
-    # moment make this not abort the whole process.
     buildbot.Warn()
 
 
@@ -1552,7 +1513,6 @@ def AllBuilds(use_asm=False):
       # Host tools
       Build('llvm', LLVM),
       Build('v8', V8),
-      Build('jsc', Jsc, no_windows=True, no_linux=True),
       Build('jsvu', Jsvu, no_windows=True, no_linux=True),
       Build('wabt', Wabt),
       Build('ocaml', OCaml, no_windows=True),
@@ -1683,14 +1643,14 @@ def TestBare():
         opt=opt,
         wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
 
-  if IsMac() and not buildbot.DidStepFailOrWarn('JSC'):
+  if IsMac() and not buildbot.DidStepFailOrWarn('jsvu'):
     for opt in BARE_TEST_OPT_FLAGS:
       ExecuteLLVMTorture(
-          name='jsc',
-          runner=os.path.join(INSTALL_BIN, 'jsc'),
-          indir=GetTortureDir('wat2wasm', opt),
+          name='jsc-lld',
+          runner=os.path.join(JSC_OUT_DIR, 'jsc'),
+          indir=GetTortureDir('lld', opt),
           fails=RUN_KNOWN_TORTURE_FAILURES,
-          attributes=common_attrs + ['jsc'],
+          attributes=common_attrs + ['jsc', 'lld'],
           extension='wasm',
           opt=opt,
           warn_only=True,
