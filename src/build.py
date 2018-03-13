@@ -59,6 +59,8 @@ FASTCOMP_SRC_DIR = os.path.join(WORK_DIR, 'emscripten-fastcomp')
 GCC_SRC_DIR = os.path.join(WORK_DIR, 'gcc')
 GCC_TEST_DIR = os.path.join(GCC_SRC_DIR, 'gcc', 'testsuite')
 
+JSVU_DIR = os.path.join(WORK_DIR, 'jsvu')
+
 V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
 JSC_SRC_DIR = os.path.join(WORK_DIR, 'jsc')
 WABT_SRC_DIR = os.path.join(WORK_DIR, 'wabt')
@@ -94,7 +96,8 @@ LIBCXXABI_OUT_DIR = os.path.join(WORK_DIR, 'libcxxabi-out')
 TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
 TORTURE_O_OUT_DIR = os.path.join(WORK_DIR, 'torture-o')
 ASM2WASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'asm2wasm-torture-out')
-EMSCRIPTENWASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-torture-out')
+EMWASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-torture-out')
+EMWASM_LLD_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-lld-torture-out')
 EMSCRIPTEN_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-out')
 EMSCRIPTEN_ASMJS_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-asm2wasm-out')
 
@@ -198,10 +201,16 @@ PREBUILT_CMAKE_BASE_NAME = 'cmake-%s-%s-%s' % (PREBUILT_CMAKE_VERSION,
 PREBUILT_CMAKE_DIR = os.path.join(WORK_DIR, PREBUILT_CMAKE_BASE_NAME)
 PREBUILT_CMAKE_BIN = os.path.join(PREBUILT_CMAKE_DIR, CMakeBinDir(), 'cmake')
 
-NODE_BIN = Executable(os.path.join(WORK_DIR,
-                                   NODE_BASE_NAME + NodePlatformName(),
-                                   'bin', 'node'))
+NODE_DIR = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName())
+NODE_BIN_DIR = os.path.join(NODE_DIR, 'bin')
+# `npm` uses whatever `node` is in `PATH`. To make sure it uses the
+# Node.js version we want, we prepend `NODE_BIN_DIR` to `PATH`.
+os.environ['PATH'] = NODE_BIN_DIR + os.pathsep + os.environ['PATH']
+NODE_BIN = Executable(os.path.join(NODE_BIN_DIR, 'node'))
+NPM_BIN = Executable(os.path.join(NODE_BIN_DIR, 'npm'))
 
+JSVU_BIN = Executable(os.path.join(JSVU_DIR,
+                                   'node_modules', 'jsvu', 'cli.js'))
 
 # Java installed in the buildbots are too old while emscripten uses closure
 # compiler that requires Java SE 8.0 (version 52) or above
@@ -231,7 +240,7 @@ LLVM_KNOWN_TORTURE_FAILURES = [os.path.join(LLVM_SRC_DIR, 'lib', 'Target',
                                             'WebAssembly', IT_IS_KNOWN)]
 ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
     SCRIPT_DIR, 'test', 'asm2wasm_compile_' + IT_IS_KNOWN)]
-EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
+EMWASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
     SCRIPT_DIR, 'test', 'emwasm_compile_' + IT_IS_KNOWN)]
 
 RUN_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
@@ -974,6 +983,38 @@ def V8():
     CopyBinaryToArchive(os.path.join(V8_OUT_DIR, a))
 
 
+def Jsvu():
+  buildbot.Step('jsvu')
+  Mkdir(JSVU_DIR)
+
+  try:
+    if IsWindows():
+      # jsvu OS identifiers:
+      # https://github.com/GoogleChromeLabs/jsvu#supported-engines
+      os_id = 'windows64'
+      js_engines = 'chakra'
+    elif IsMac():
+      os_id = 'mac64'
+      js_engines = 'javascriptcore'
+    else:
+      return
+
+    # https://github.com/GoogleChromeLabs/jsvu#installation
+    # ...except we install it locally instead of globally.
+    proc.check_call([NPM_BIN, 'install', 'jsvu'], cwd=JSVU_DIR)
+
+    # https://github.com/GoogleChromeLabs/jsvu#integration-with-non-interactive-environments
+    proc.check_call([JSVU_BIN,
+                     '--os=%s' % os_id,
+                     '--engines=%s' % js_engines])
+
+    # $HOME/.jsvu/chakra is now available on Windows.
+    # $HOME/.jsvu/javascriptcore is now available on Mac.
+
+  except:
+    buildbot.Warn()
+
+
 def Jsc():
   buildbot.Step('JSC')
   Mkdir(JSC_OUT_DIR)
@@ -1159,13 +1200,14 @@ def Emscripten(use_asm):
     # the first deletion. So here we make sure that enough time has elapsed
     # between configuration file writing and sanity checking, so that it would
     # temporarily work on Mac and Windows.
-    time.sleep(3)
+    if not IsLinux():
+      time.sleep(3)
 
+    os.environ['EM_CONFIG'] = config
     try:
       # Use emscripten's embuilder to prebuild the system libraries.
       # This depends on binaryen already being built and installed into the
       # archive/install dir.
-      os.environ['EM_CONFIG'] = config
       proc.check_call([
           sys.executable, os.path.join(emscripten_dir, 'embuilder.py'),
           'build', 'SYSTEM'])
@@ -1329,8 +1371,7 @@ def ArchiveBinaries():
 
 
 def DebianPackage():
-  is_linux = sys.platform.startswith('linux')
-  if not (is_linux and IsBuildbot()):
+  if not (IsLinux() and IsBuildbot()):
     return
 
   buildbot.Step('Debian package')
@@ -1376,20 +1417,24 @@ def CompileLLVMTorture(extension, outdir, opt):
     buildbot.Fail()
 
 
-def CompileLLVMTortureBinaryen(name, em_config, outdir, fails, opt):
+def CompileLLVMTortureBinaryen(name, em_config, outdir, fails, opt, lld):
   buildbot.Step('Compile LLVM Torture (%s, %s)' % (name, opt))
   os.environ['EM_CONFIG'] = em_config
   cc = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'emcc'), '.bat')
   cxx = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'em++'), '.bat')
   Remove(outdir)
   Mkdir(outdir)
+  if lld:
+    config = 'binaryen-lld'
+  else:
+    config = 'binaryen'
   unexpected_result_count = compile_torture_tests.run(
       cc=cc, cxx=cxx, testsuite=GCC_TEST_DIR,
       sysroot_dir=INSTALL_SYSROOT,
       fails=fails,
       exclusions=LLVM_TORTURE_EXCLUSIONS,
       out=outdir,
-      config='binaryen-native',
+      config=config,
       opt=opt)
   UploadArchive('torture-%s-%s' % (name, opt), Archive(outdir))
   if 0 != unexpected_result_count:
@@ -1519,6 +1564,7 @@ def AllBuilds(use_asm=False):
       Build('llvm', LLVM),
       Build('v8', V8),
       Build('jsc', Jsc, no_windows=True, no_linux=True),
+      Build('jsvu', Jsvu, no_windows=True, no_linux=True),
       Build('wabt', Wabt),
       Build('ocaml', OCaml, no_windows=True),
       Build('spec', Spec, no_windows=True),
@@ -1559,7 +1605,8 @@ def GetTortureDir(name, opt):
       's': os.path.join(TORTURE_S_OUT_DIR, opt),
       'o': os.path.join(TORTURE_O_OUT_DIR, opt),
       'asm2wasm': os.path.join(ASM2WASM_TORTURE_OUT_DIR, opt),
-      'emwasm': os.path.join(EMSCRIPTENWASM_TORTURE_OUT_DIR, opt)
+      'emwasm': os.path.join(EMWASM_TORTURE_OUT_DIR, opt),
+      'emwasm-lld': os.path.join(EMWASM_LLD_TORTURE_OUT_DIR, opt)
   }
   if name in dirs:
     return dirs[name]
@@ -1668,7 +1715,7 @@ def TestAsm():
         EMSCRIPTEN_CONFIG_ASMJS,
         GetTortureDir('asm2wasm', opt),
         ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES,
-        opt)
+        opt, lld=False)
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
         name='asm2wasm',
@@ -1684,12 +1731,26 @@ def TestAsm():
 
 def TestEmwasm():
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
+    os.environ['EMCC_EXPERIMENTAL_USE_LLD'] = '1'
+    try:
+        CompileLLVMTortureBinaryen(
+            'emwasm-lld',
+            EMSCRIPTEN_CONFIG_WASM,
+            GetTortureDir('emwasm-lld', opt),
+            EMWASM_KNOWN_TORTURE_COMPILE_FAILURES,
+            opt,
+            lld=True)
+    finally:
+      del os.environ['EMCC_EXPERIMENTAL_USE_LLD']
+
     CompileLLVMTortureBinaryen(
         'emwasm',
         EMSCRIPTEN_CONFIG_WASM,
         GetTortureDir('emwasm', opt),
-        EMSCRIPTENWASM_KNOWN_TORTURE_COMPILE_FAILURES,
-        opt)
+        EMWASM_KNOWN_TORTURE_COMPILE_FAILURES,
+        opt,
+        lld=False)
+
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
         name='emwasm',
@@ -1700,6 +1761,15 @@ def TestEmwasm():
         extension='c.js',
         opt=opt,
         outdir=GetTortureDir('emwasm', opt))
+    ExecuteLLVMTorture(
+        name='emwasm-lld',
+        runner=NODE_BIN,
+        indir=GetTortureDir('emwasm-lld', opt),
+        fails=RUN_KNOWN_TORTURE_FAILURES,
+        attributes=['emwasm', 'lld', 'd8'],
+        extension='c.js',
+        opt=opt,
+        outdir=GetTortureDir('emwasm-lld', opt))
 
 
 def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only):
@@ -1731,13 +1801,14 @@ def TestEmtestAsm2Wasm():
 
 
 def TestWasmSimd():
+  buildbot.Step('Execute emscripten wasm simd')
   script = os.path.join(SCRIPT_DIR, 'test_wasm_simd.py')
   clang = Executable(os.path.join(INSTALL_BIN, 'wasm32-clang'))
   include = os.path.join(EMSCRIPTEN_SRC_DIR, 'system', 'include')
   try:
     proc.check_call([script, clang, include])
   except proc.CalledProcessError:
-    buildbot.Fail()
+    buildbot.Warn()
 
 
 ALL_TESTS = [

@@ -189,6 +189,7 @@ pr58831.c.s.wast.wasm O0
 20010122-1.c.js asm2wasm
 frame-address.c.js asm2wasm
 pr17377.c.js
+pr56982.c.js lld,O0
 
 # inline assembly tricks
 20030222-1.c.js asm2wasm
@@ -200,6 +201,8 @@ pr49279.c.js asm2wasm
 
 # aborts in native clang
 20031003-1.c.js O0 # abort() in emwasm
+
+frame-address.c.js emwasm,lld,O3
 
 # hoisting of conditional cast causing wasm float->int conversion trap
 # https://github.com/WebAssembly/binaryen/issues/983
@@ -231,9 +234,9 @@ pr53645.c.js asm2wasm
 pr60960.c.js asm2wasm # actually fails in asm2wasm, but JS file is still there
 
 # Untriaged emscripten O3 failures
-20040409-1.c.js emwasm,O3
-20040409-2.c.js emwasm,O3
-20040409-3.c.js emwasm,O3
+20040409-1.c.js O3
+20040409-2.c.js O3
+20040409-3.c.js O3
 920612-1.c.js O3
 920711-1.c.js O3
 990208-1.c.js O3
@@ -281,6 +284,10 @@ eeprof-1.c.o.wasm # tests -finstrument-functions
 # Invalid module: call[7] expected type i64, found get_local of type i32
 # Fails at compile time for s2wasm version
 pr44942.c.o.wasm
+
+# Calls to user-defined-new is elided by clang (effects non-wasm too)
+init__new41.C.o.wasm O2
+template__new11.C.o.wasm O2
 
 # abort()
 20040409-1.c.o.wasm O2

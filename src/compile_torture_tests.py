@@ -75,20 +75,14 @@ def run(cc, cxx, testsuite, sysroot_dir, fails, exclusions, out, config, opt):
                  '--sysroot=%s' % sysroot_dir],
       'wasm-o': ['--target=wasm32-unknown-unknown', '-c',
                  '--sysroot=%s' % sysroot_dir],
-      # Binaryen's native-wasm method uses the JS engine's native support for
-      # wasm rather than interpreting the wasm with wasm.js.
-      'binaryen-native': ['-s', 'WASM=1', '-s',
-                          'BINARYEN_METHOD="native-wasm"'],
-      # The interpret-binary method runs the wasm in an asmjs-compiled
-      # wasm-shell
-      'binaryen-interpret': ['-s', 'WASM=1', '-s',
-                             'BINARYEN_METHOD="interpret-binary"'],
+      'binaryen': ['-s', 'WASM=1'],
+      'binaryen-lld': ['-s', 'WASM=1']
   }
   suffix = {
       'wasm-o': '.o',
       'wasm-s': '.s',
-      'binaryen-native': '.js',
-      'binaryen-inputs': '.js',
+      'binaryen': '.js',
+      'binaryen-lld': '.js',
   }[config]
 
   assert os.path.isdir(out), 'Cannot find outdir %s' % out
