@@ -42,8 +42,7 @@ def link(infile, outfile, extras):
   sysroot_dir = os.path.join(install_root, 'sysroot')
   commands = {
       'wasm32-clang++': [
-          linker,
-          '--sysroot=%s' % sysroot_dir, '-Wl,-zstack-size=1048576',
+          linker, '--sysroot=%s' % sysroot_dir, '-Wl,-zstack-size=1048576',
           '-Wl,--entry=main', '-o', outfile, infile],
       's2wasm': [linker, '--allocate-stack', '1048576', '-o', outfile, infile],
   }
