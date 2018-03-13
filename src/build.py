@@ -997,6 +997,9 @@ def Jsvu():
     # $HOME/.jsvu/chakra is now available on Windows.
     # $HOME/.jsvu/javascriptcore is now available on Mac.
 
+    # TODO: Install the JSC binary in the output package, and add the version
+    # info to the repo info JSON file (currently in GetRepoInfo)
+
   except:
     buildbot.Warn()
 
