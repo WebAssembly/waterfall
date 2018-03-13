@@ -1,5 +1,8 @@
 # WACK (WebAssembly Clang Kit) is an experimental WebAssembly standalone
-# toolchain.
+# toolchain. It is used on the build waterfall for testing various toolchain
+# components (e.g. clang, LLVM, lld) and engines (e.g. V8 and JSC) but is not
+# an official or productionized tool.
+
 
 # Set up the CMake include path to find the WACK platform file. Following the
 # same convention as the CMake distribution suppresses noisy CMake warnings:
