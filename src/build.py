@@ -939,9 +939,9 @@ def LLVM():
   install_bin = os.path.join(INSTALL_DIR, 'bin')
   for target in ('clang', 'clang++'):
     link = os.path.join(install_bin, 'wasm32-' + target)
-    try:
+    if not IsWindows():
       os.symlink(Executable(link), Executable(target))
-    except AttributeError:
+    else:
       # Windows has no symlinks (at least not from python). Also clang won't
       # work as a native compiler anyway, so just install it as wasm32-clang
       os.rename(Executable(os.path.join(install_bin, target)), Executable(link))
