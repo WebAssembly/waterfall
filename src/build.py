@@ -936,15 +936,6 @@ def LLVM():
   proc.check_call(['ninja', '-v'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
   CopyLLVMTools(LLVM_OUT_DIR)
-  install_bin = os.path.join(INSTALL_DIR, 'bin')
-  for target in ('clang', 'clang++'):
-    link = os.path.join(install_bin, 'wasm32-' + target)
-    if not IsWindows():
-      os.symlink(Executable(link), Executable(target))
-    else:
-      # Windows has no symlinks (at least not from python). Also clang won't
-      # work as a native compiler anyway, so just install it as wasm32-clang
-      os.rename(Executable(os.path.join(install_bin, target)), Executable(link))
 
   if not options.run_tool_tests:
     return
@@ -1398,8 +1389,8 @@ def DebianPackage():
 def CompileLLVMTorture(extension, outdir, opt):
   name = 'Compile LLVM Torture (%s, %s)' % (extension, opt)
   buildbot.Step(name)
-  cc = Executable(os.path.join(INSTALL_BIN, 'wasm32-clang'))
-  cxx = Executable(os.path.join(INSTALL_BIN, 'wasm32-clang++'))
+  cc = Executable(os.path.join(INSTALL_BIN, 'clang'))
+  cxx = Executable(os.path.join(INSTALL_BIN, 'clang++'))
   Remove(outdir)
   Mkdir(outdir)
   unexpected_result_count = compile_torture_tests.run(
@@ -1622,7 +1613,7 @@ def TestBare():
   for opt in BARE_TEST_OPT_FLAGS:
     LinkLLVMTorture(
         name='lld',
-        linker=Executable(os.path.join(INSTALL_BIN, 'wasm32-clang++')),
+        linker=Executable(os.path.join(INSTALL_BIN, 'clang++')),
         fails=LLD_KNOWN_TORTURE_FAILURES,
         indir=GetTortureDir('o', opt),
         outdir=GetTortureDir('lld', opt),
@@ -1801,7 +1792,7 @@ def TestEmtestAsm2Wasm():
 def TestWasmSimd():
   buildbot.Step('Execute emscripten wasm simd')
   script = os.path.join(SCRIPT_DIR, 'test_wasm_simd.py')
-  clang = Executable(os.path.join(INSTALL_BIN, 'wasm32-clang'))
+  clang = Executable(os.path.join(INSTALL_BIN, 'clang'))
   include = os.path.join(EMSCRIPTEN_SRC_DIR, 'system', 'include')
   try:
     proc.check_call([script, clang, include])

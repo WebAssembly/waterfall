@@ -73,7 +73,8 @@ def run(cc, cxx, testsuite, sysroot_dir, fails, exclusions, out, config, opt):
   cflags_extra = {
       'wasm-s': ['--target=wasm32-unknown-unknown-elf', '-S',
                  '--sysroot=%s' % sysroot_dir],
-      'wasm-o': ['-c', '--sysroot=%s' % sysroot_dir],
+      'wasm-o': ['--target=wasm32-unknown-unknown', '-c',
+                 '--sysroot=%s' % sysroot_dir],
       'binaryen': ['-s', 'WASM=1'],
       'binaryen-lld': ['-s', 'WASM=1']
   }
