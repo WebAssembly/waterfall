@@ -16,9 +16,9 @@ list(APPEND CMAKE_MODULE_PATH "${WASM_SDKROOT}/cmake/Modules")
 # This has to go before we set CMAKE_SYSTEM_NAME because the default c compiler
 # gets set before the platform file is included
 if (CMAKE_HOST_WIN32)
-        set(EXE_SUFFIX ".exe")
+  set(EXE_SUFFIX ".exe")
 else()
-        set(EXE_SUFFIX "")
+  set(EXE_SUFFIX "")
 endif()
 if ("${CMAKE_C_COMPILER}" STREQUAL "")
   set(CMAKE_C_COMPILER ${WASM_SDKROOT}/bin/wasm32-clang${EXE_SUFFIX})

@@ -946,7 +946,6 @@ def LLVM():
       # work as a native compiler anyway, so just install it as wasm32-clang
       os.rename(Executable(os.path.join(install_bin, target)), Executable(link))
 
-
   if not options.run_tool_tests:
     return
 
@@ -1268,7 +1267,6 @@ def LibCXX():
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', os.path.join(LIBCXX_SRC_DIR),
              '-DCMAKE_CXX_COMPILER_WORKS=ON',
              '-DCMAKE_C_COMPILER_WORKS=ON',
-             '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
              '-DLIBCXX_ENABLE_THREADS=OFF',
              '-DLIBCXX_ENABLE_SHARED=OFF',
              '-DLIBCXX_HAS_MUSL_LIBC=ON',
