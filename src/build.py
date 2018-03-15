@@ -211,6 +211,8 @@ NPM_BIN = Executable(os.path.join(NODE_BIN_DIR, 'npm'))
 JSVU_BIN = Executable(os.path.join(JSVU_DIR,
                                    'node_modules', 'jsvu', 'cli.js'))
 
+D8_BIN = Executable(os.path.join(INSTALL_BIN, 'd8'))
+
 # Java installed in the buildbots are too old while emscripten uses closure
 # compiler that requires Java SE 8.0 (version 52) or above
 JAVA_VERSION = '9.0.1'
@@ -1606,7 +1608,7 @@ def TestBare():
   for opt in BARE_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
         name='d8-lld',
-        runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
+        runner=D8_BIN,
         indir=GetTortureDir('lld', opt),
         fails=RUN_KNOWN_TORTURE_FAILURES,
         attributes=common_attrs + ['d8', 'lld'],
@@ -1638,7 +1640,7 @@ def TestBare():
   for opt in BARE_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
         name='d8',
-        runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
+        runner=D8_BIN,
         indir=GetTortureDir('wat2wasm', opt),
         fails=RUN_KNOWN_TORTURE_FAILURES,
         attributes=common_attrs + ['d8'],
@@ -1671,7 +1673,7 @@ def TestAsm():
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
         name='asm2wasm',
-        runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
+        runner=D8_BIN,
         indir=GetTortureDir('asm2wasm', opt),
         fails=RUN_KNOWN_TORTURE_FAILURES,
         attributes=['asm2wasm', 'd8'],
@@ -1706,7 +1708,7 @@ def TestEmwasm():
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
         name='emwasm',
-        runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
+        runner=D8_BIN,
         indir=GetTortureDir('emwasm', opt),
         fails=RUN_KNOWN_TORTURE_FAILURES,
         attributes=['emwasm', 'd8'],
@@ -1715,7 +1717,7 @@ def TestEmwasm():
         outdir=GetTortureDir('emwasm', opt))
     ExecuteLLVMTorture(
         name='emwasm-lld',
-        runner=Executable(os.path.join(INSTALL_BIN, 'd8')),
+        runner=D8_BIN,
         indir=GetTortureDir('emwasm-lld', opt),
         fails=RUN_KNOWN_TORTURE_FAILURES,
         attributes=['emwasm', 'lld', 'd8'],
