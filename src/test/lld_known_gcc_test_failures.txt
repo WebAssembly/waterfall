@@ -12,5 +12,14 @@ medce-1.c.o O0
 asan__interception-test-1.C.o  # Undefined symbol: __interceptor_strtol
 tree-ssa__pr20458.C.o  # Undefined symbol: std::locale::locale
 
+
+# These tests compile but need to actually create threads to run correctly.
+tls__thread_local3.C.o
+tls__thread_local3g.C.o
+tls__thread_local4.C.o
+tls__thread_local4g.C.o
+tls__thread_local5.C.o
+tls__thread_local5g.C.o
+
 # Untriaged
 warn__pr33738.C.o
