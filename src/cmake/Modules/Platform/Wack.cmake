@@ -15,7 +15,6 @@ set(UNIX 1)
 
 set(CMAKE_C_COMPILER_TARGET ${triple})
 set(CMAKE_CXX_COMPILER_TARGET ${triple})
-set(CMAKE_REQUIRED_FLAGS --target=${triple})
 
 
 set(CMAKE_SYSROOT ${WASM_SDKROOT}/sysroot)
