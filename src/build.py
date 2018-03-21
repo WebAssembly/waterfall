@@ -106,8 +106,7 @@ INSTALL_LIB = os.path.join(INSTALL_DIR, 'lib')
 INSTALL_SYSROOT = os.path.join(INSTALL_DIR, 'sysroot')
 
 # This file has a special path to avoid warnings about the system being unknown
-CMAKE_TOOLCHAIN_FILE = os.path.join(
-    INSTALL_DIR, 'cmake', 'Modules', 'Platform', 'Wasm.cmake')
+CMAKE_TOOLCHAIN_FILE = os.path.join(INSTALL_DIR, 'Wack.cmake')
 
 EMSCRIPTEN_CONFIG_ASMJS = os.path.join(INSTALL_DIR, 'emscripten_config')
 EMSCRIPTEN_CONFIG_WASM = os.path.join(INSTALL_DIR, 'emscripten_config_vanilla')
@@ -1308,10 +1307,11 @@ def Musl():
     # Strictly speaking the CMake toolchain file isn't part of musl, but does
     # go along with the headers and libs musl installs. Give it a special
     # path to avoid warnings about the system being unknown.
-    cmake_path = os.path.dirname(CMAKE_TOOLCHAIN_FILE)
-    Mkdir(cmake_path)
-    shutil.copy2(os.path.join(SCRIPT_DIR, 'wasm_standalone.cmake'),
+    shutil.copy2(os.path.join(SCRIPT_DIR, 'Wack.cmake'),
                  CMAKE_TOOLCHAIN_FILE)
+    Remove(os.path.join(INSTALL_DIR, 'cmake'))
+    shutil.copytree(os.path.join(SCRIPT_DIR, 'cmake'),
+                    os.path.join(INSTALL_DIR, 'cmake'))
 
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
