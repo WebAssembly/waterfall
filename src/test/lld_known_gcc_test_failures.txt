@@ -13,7 +13,7 @@ asan__interception-test-1.C.o  # Undefined symbol: __interceptor_strtol
 tree-ssa__pr20458.C.o  # Undefined symbol: std::locale::locale
 
 
-# These tests use TLS and need to link libpthread
+# These tests compile but need to actually create threads to run correctly.
 tls__thread_local3.C.o
 tls__thread_local3g.C.o
 tls__thread_local4.C.o
