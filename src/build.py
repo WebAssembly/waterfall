@@ -1209,7 +1209,7 @@ def CompilerRT():
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja',
              os.path.join(COMPILER_RT_SRC_DIR, 'lib', 'builtins'),
              '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE,
-             '-DCMAKE_C_COMPILER_WORKS=ON',
+             '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib -Wl,--allow-undefined',
              '-DCOMPILER_RT_BAREMETAL_BUILD=On',
              '-DCOMPILER_RT_BUILD_XRAY=OFF',
              '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
@@ -1233,8 +1233,7 @@ def LibCXX():
   Mkdir(LIBCXX_OUT_DIR)
   cc_env = BuildEnv(LIBCXX_SRC_DIR, bin_subdir=True)
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', os.path.join(LIBCXX_SRC_DIR),
-             '-DCMAKE_CXX_COMPILER_WORKS=ON',
-             '-DCMAKE_C_COMPILER_WORKS=ON',
+             '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
              '-DLIBCXX_ENABLE_THREADS=OFF',
              '-DLIBCXX_ENABLE_SHARED=OFF',
              '-DLIBCXX_HAS_MUSL_LIBC=ON',
@@ -1258,14 +1257,9 @@ def LibCXXABI():
   cc_env = BuildEnv(LIBCXXABI_SRC_DIR, bin_subdir=True)
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja',
              os.path.join(LIBCXXABI_SRC_DIR),
-             '-DCMAKE_CXX_COMPILER_WORKS=ON',
-             '-DCMAKE_C_COMPILER_WORKS=ON',
+             '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
              '-DLIBCXXABI_ENABLE_SHARED=OFF',
              '-DLIBCXXABI_ENABLE_THREADS=OFF',
-             # Make HandleLLVMOptions.cmake (it can't check for c++11 support
-             # because no C++ programs can be linked until libc++abi is
-             # installed, so chicken and egg.
-             '-DCXX_SUPPORTS_CXX11=ON',
              # HandleLLVMOptions.cmake include CheckCompilerVersion.cmake.
              # This checks for working <atomic> header, which in turn errors
              # out on systems with threads disabled
