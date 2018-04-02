@@ -80,7 +80,8 @@ def SetUpVSEnv(outdir):
   # block
   runtime_dirs = os.pathsep.join(paths['runtime_dirs'])
   proc.check_call([SETUP_TOOLCHAIN,
-                   'foo', paths['win_sdk'], runtime_dirs, 'x64', '0'],
+                   'foo', paths['win_sdk'], runtime_dirs,
+                   'win', 'x64', 'environment.x64', '0'],
                   cwd=outdir)
   return GetVSEnv(outdir)
 
