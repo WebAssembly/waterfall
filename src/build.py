@@ -41,6 +41,11 @@ import link_assembly_files
 import proc
 import testing
 
+def IsWindows():
+  return sys.platform == 'win32'
+
+def Executable(name, extension='.exe'):
+  return name + extension if IsWindows() else name
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 WORK_DIR = os.path.join(SCRIPT_DIR, 'work')
@@ -78,8 +83,8 @@ PREBUILT_CLANG = os.path.join(WORK_DIR, 'chromium-clang')
 PREBUILT_CLANG_TOOLS_CLANG = os.path.join(PREBUILT_CLANG, 'tools', 'clang')
 PREBUILT_CLANG_BIN = os.path.join(
     PREBUILT_CLANG, 'third_party', 'llvm-build', 'Release+Asserts', 'bin')
-CC = os.path.join(PREBUILT_CLANG_BIN, 'clang')
-CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
+CC = Executable(os.path.join(PREBUILT_CLANG_BIN, 'clang'))
+CXX = Executable(os.path.join(PREBUILT_CLANG_BIN, 'clang++'))
 
 LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out.gn', 'x64.release')
@@ -156,9 +161,6 @@ def IsLinux():
 def IsMac():
   return sys.platform == 'darwin'
 
-
-def Executable(name, extension='.exe'):
-  return name + extension if IsWindows() else name
 
 
 def WindowsFSEscape(path):
@@ -544,10 +546,9 @@ def ChromiumFetchSync(name, work_dir, git_repo,
 def SyncToolchain(name, src_dir, git_repo):
   if IsWindows():
     host_toolchains.SyncWinToolchain()
-  else:
-    host_toolchains.SyncPrebuiltClang(name, src_dir, git_repo)
-    assert os.path.isfile(CC), 'Expect clang at %s' % CC
-    assert os.path.isfile(CXX), 'Expect clang++ at %s' % CXX
+  host_toolchains.SyncPrebuiltClang(name, src_dir, git_repo)
+  assert os.path.isfile(CC), 'Expect clang at %s' % CC
+  assert os.path.isfile(CXX), 'Expect clang++ at %s' % CXX
 
 
 def SyncArchive(out_dir, name, url):
@@ -1216,7 +1217,7 @@ def CompilerRT():
              '-DCOMPILER_RT_ENABLE_IOS=OFF',
              '-DCOMPILER_RT_DEFAULT_TARGET_ONLY=On',
              '-DLLVM_CONFIG_PATH=' +
-             os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config'),
+             Executable(os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config')),
              '-DCOMPILER_RT_OS_DIR=.',
              '-DCMAKE_INSTALL_PREFIX=' +
              os.path.join(INSTALL_DIR, 'lib', 'clang', LLVM_VERSION)]
@@ -1233,16 +1234,18 @@ def LibCXX():
   Mkdir(LIBCXX_OUT_DIR)
   cc_env = BuildEnv(LIBCXX_SRC_DIR, bin_subdir=True)
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', os.path.join(LIBCXX_SRC_DIR),
-             '-DCMAKE_CXX_COMPILER_WORKS=ON',
-             '-DCMAKE_C_COMPILER_WORKS=ON',
+             #'-DCMAKE_CXX_COMPILER_WORKS=ON',
+             #'-DCMAKE_C_COMPILER_WORKS=ON',
+             '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
              '-DLIBCXX_ENABLE_THREADS=OFF',
              '-DLIBCXX_ENABLE_SHARED=OFF',
              '-DLIBCXX_HAS_MUSL_LIBC=ON',
              '-DLIBCXX_CXX_ABI=libcxxabi',
              '-DLIBCXX_CXX_ABI_INCLUDE_PATHS=' +
              os.path.join(LIBCXXABI_SRC_DIR, 'include'),
-             '-DLLVM_CONFIG_PATH=' +
-             os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config'),
+             #'-DLLVM_CONFIG_PATH=' +
+             #Executable(os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config')) + '',
+             '-DLLVM_PATH='+ LLVM_SRC_DIR,
              '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE]
 
   proc.check_call(command, cwd=LIBCXX_OUT_DIR, env=cc_env)
@@ -1258,14 +1261,15 @@ def LibCXXABI():
   cc_env = BuildEnv(LIBCXXABI_SRC_DIR, bin_subdir=True)
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja',
              os.path.join(LIBCXXABI_SRC_DIR),
-             '-DCMAKE_CXX_COMPILER_WORKS=ON',
-             '-DCMAKE_C_COMPILER_WORKS=ON',
+             #'-DCMAKE_CXX_COMPILER_WORKS=ON',
+             #'-DCMAKE_C_COMPILER_WORKS=ON',
+             '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
              '-DLIBCXXABI_ENABLE_SHARED=OFF',
              '-DLIBCXXABI_ENABLE_THREADS=OFF',
              # Make HandleLLVMOptions.cmake (it can't check for c++11 support
              # because no C++ programs can be linked until libc++abi is
              # installed, so chicken and egg.
-             '-DCXX_SUPPORTS_CXX11=ON',
+             #'-DCXX_SUPPORTS_CXX11=ON',
              # HandleLLVMOptions.cmake include CheckCompilerVersion.cmake.
              # This checks for working <atomic> header, which in turn errors
              # out on systems with threads disabled
@@ -1273,8 +1277,9 @@ def LibCXXABI():
              '-DLIBCXXABI_LIBCXX_PATH=' + LIBCXX_SRC_DIR,
              '-DLIBCXXABI_LIBCXX_INCLUDES=' +
              os.path.join(INSTALL_SYSROOT, 'include', 'c++', 'v1'),
-             '-DLLVM_CONFIG_PATH=' +
-             os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config'),
+             #'-DLLVM_CONFIG_PATH=' +
+             #Executable(os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config')),
+             '-DLLVM_PATH='+ LLVM_SRC_DIR,
              '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE]
 
   proc.check_call(command, cwd=LIBCXXABI_OUT_DIR, env=cc_env)
