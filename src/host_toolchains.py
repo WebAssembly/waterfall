@@ -43,7 +43,7 @@ def SyncPrebuiltClang(name, src_dir, git_repo):
   proc.check_call(['git', 'fetch'], cwd=tools_clang)
   proc.check_call(['git', 'checkout', 'origin/master'], cwd=tools_clang)
   proc.check_call(
-      [sys.executable, os.path.join(tools_clang, 'scripts', 'update.py')])
+      [os.path.join(tools_clang, 'scripts', 'update.py')])
   return ('chromium-clang', tools_clang)
 
 

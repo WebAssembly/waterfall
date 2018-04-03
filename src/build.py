@@ -41,11 +41,6 @@ import link_assembly_files
 import proc
 import testing
 
-def IsWindows():
-  return sys.platform == 'win32'
-
-def Executable(name, extension='.exe'):
-  return name + extension if IsWindows() else name
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 WORK_DIR = os.path.join(SCRIPT_DIR, 'work')
@@ -83,8 +78,8 @@ PREBUILT_CLANG = os.path.join(WORK_DIR, 'chromium-clang')
 PREBUILT_CLANG_TOOLS_CLANG = os.path.join(PREBUILT_CLANG, 'tools', 'clang')
 PREBUILT_CLANG_BIN = os.path.join(
     PREBUILT_CLANG, 'third_party', 'llvm-build', 'Release+Asserts', 'bin')
-CC = Executable(os.path.join(PREBUILT_CLANG_BIN, 'clang'))
-CXX = Executable(os.path.join(PREBUILT_CLANG_BIN, 'clang++'))
+CC = os.path.join(PREBUILT_CLANG_BIN, 'clang')
+CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
 
 LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out.gn', 'x64.release')
@@ -161,6 +156,9 @@ def IsLinux():
 def IsMac():
   return sys.platform == 'darwin'
 
+
+def Executable(name, extension='.exe'):
+  return name + extension if IsWindows() else name
 
 
 def WindowsFSEscape(path):
@@ -546,9 +544,10 @@ def ChromiumFetchSync(name, work_dir, git_repo,
 def SyncToolchain(name, src_dir, git_repo):
   if IsWindows():
     host_toolchains.SyncWinToolchain()
-  host_toolchains.SyncPrebuiltClang(name, src_dir, git_repo)
-  assert os.path.isfile(CC), 'Expect clang at %s' % CC
-  assert os.path.isfile(CXX), 'Expect clang++ at %s' % CXX
+  else:
+    host_toolchains.SyncPrebuiltClang(name, src_dir, git_repo)
+    assert os.path.isfile(CC), 'Expect clang at %s' % CC
+    assert os.path.isfile(CXX), 'Expect clang++ at %s' % CXX
 
 
 def SyncArchive(out_dir, name, url):
@@ -1241,7 +1240,7 @@ def LibCXX():
              '-DLIBCXX_CXX_ABI=libcxxabi',
              '-DLIBCXX_CXX_ABI_INCLUDE_PATHS=' +
              os.path.join(LIBCXXABI_SRC_DIR, 'include'),
-             '-DLLVM_PATH='+ LLVM_SRC_DIR,
+             '-DLLVM_PATH=' + LLVM_SRC_DIR,
              '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE]
 
   proc.check_call(command, cwd=LIBCXX_OUT_DIR, env=cc_env)
@@ -1267,7 +1266,7 @@ def LibCXXABI():
              '-DLIBCXXABI_LIBCXX_PATH=' + LIBCXX_SRC_DIR,
              '-DLIBCXXABI_LIBCXX_INCLUDES=' +
              os.path.join(INSTALL_SYSROOT, 'include', 'c++', 'v1'),
-             '-DLLVM_PATH='+ LLVM_SRC_DIR,
+             '-DLLVM_PATH=' + LLVM_SRC_DIR,
              '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE]
 
   proc.check_call(command, cwd=LIBCXXABI_OUT_DIR, env=cc_env)
