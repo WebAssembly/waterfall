@@ -30,7 +30,7 @@ test_filter = None
 
 def do_compile(infile, outfile, extras):
   """Create the command-line for a C compiler invocation."""
-  if os.path.splitext(infile)[1] == '.C' or 'g++.dg' in infile: # lol windows
+  if os.path.splitext(infile)[1] == '.C' or 'g++.dg' in infile:  # lol windows
     return [extras['cxx'], infile, '-o', outfile] + extras['cxxflags']
   else:
     return [extras['cc'], infile, '-o', outfile] + extras['cflags']
