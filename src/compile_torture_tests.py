@@ -30,7 +30,7 @@ test_filter = None
 
 def do_compile(infile, outfile, extras):
   """Create the command-line for a C compiler invocation."""
-  if os.path.splitext(infile)[1] == '.C':
+  if os.path.splitext(infile)[1] == '.C' or 'g++.dg' in infile:  # lol windows
     return [extras['cxx'], infile, '-o', outfile] + extras['cxxflags']
   else:
     return [extras['cc'], infile, '-o', outfile] + extras['cflags']
@@ -105,7 +105,7 @@ def run(cc, cxx, testsuite, sysroot_dir, fails, exclusions, out, config, opt):
     cxx_test_dir = os.path.join(testsuite, 'g++.dg')
     assert os.path.isdir(cxx_test_dir), ('Cannot find C++ tests at %s' %
                                          cxx_test_dir)
-    test_files += find_runnable_tests(cxx_test_dir, '*.C')
+    test_files += find_runnable_tests(cxx_test_dir, '*.[Cc]')
 
   cflags = cflags_common + cflags_c + cflags_extra[config]
   cxxflags = cflags_common + cflags_cxx + cflags_extra[config]
