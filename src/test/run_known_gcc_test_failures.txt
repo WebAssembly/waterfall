@@ -189,7 +189,6 @@ pr58831.c.s.wast.wasm O0
 20010122-1.c.js asm2wasm
 frame-address.c.js asm2wasm
 pr17377.c.js
-pr56982.c.js lld,O0
 
 # inline assembly tricks
 20030222-1.c.js asm2wasm
