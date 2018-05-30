@@ -122,8 +122,8 @@ pr22493-1.c.s.wast.wasm O2 # abort() # UB
 eeprof-1.c.s.wast.wasm # tests -finstrument-functions
 eeprof-1.c.js # tests -finstrument-functions
 pr23047.c.s.wast.wasm O2 # tests -fwrapv
-pr23047.c.js O2 # tests -fwrapv
-pr23047.c.js O3 # tests -fwrapv
+pr23047.c.js O2,emwasm # tests -fwrapv
+pr23047.c.js O3,emwasm # tests -fwrapv
 
 # Low priority
 # Bitfield tests
