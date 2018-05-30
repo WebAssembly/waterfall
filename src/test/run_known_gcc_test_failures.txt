@@ -121,6 +121,9 @@ builtin-constant.c.s.wast.wasm O2 # abort() # builtin_constant_p depends on opt 
 pr22493-1.c.s.wast.wasm O2 # abort() # UB
 eeprof-1.c.s.wast.wasm # tests -finstrument-functions
 eeprof-1.c.js # tests -finstrument-functions
+pr23047.c.s.wast.wasm O2 # tests -fwrapv
+pr23047.c.js O2 # tests -fwrapv
+pr23047.c.js O3 # tests -fwrapv
 
 # Low priority
 # Bitfield tests
@@ -277,6 +280,7 @@ bcp-1.c.o.wasm O2 # abort() # builtin_constant_p depends on opt setting
 builtin-constant.c.o.wasm O2 # abort() # builtin_constant_p depends on opt setting
 pr22493-1.c.o.wasm O2 # abort() # UB
 eeprof-1.c.o.wasm # tests -finstrument-functions
+pr23047.c.o.wasm O2 # tests -fwrapv
 
 ### Failures specific to lld-linked binaries
 
