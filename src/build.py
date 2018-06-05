@@ -1729,14 +1729,17 @@ def TestEmwasm():
         outdir=GetTortureDir('emwasm-lld', opt))
 
 
-def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only):
+def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only, use_lld=False):
   buildbot.Step('Execute emscripten testsuite (%s)' % name)
   Mkdir(outdir)
+  env = os.environ.copy()
+  if use_lld:
+    env['EMCC_EXPERIMENTAL_USE_LLD'] = '1'
   try:
     proc.check_call(
         [os.path.join(INSTALL_DIR, 'emscripten', 'tests', 'runner.py'),
          'binaryen2', '--em-config', config],
-        cwd=outdir)
+        cwd=outdir, env=env)
   except proc.CalledProcessError:
     buildbot.FailUnless(lambda: warn_only)
 
@@ -1747,6 +1750,15 @@ def TestEmtest():
       EMSCRIPTEN_CONFIG_WASM,
       EMSCRIPTEN_TEST_OUT_DIR,
       warn_only=False)
+
+
+def TestEmtestLLD():
+  ExecuteEmscriptenTestSuite(
+      'emwasm-lld',
+      EMSCRIPTEN_CONFIG_WASM,
+      EMSCRIPTEN_TEST_OUT_DIR,
+      warn_only=True,
+      use_lld=True)
 
 
 def TestEmtestAsm2Wasm():
@@ -1774,6 +1786,7 @@ ALL_TESTS = [
     Test('emwasm', TestEmwasm),
     Test('emtest', TestEmtest, no_windows=True),
     Test('emtest-asm', TestEmtestAsm2Wasm, no_windows=True),
+    Test('emtest-lld', TestEmtestLLD, no_windows=True),
     Test('wasm-simd', TestWasmSimd),
 ]
 
