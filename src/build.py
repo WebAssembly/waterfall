@@ -1115,7 +1115,7 @@ def Fastcomp():
   CopyLLVMTools(FASTCOMP_OUT_DIR, 'fastcomp')
 
 
-def Emscripten(use_asm):
+def Emscripten():
   buildbot.Step('emscripten')
   # Remove cached library builds (e.g. libc, libc++) to force them to be
   # rebuilt in the step below.
@@ -1138,10 +1138,8 @@ def Emscripten(use_asm):
     with open(outfile, 'w') as config:
       config.write(text)
 
-  configs = [('emwasm', EMSCRIPTEN_CONFIG_WASM)]
-  if use_asm:
-    # build with asm2wasm first to match the ordering of the test steps
-    configs.insert(0, ('asm2wasm', EMSCRIPTEN_CONFIG_ASMJS))
+  configs = [('asm2wasm', EMSCRIPTEN_CONFIG_ASMJS),
+             ('emwasm', EMSCRIPTEN_CONFIG_WASM)]
 
   for config_name, config in configs:
     buildbot.Step('emscripten (%s)' % config_name)
@@ -1516,7 +1514,7 @@ def Summary(repos):
       buildbot.Link('lkgr.json', cloud.Upload(info_file, lkgr_file))
 
 
-def AllBuilds(use_asm=False):
+def AllBuilds():
   return [
       # Host tools
       Build('llvm', LLVM),
@@ -1527,7 +1525,7 @@ def AllBuilds(use_asm=False):
       Build('spec', Spec, no_windows=True),
       Build('binaryen', Binaryen),
       Build('fastcomp', Fastcomp),
-      Build('emscripten', Emscripten, use_asm=use_asm),
+      Build('emscripten', Emscripten),
       # Target libs
       Build('musl', Musl),
       Build('compiler-rt', CompilerRT),
@@ -1539,8 +1537,8 @@ def AllBuilds(use_asm=False):
   ]
 
 
-def BuildRepos(filter, use_asm):
-  for rule in filter.Apply(AllBuilds(use_asm)):
+def BuildRepos(filter):
+  for rule in filter.Apply(AllBuilds()):
     rule.Run()
 
 
@@ -1883,8 +1881,7 @@ def run(sync_filter, build_filter, test_filter):
     host_toolchains.CopyDlls(INSTALL_BIN, 'Debug')
 
   try:
-    BuildRepos(build_filter,
-               test_filter.Check('asm') or test_filter.Check('emtest-asm'))
+    BuildRepos(build_filter)
   except Exception:
     # If any exception reaches here, do not attempt to run the tests; just
     # log the error for buildbot and exit
