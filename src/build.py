@@ -98,6 +98,7 @@ ASM2WASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'asm2wasm-torture-out')
 EMWASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-torture-out')
 EMWASM_LLD_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-lld-torture-out')
 EMSCRIPTEN_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-out')
+EMSCRIPTEN_LLD_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-lld-out')
 EMSCRIPTEN_ASMJS_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-asm2wasm-out')
 
 INSTALL_DIR = os.path.join(WORK_DIR, 'wasm-install')
@@ -1756,7 +1757,7 @@ def TestEmtestLLD():
   ExecuteEmscriptenTestSuite(
       'emwasm-lld',
       EMSCRIPTEN_CONFIG_WASM,
-      EMSCRIPTEN_TEST_OUT_DIR,
+      EMSCRIPTEN_LLD_TEST_OUT_DIR,
       warn_only=True,
       use_lld=True)
 
