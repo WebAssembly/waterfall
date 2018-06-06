@@ -98,6 +98,7 @@ ASM2WASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'asm2wasm-torture-out')
 EMWASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-torture-out')
 EMWASM_LLD_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-lld-torture-out')
 EMSCRIPTEN_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-out')
+EMSCRIPTEN_TEST_OUT_DIR_LLD = os.path.join(WORK_DIR, 'emtest-lld-out')
 EMSCRIPTEN_ASMJS_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-asm2wasm-out')
 
 INSTALL_DIR = os.path.join(WORK_DIR, 'wasm-install')
@@ -1111,7 +1112,6 @@ def Fastcomp():
   proc.check_call(['ninja'] + jobs, cwd=FASTCOMP_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR, env=cc_env)
   # Fastcomp has a different install location than the rest of the tools
-  BuildEnv(install_dir, bin_subdir=True)
   CopyLLVMTools(FASTCOMP_OUT_DIR, 'fastcomp')
 
 
@@ -1727,14 +1727,14 @@ def TestEmwasm():
         outdir=GetTortureDir('emwasm-lld', opt))
 
 
-def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only):
+def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only, env=None):
   buildbot.Step('Execute emscripten testsuite (%s)' % name)
   Mkdir(outdir)
   try:
     proc.check_call(
         [os.path.join(INSTALL_DIR, 'emscripten', 'tests', 'runner.py'),
          'binaryen2', '--em-config', config],
-        cwd=outdir)
+        cwd=outdir, env=env)
   except proc.CalledProcessError:
     buildbot.FailUnless(lambda: warn_only)
 
@@ -1745,6 +1745,16 @@ def TestEmtest():
       EMSCRIPTEN_CONFIG_WASM,
       EMSCRIPTEN_TEST_OUT_DIR,
       warn_only=False)
+
+
+def TestEmtestLld():
+  env = os.environ.copy()
+  env['EMCC_EXPERIMENTAL_USE_LLD'] = '1'
+  ExecuteEmscriptenTestSuite(
+      'emwasm-lld',
+      EMSCRIPTEN_CONFIG_WASM,
+      EMSCRIPTEN_TEST_OUT_DIR_LLD,
+      warn_only=False, env=env)
 
 
 def TestEmtestAsm2Wasm():
