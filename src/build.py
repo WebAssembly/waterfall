@@ -1385,14 +1385,21 @@ def CompileLLVMTortureBinaryen(name, em_config, outdir, fails, opt, lld):
     config = 'binaryen-lld'
   else:
     config = 'binaryen'
-  unexpected_result_count = compile_torture_tests.run(
-      cc=cc, cxx=cxx, testsuite=GCC_TEST_DIR,
-      sysroot_dir=INSTALL_SYSROOT,
-      fails=fails,
-      exclusions=LLVM_TORTURE_EXCLUSIONS,
-      out=outdir,
-      config=config,
-      opt=opt)
+  try:
+    if not lld
+      os.environ['EMCC_EXPERIMENTAL_USE_LLD'] = '0'
+    unexpected_result_count = compile_torture_tests.run(
+        cc=cc, cxx=cxx, testsuite=GCC_TEST_DIR,
+        sysroot_dir=INSTALL_SYSROOT,
+        fails=fails,
+        exclusions=LLVM_TORTURE_EXCLUSIONS,
+        out=outdir,
+        config=config,
+        opt=opt)
+  finally:
+    if not lld:
+      del os.environ['EMCC_EXPERIMENTAL_USE_LLD']
+
   UploadArchive('torture-%s-%s' % (name, opt), Archive(outdir))
   if 0 != unexpected_result_count:
     buildbot.Fail()
@@ -1687,17 +1694,13 @@ def TestAsm():
 
 def TestEmwasm():
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
-    os.environ['EMCC_EXPERIMENTAL_USE_LLD'] = '1'
-    try:
-        CompileLLVMTortureBinaryen(
-            'emwasm-lld',
-            EMSCRIPTEN_CONFIG_WASM,
-            GetTortureDir('emwasm-lld', opt),
-            EMWASM_KNOWN_TORTURE_COMPILE_FAILURES,
-            opt,
-            lld=True)
-    finally:
-      del os.environ['EMCC_EXPERIMENTAL_USE_LLD']
+    CompileLLVMTortureBinaryen(
+        'emwasm-lld',
+        EMSCRIPTEN_CONFIG_WASM,
+        GetTortureDir('emwasm-lld', opt),
+        EMWASM_KNOWN_TORTURE_COMPILE_FAILURES,
+        opt,
+        lld=True)
 
     CompileLLVMTortureBinaryen(
         'emwasm',
@@ -1733,8 +1736,8 @@ def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only=False,
   buildbot.Step('Execute emscripten testsuite (%s)' % name)
   Mkdir(outdir)
   env = os.environ.copy()
-  if use_lld:
-    env['EMCC_EXPERIMENTAL_USE_LLD'] = '1'
+  if not use_lld:
+    env['EMCC_EXPERIMENTAL_USE_LLD'] = '0'
   try:
     proc.check_call(
         [os.path.join(INSTALL_DIR, 'emscripten', 'tests', 'runner.py'),
