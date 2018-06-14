@@ -1386,7 +1386,7 @@ def CompileLLVMTortureBinaryen(name, em_config, outdir, fails, opt, lld):
   else:
     config = 'binaryen'
   try:
-    if not lld
+    if not lld:
       os.environ['EMCC_EXPERIMENTAL_USE_LLD'] = '0'
     unexpected_result_count = compile_torture_tests.run(
         cc=cc, cxx=cxx, testsuite=GCC_TEST_DIR,
