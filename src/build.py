@@ -1728,7 +1728,8 @@ def TestEmwasm():
         outdir=GetTortureDir('emwasm-lld', opt))
 
 
-def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only, use_lld=False):
+def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only=False,
+                               use_lld=False):
   buildbot.Step('Execute emscripten testsuite (%s)' % name)
   Mkdir(outdir)
   env = os.environ.copy()
@@ -1747,8 +1748,7 @@ def TestEmtest():
   ExecuteEmscriptenTestSuite(
       'emwasm',
       EMSCRIPTEN_CONFIG_WASM,
-      EMSCRIPTEN_TEST_OUT_DIR,
-      warn_only=False)
+      EMSCRIPTEN_TEST_OUT_DIR)
 
 
 def TestEmtestLLD():
@@ -1756,7 +1756,6 @@ def TestEmtestLLD():
       'emwasm-lld',
       EMSCRIPTEN_CONFIG_WASM,
       EMSCRIPTEN_LLD_TEST_OUT_DIR,
-      warn_only=True,
       use_lld=True)
 
 
@@ -1764,8 +1763,7 @@ def TestEmtestAsm2Wasm():
   ExecuteEmscriptenTestSuite(
       'asm2wasm',
       EMSCRIPTEN_CONFIG_ASMJS,
-      EMSCRIPTEN_ASMJS_TEST_OUT_DIR,
-      warn_only=False)
+      EMSCRIPTEN_ASMJS_TEST_OUT_DIR)
 
 
 def TestWasmSimd():
