@@ -1728,7 +1728,8 @@ def TestEmwasm():
         outdir=GetTortureDir('emwasm-lld', opt))
 
 
-def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only, use_lld=False):
+def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only=False,
+                               use_lld=False):
   buildbot.Step('Execute emscripten testsuite (%s)' % name)
   Mkdir(outdir)
   env = os.environ.copy()
