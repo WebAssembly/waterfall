@@ -74,17 +74,12 @@ def run(cc, cxx, testsuite, sysroot_dir, fails, exclusions, out, config, opt):
   cflags_c = ['--std=gnu89']
   cflags_cxx = []
   cflags_extra = {
-      'wasm-s': ['--target=wasm32-unknown-unknown-elf', '-S',
-                 '--sysroot=%s' % sysroot_dir],
-      'wasm-o': ['-c', '--sysroot=%s' % sysroot_dir],
+      'clang': ['-c', '--sysroot=%s' % sysroot_dir],
       'emscripten': ['--pre-js', pre_js],
-      'emscripten-lld': ['--pre-js', pre_js],
   }
   suffix = {
-      'wasm-o': '.o',
-      'wasm-s': '.s',
+      'clang': '.o',
       'emscripten': '.js',
-      'emscripten-lld': '.js',
   }[config]
 
   assert os.path.isdir(out), 'Cannot find outdir %s' % out
@@ -100,7 +95,7 @@ def run(cc, cxx, testsuite, sysroot_dir, fails, exclusions, out, config, opt):
   assert os.path.isdir(c_torture), ('Cannot find C tests at %s' % c_torture)
   test_files = glob.glob(os.path.join(c_torture, '*.c'))
 
-  if config == 'wasm-o':
+  if config == 'clang':
     # Only build the C++ tests when linking with lld
     cxx_test_dir = os.path.join(testsuite, 'g++.dg')
     assert os.path.isdir(cxx_test_dir), ('Cannot find C++ tests at %s' %

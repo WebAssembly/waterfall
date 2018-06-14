@@ -26,27 +26,18 @@ import testing
 def create_outname(outdir, infile, extras):
   """Create the output file's name."""
   basename = os.path.basename(infile)
-  linker = os.path.splitext(os.path.basename(extras['linker']))[0]
-  if linker == 's2wasm':
-    outname = basename + '.wast'
-  else:
-    outname = basename + '.wasm'
+  outname = basename + '.wasm'
   return os.path.join(outdir, outname)
 
 
 def link(infile, outfile, extras):
   """Create the command-line for a linker invocation."""
   linker = extras['linker']
-  basename = os.path.splitext(os.path.basename(linker))[0]
   install_root = os.path.dirname(os.path.dirname(linker))
   sysroot_dir = os.path.join(install_root, 'sysroot')
-  commands = {
-      'wasm32-clang++': [
-          linker, '--sysroot=%s' % sysroot_dir, '-Wl,-zstack-size=1048576',
-          '-Wl,--entry=main', '-o', outfile, infile],
-      's2wasm': [linker, '--allocate-stack', '1048576', '-o', outfile, infile],
-  }
-  return commands[basename] + extras['args']
+  command = [linker, '--sysroot=%s' % sysroot_dir, '-Wl,-zstack-size=1048576',
+             '-Wl,--entry=main', '-o', outfile, infile]
+  return command + extras['args']
 
 
 def run(linker, files, fails, attributes, out, args):
@@ -72,7 +63,7 @@ def run(linker, files, fails, attributes, out, args):
 
 def main():
   parser = argparse.ArgumentParser(
-      description='Link .s/.o files into .wast/.wasm.')
+      description='Link .o files into a .wasm.')
   parser.add_argument('--linker', type=str, required=True,
                       help='Linker path')
   parser.add_argument('--files', type=str, required=True,
