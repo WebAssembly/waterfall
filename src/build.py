@@ -1747,8 +1747,7 @@ def TestEmtest():
   ExecuteEmscriptenTestSuite(
       'emwasm',
       EMSCRIPTEN_CONFIG_WASM,
-      EMSCRIPTEN_TEST_OUT_DIR,
-      warn_only=False)
+      EMSCRIPTEN_TEST_OUT_DIR)
 
 
 def TestEmtestLLD():
@@ -1756,7 +1755,6 @@ def TestEmtestLLD():
       'emwasm-lld',
       EMSCRIPTEN_CONFIG_WASM,
       EMSCRIPTEN_LLD_TEST_OUT_DIR,
-      warn_only=True,
       use_lld=True)
 
 
@@ -1764,8 +1762,7 @@ def TestEmtestAsm2Wasm():
   ExecuteEmscriptenTestSuite(
       'asm2wasm',
       EMSCRIPTEN_CONFIG_ASMJS,
-      EMSCRIPTEN_ASMJS_TEST_OUT_DIR,
-      warn_only=False)
+      EMSCRIPTEN_ASMJS_TEST_OUT_DIR)
 
 
 def TestWasmSimd():
