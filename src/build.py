@@ -287,6 +287,13 @@ BUILDBOT_REVISION = os.environ.get('BUILDBOT_REVISION', None)
 BUILDBOT_BUILDNUMBER = os.environ.get('BUILDBOT_BUILDNUMBER', None)
 BUILDBOT_BUILDERNAME = os.environ.get('BUILDBOT_BUILDERNAME', None)
 
+if IsMac() and IsBuildbot():
+  # Experimental temp fix for crbug.com/829034 stdout write sometimes fails
+  import fcntl
+  from os import O_NONBLOCK
+  fd = sys.stdout.fileno()
+  flags = fcntl.fcntl(fd, fcntl.F_GETFL)
+  fcntl.fcntl(fd, fcntl.F_SETFL, flags & ~O_NONBLOCK)
 
 # Pin the GCC revision so that new torture tests don't break the bot. This
 # should be manually updated when convenient.
