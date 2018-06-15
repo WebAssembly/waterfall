@@ -288,6 +288,18 @@ BUILDBOT_BUILDNUMBER = os.environ.get('BUILDBOT_BUILDNUMBER', None)
 BUILDBOT_BUILDERNAME = os.environ.get('BUILDBOT_BUILDERNAME', None)
 
 
+def IsBuildbot():
+  """Return True if we are running on bot, False otherwise."""
+  return BUILDBOT_BUILDNUMBER is not None
+
+
+if IsMac() and IsBuildbot():
+  # Experimental temp fix for crbug.com/829034 stdout write sometimes fails
+  from fcntl import fcntl, F_GETFL, F_SETFL
+  fd = sys.stdout.fileno()
+  flags = fcntl(fd, F_GETFL)
+  fcntl(fd, F_SETFL, flags & ~os.O_NONBLOCK)
+
 # Pin the GCC revision so that new torture tests don't break the bot. This
 # should be manually updated when convenient.
 GCC_REVISION = 'b6125c702850488ac3bfb1079ae5c9db89989406'
@@ -416,11 +428,6 @@ def GitConfigRebaseMaster(cwd):
 def RemoteBranch(branch):
   """Get the remote-qualified branch name to use for waterfall"""
   return WATERFALL_REMOTE + '/' + branch
-
-
-def IsBuildbot():
-  """Return True if we are running on bot, False otherwise."""
-  return BUILDBOT_BUILDNUMBER is not None
 
 
 def GitUpdateRemote(src_dir, git_repo, remote_name):
