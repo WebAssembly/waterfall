@@ -287,6 +287,12 @@ BUILDBOT_REVISION = os.environ.get('BUILDBOT_REVISION', None)
 BUILDBOT_BUILDNUMBER = os.environ.get('BUILDBOT_BUILDNUMBER', None)
 BUILDBOT_BUILDERNAME = os.environ.get('BUILDBOT_BUILDERNAME', None)
 
+
+def IsBuildbot():
+  """Return True if we are running on bot, False otherwise."""
+  return BUILDBOT_BUILDNUMBER is not None
+
+
 if IsMac() and IsBuildbot():
   # Experimental temp fix for crbug.com/829034 stdout write sometimes fails
   from fcntl import fcntl, F_GETFL, F_SETFL
@@ -422,11 +428,6 @@ def GitConfigRebaseMaster(cwd):
 def RemoteBranch(branch):
   """Get the remote-qualified branch name to use for waterfall"""
   return WATERFALL_REMOTE + '/' + branch
-
-
-def IsBuildbot():
-  """Return True if we are running on bot, False otherwise."""
-  return BUILDBOT_BUILDNUMBER is not None
 
 
 def GitUpdateRemote(src_dir, git_repo, remote_name):
