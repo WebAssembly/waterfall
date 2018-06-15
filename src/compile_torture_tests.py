@@ -77,14 +77,14 @@ def run(cc, cxx, testsuite, sysroot_dir, fails, exclusions, out, config, opt):
       'wasm-s': ['--target=wasm32-unknown-unknown-elf', '-S',
                  '--sysroot=%s' % sysroot_dir],
       'wasm-o': ['-c', '--sysroot=%s' % sysroot_dir],
-      'binaryen': ['-s', 'WASM=1', '--pre-js', pre_js],
-      'binaryen-lld': ['-s', 'WASM=1', '--pre-js', pre_js],
+      'emscripten': ['--pre-js', pre_js],
+      'emscripten-lld': ['--pre-js', pre_js],
   }
   suffix = {
       'wasm-o': '.o',
       'wasm-s': '.s',
-      'binaryen': '.js',
-      'binaryen-lld': '.js',
+      'emscripten': '.js',
+      'emscripten-lld': '.js',
   }[config]
 
   assert os.path.isdir(out), 'Cannot find outdir %s' % out

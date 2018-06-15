@@ -1382,9 +1382,9 @@ def CompileLLVMTortureBinaryen(name, em_config, outdir, fails, opt, lld):
   Remove(outdir)
   Mkdir(outdir)
   if lld:
-    config = 'binaryen-lld'
+    config = 'emscripten-lld'
   else:
-    config = 'binaryen'
+    config = 'emscripten'
   try:
     if not lld:
       os.environ['EMCC_EXPERIMENTAL_USE_LLD'] = '0'
