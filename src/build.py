@@ -92,8 +92,6 @@ MUSL_OUT_DIR = os.path.join(WORK_DIR, 'musl-out')
 COMPILER_RT_OUT_DIR = os.path.join(WORK_DIR, 'compiler-rt-out')
 LIBCXX_OUT_DIR = os.path.join(WORK_DIR, 'libcxx-out')
 LIBCXXABI_OUT_DIR = os.path.join(WORK_DIR, 'libcxxabi-out')
-TORTURE_S_OUT_DIR = os.path.join(WORK_DIR, 'torture-s')
-TORTURE_O_OUT_DIR = os.path.join(WORK_DIR, 'torture-o')
 ASM2WASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'asm2wasm-torture-out')
 EMWASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-torture-out')
 EMWASM_LLD_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-lld-torture-out')
@@ -1568,8 +1566,6 @@ class Test(object):
 
 def GetTortureDir(name, opt):
   dirs = {
-      's': os.path.join(TORTURE_S_OUT_DIR, opt),
-      'o': os.path.join(TORTURE_O_OUT_DIR, opt),
       'asm2wasm': os.path.join(ASM2WASM_TORTURE_OUT_DIR, opt),
       'emwasm': os.path.join(EMWASM_TORTURE_OUT_DIR, opt),
       'emwasm-lld': os.path.join(EMWASM_LLD_TORTURE_OUT_DIR, opt)
