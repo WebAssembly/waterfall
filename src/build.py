@@ -254,9 +254,6 @@ S2WASM_KNOWN_TORTURE_FAILURES = [os.path.join(BINARYEN_SRC_DIR, 'test',
                                               's2wasm_' + IT_IS_KNOWN)]
 LLD_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
                               'lld_' + IT_IS_KNOWN)]
-BINARYEN_SHELL_KNOWN_TORTURE_FAILURES = [
-    os.path.join(BINARYEN_SRC_DIR, 'test',
-                 's2wasm_known_binaryen_shell_test_failures.txt')]
 
 # Exclusions (known failures are compiled and run, and expected to fail,
 # whereas exclusions are not even run, e.g. because they have UB which
@@ -1624,16 +1621,6 @@ def TestBare():
         extension='wasm',
         opt=opt,
         wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
-  for opt in BARE_TEST_OPT_FLAGS:
-    ExecuteLLVMTorture(
-        name='wasm-shell',
-        runner=Executable(os.path.join(INSTALL_BIN, 'wasm-shell')),
-        indir=GetTortureDir('s2wasm', opt),
-        fails=BINARYEN_SHELL_KNOWN_TORTURE_FAILURES,
-        attributes=common_attrs + ['wasm-shell'],
-        extension='wast',
-        opt=opt,
-        warn_only=True)  # TODO wasm-shell is flaky when running tests.
 
   if not IsWindows():
     for opt in BARE_TEST_OPT_FLAGS:
