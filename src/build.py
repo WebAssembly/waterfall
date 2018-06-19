@@ -1375,7 +1375,7 @@ def CompileLLVMTorture(extension, outdir, opt):
     buildbot.Fail()
 
 
-def CompileLLVMTortureBinaryen(name, em_config, outdir, fails, opt, lld):
+def CompileLLVMTortureEmscripten(name, em_config, outdir, fails, opt, lld):
   buildbot.Step('Compile LLVM Torture (%s, %s)' % (name, opt))
   os.environ['EM_CONFIG'] = em_config
   cc = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'emcc'), '.bat')
@@ -1662,7 +1662,7 @@ def TestBare():
 
 def TestAsm():
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
-    CompileLLVMTortureBinaryen(
+    CompileLLVMTortureEmscripten(
         'asm2wasm',
         EMSCRIPTEN_CONFIG_ASMJS,
         GetTortureDir('asm2wasm', opt),
@@ -1683,7 +1683,7 @@ def TestAsm():
 
 def TestEmwasm():
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
-    CompileLLVMTortureBinaryen(
+    CompileLLVMTortureEmscripten(
         'emwasm-lld',
         EMSCRIPTEN_CONFIG_WASM,
         GetTortureDir('emwasm-lld', opt),
@@ -1691,7 +1691,7 @@ def TestEmwasm():
         opt,
         lld=True)
 
-    CompileLLVMTortureBinaryen(
+    CompileLLVMTortureEmscripten(
         'emwasm',
         EMSCRIPTEN_CONFIG_WASM,
         GetTortureDir('emwasm', opt),
