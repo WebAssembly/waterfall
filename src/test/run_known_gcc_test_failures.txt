@@ -16,9 +16,8 @@
 # 'asm2wasm,d8'. A test can be listed multiple times with different attribute
 # sets, but not with the same (or a subset).
 
-# Files ending with .c.s.wast.wasm are 'bare' tests run without emscripten; they
-# come with 'bare' or 'bare-musl' attributes (based on whether they use the
-# hacky JS libc or the hacky linking of musl). The failures are mostly the same
+# Files ending with .c.o.wasm are 'bare' tests run without emscripten; they
+# come with the 'bare' attributes. The failures are mostly the same
 # for those. These tests also are run with d8 and JSC ('d8' and 'jsc' attributes).
 #
 # Files with a .js extension are emscripten builds, which come in 'asm2wasm' or
@@ -40,71 +39,20 @@
 # > add nsw x, INT_MIN -> or x, INT_MIN
 # > add nuw x, INT_MIN -> xor x, INT_MIN
 # which makes the tests below fail.
-20040409-1.c.s.wast.wasm O2 # abort()
-20040409-2.c.s.wast.wasm O2 # abort()
-20040409-3.c.s.wast.wasm O2 # abort()
+20040409-1.c.o.wasm O2 # abort()
+20040409-2.c.o.wasm O2 # abort()
+20040409-3.c.o.wasm O2 # abort()
 
 ### bare wasm.js tests: need some libc support.
 # Not yet implemented.
 # See wasm.js for the list of libc functions which are missing.
 # The right place to put libc functionality would really be libc anyways.
-20020406-1.c.s.wast.wasm # printf
-20021120-3.c.s.wast.wasm # sprintf
-20070201-1.c.s.wast.wasm # sprintf
-20101011-1.c.s.wast.wasm # signal
 20101011-1.c.js # signal
-20121108-1.c.s.wast.wasm # printf
-920501-8.c.s.wast.wasm # sprintf
-920501-9.c.s.wast.wasm # sprintf
-930513-1.c.s.wast.wasm # sprintf
-920726-1.c.s.wast.wasm # sprintf
-980605-1.c.s.wast.wasm # sprintf
-builtin-bitops-1.c.s.wast.wasm # __builtin_clrsb
 builtin-bitops-1.c.js # __builtin_clrsb
-complex-5.c.s.wast.wasm # __divsc3
-ipa-sra-2.c.s.wast.wasm # free
-loop-2f.c.s.wast.wasm # mmap addr 2147450880
-loop-2g.c.s.wast.wasm # mmap addr 2147450880
-pr34456.c.s.wast.wasm # qsort
-pr47237.c.s.wast.wasm # __builtin_apply_args
 pr47237.c.js # __builtin_apply_args
-pr56982.c.s.wast.wasm # _setjmp
-printf-1.c.s.wast.wasm # printf
-printf-chk-1.c.s.wast.wasm # vprintf
-pr39228.c.s.wast.wasm # isinfl
 pr39228.c.js #  __builtin_isinff/isinfl
-struct-ret-1.c.s.wast.wasm # sprintf
-va-arg-21.c.s.wast.wasm # vprintf
-vprintf-1.c.s.wast.wasm # vprintf
-vprintf-chk-1.c.s.wast.wasm # vprintf
-
-# Need to add an import for env.stdout
-fprintf-1.c.s.wast.wasm
-fprintf-chk-1.c.s.wast.wasm
-gofast.c.s.wast.wasm
-vfprintf-1.c.s.wast.wasm
-vfprintf-chk-1.c.s.wast.wasm
-
-
-# These compiler-rt functions are for long doubles. Also NYI.
-# TODO: These probably need re-triage, as not all of them are link failures.
-20020413-1.c.s.wast.wasm  # __lttf2
-20030914-1.c.s.wast.wasm # __floatsitf
-20080502-1.c.s.wast.wasm # __eqtf2
-960215-1.c.s.wast.wasm # __addtf3
-960405-1.c.s.wast.wasm  # __eqtf2
-align-2.c.s.wast.wasm # __eqtf2
-complex-7.c.s.wast.wasm # __netf2
-pr49218.c.s.wast.wasm  # __fixsfti
-pr54471.c.s.wast.wasm  # __multi3
-regstack-1.c.s.wast.wasm # __addtf3
-stdarg-1.c.s.wast.wasm # __netf2
-stdarg-2.c.s.wast.wasm # __floatsitf
-va-arg-5.c.s.wast.wasm # __eqtf2
-va-arg-6.c.s.wast.wasm # __eqtf2
 
 # Trying to import function 'bar'. The test is likely wrong.
-va-arg-pack-1.c.s.wast.wasm
 va-arg-pack-1.c.js # No import error but missing __builtin_va_arg_pack
 
 # Additionally there are a bunch of unexpected failures when disabling IR
@@ -114,78 +62,49 @@ va-arg-pack-1.c.js # No import error but missing __builtin_va_arg_pack
 
 
 # Don't care/won't fix:
-920612-1.c.s.wast.wasm O2 # abort() # UB
-920711-1.c.s.wast.wasm O2 # abort() # UB for 32-bit longs
-bcp-1.c.s.wast.wasm O2 # abort() # builtin_constant_p depends on opt setting
-builtin-constant.c.s.wast.wasm O2 # abort() # builtin_constant_p depends on opt setting
-pr22493-1.c.s.wast.wasm O2 # abort() # UB
-eeprof-1.c.s.wast.wasm # tests -finstrument-functions
 eeprof-1.c.js # tests -finstrument-functions
-pr23047.c.s.wast.wasm O2 # tests -fwrapv
 pr23047.c.js O2,emwasm # tests -fwrapv
 pr23047.c.js O3,emwasm # tests -fwrapv
 
 # Low priority
 # Bitfield tests
-bitfld-3.c.s.wast.wasm # abort()
-bitfld-3.c.js
-bitfld-5.c.s.wast.wasm # memory access out of bounds
-bitfld-5.c.js
-pr32244-1.c.s.wast.wasm # abort()
-pr32244-1.c.js
-pr34971.c.s.wast.wasm # abort()
-pr34971.c.js
+bitfld-3.c.o.wasm
+bitfld-3.c.js # abort()
+bitfld-5.c.o.wasm
+bitfld-5.c.js # memory access out of bounds
+pr32244-1.c.o.wasm
+pr32244-1.c.js # abort()
+pr34971.c.o.wasm
+pr34971.c.js # abort()
 
 # struct-vararg tests (they work in asm2wasm, not yet triaged vs. opt level).
 # A few of them pass, but most still fail.
-920625-1.c.s.wast.wasm # abort()
+920625-1.c.o.wasm
 920625-1.c.js emwasm # abort()
-931004-10.c.s.wast.wasm # abort()
+931004-10.c.o.wasm
 931004-10.c.js emwasm # abort()
-931004-12.c.s.wast.wasm # abort()
+931004-12.c.o.wasm
 931004-12.c.js emwasm # abort()
-931004-14.c.s.wast.wasm # abort()
+931004-14.c.o.wasm
 931004-14.c.js emwasm # abort()
-931004-6.c.s.wast.wasm # abort()
+931004-6.c.o.wasm
 931004-6.c.js emwasm # abort()
-pr38151.c.s.wast.wasm # abort()
+pr38151.c.o.wasm
 pr38151.c.js emwasm # abort()
-pr44575.c.s.wast.wasm # abort()
+pr44575.c.o.wasm
 pr44575.c.js emwasm # abort()
+stdarg-1.c.o.wasm
 stdarg-1.c.js emwasm # abort()
 stdarg-2.c.js emwasm # abort()
-stdarg-3.c.s.wast.wasm # abort()
+stdarg-3.c.o.wasm
 stdarg-3.c.js emwasm # abort()
-strct-stdarg-1.c.s.wast.wasm # abort()
+strct-stdarg-1.c.o.wasm
 strct-stdarg-1.c.js emwasm # abort()
-strct-varg-1.c.s.wast.wasm # abort()
+strct-varg-1.c.o.wasm
 strct-varg-1.c.js emwasm # abort()
-va-arg-22.c.s.wast.wasm # abort()
+va-arg-22.c.o.wasm
 va-arg-22.c.js emwasm # abort()
 va-arg-6.c.js emwasm # abort()
-
-
-# Untriaged bare/bare-musl O0 failures
-20010605-2.c.s.wast.wasm O0
-20021127-1.c.s.wast.wasm O0
-20030626-1.c.s.wast.wasm O0
-20030626-2.c.s.wast.wasm O0
-20031003-1.c.s.wast.wasm O0
-20040208-1.c.s.wast.wasm O0
-20040709-1.c.s.wast.wasm O0
-20040709-2.c.s.wast.wasm O0
-20041126-1.c.s.wast.wasm O0
-20050121-1.c.s.wast.wasm O0
-930622-2.c.s.wast.wasm O0
-960327-1.c.s.wast.wasm O0
-960513-1.c.s.wast.wasm O0
-complex-6.c.s.wast.wasm O0
-conversion.c.s.wast.wasm O0
-medce-1.c.s.wast.wasm O0
-pr23135.c.s.wast.wasm O0
-pr33142.c.s.wast.wasm O0
-pr42614.c.s.wast.wasm O0
-pr58831.c.s.wast.wasm O0
 
 ### Failures specific to emscripten
 # no builtin returnaddress or frameaddress
@@ -268,7 +187,6 @@ vprintf-chk-1.c.o.wasm O2
 
 # TypeError: invalid type
 # All these failures also occur with s2wasm linked binaries
-stdarg-1.c.o.wasm
 stdarg-2.c.o.wasm
 va-arg-6.c.o.wasm
 
@@ -293,28 +211,10 @@ init__new41.C.o.wasm O2
 template__new11.C.o.wasm O2
 
 # abort()
-20040409-1.c.o.wasm O2
-20040409-2.c.o.wasm O2
-20040409-3.c.o.wasm O2
 20101011-1.c.o.wasm
 30101025-1.c.o.wasm
-920625-1.c.o.wasm
-931004-10.c.o.wasm
-931004-12.c.o.wasm
-931004-14.c.o.wasm
-931004-6.c.o.wasm
-bitfld-3.c.o.wasm
-bitfld-5.c.o.wasm
 frame-address.c.o.wasm O2
-pr32244-1.c.o.wasm
-pr34971.c.o.wasm
-pr38151.c.o.wasm
-pr44575.c.o.wasm
 3r39339.c.o.wasm
-stdarg-3.c.o.wasm
-strct-stdarg-1.c.o.wasm
-strct-varg-1.c.o.wasm
-va-arg-22.c.o.wasm
 
 fprintf-chk-1.c.o.wasm O2
 vfprintf-chk-1.c.o.wasm O2
