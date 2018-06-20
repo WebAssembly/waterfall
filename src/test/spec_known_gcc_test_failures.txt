@@ -319,7 +319,6 @@ ubsan__return-2.C.o.wasm
 warn__pr33738.C.o.wasm
 
 abi__covariant3.C.o.wasm
-
 abi__param1.C.o.wasm O0
 abi__vbase15.C.o.wasm O0
 asan__pr62017.C.o.wasm O0
@@ -377,7 +376,6 @@ torture__pr49394.C.o.wasm O0
 torture__pr49644.C.o.wasm O0
 torture__pr53970.C.o.wasm O0
 tree-ssa__20040317-1.C.o.wasm O0
-
 init__dtor1.C.o.wasm
 init__dtor2.C.o.wasm
 init__lifetime1.C.o.wasm
@@ -391,5 +389,4 @@ tc1__dr193.C.o.wasm O0
 template__vtable1.C.o.wasm O0
 torture__pr45934.C.o.wasm O0
 torture__pr47382.C.o.wasm O0
-
 opt__preinc1.C.o.wasm
