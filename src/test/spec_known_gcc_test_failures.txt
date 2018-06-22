@@ -15,11 +15,11 @@ pr44942.c.o.wasm # arity mismatch: toolchain problem.
 20000112-1.c.o.wasm O0 # env.strchr
 20000910-2.c.o.wasm # env.strchr
 20000914-1.c.o.wasm # env.malloc
-20001011-1.c.o.wasm # env.strcmp
+20001011-1.c.o.wasm O0 # env.strcmp
 20010409-1.c.o.wasm O0 # env.strlen
-20010605-2.c.o.wasm # env.__netf2
+20010605-2.c.o.wasm O0 # env.__netf2
 20010915-1.c.o.wasm # env.strcmp
-20010925-1.c.o.wasm # env.memcpy
+20010925-1.c.o.wasm O0 # env.memcpy
 20011024-1.c.o.wasm # env.strcmp
 20011121-1.c.o.wasm O0 # env.memcpy
 20020406-1.c.o.wasm # env.malloc
@@ -29,7 +29,7 @@ pr44942.c.o.wasm # arity mismatch: toolchain problem.
 20030221-1.c.o.wasm # env.strlen
 20030626-1.c.o.wasm O0 # env.sprintf
 20030626-2.c.o.wasm O0 # env.sprintf
-20030715-1.c.o.wasm # env.strcmp
+20030715-1.c.o.wasm O0 # env.strcmp
 20030914-1.c.o.wasm # env.__floatsitf
 20030914-2.c.o.wasm O0 # env.memcpy
 20031012-1.c.o.wasm # env.memset
@@ -41,7 +41,7 @@ pr44942.c.o.wasm # arity mismatch: toolchain problem.
 20040709-2.c.o.wasm O0 # env.__netf2
 20041126-1.c.o.wasm O0 # env.abs
 20041214-1.c.o.wasm # env.strcpy
-20050121-1.c.o.wasm # env.__floatsitf
+20050121-1.c.o.wasm O0 # env.__floatsitf
 20050218-1.c.o.wasm # env.strlen
 20050502-1.c.o.wasm # env.strcmp
 20050502-2.c.o.wasm # env.memcmp
@@ -56,20 +56,20 @@ pr44942.c.o.wasm # arity mismatch: toolchain problem.
 20071202-1.c.o.wasm # env.memcpy
 20080502-1.c.o.wasm # env.__eqtf2
 20081218-1.c.o.wasm # env.memset
-20090113-1.c.o.wasm # env.memset
+20090113-1.c.o.wasm O0 # env.memset
 20100708-1.c.o.wasm O2 # env.memset
 20101011-1.c.o.wasm # env.signal
-20111208-1.c.o.wasm # env.strlen
+20111208-1.c.o.wasm O0 # env.strlen
 20120207-1.c.o.wasm O0 # env.strcpy
 20121108-1.c.o.wasm # env.printf
 920501-8.c.o.wasm # env.sprintf
 920501-9.c.o.wasm # env.sprintf
 920726-1.c.o.wasm # env.sprintf
-920810-1.c.o.wasm # env.malloc
+920810-1.c.o.wasm O0 # env.malloc
 921006-1.c.o.wasm O0 # env.strcmp
 921117-1.c.o.wasm # env.strcmp
 930513-1.c.o.wasm # env.sprintf
-930622-2.c.o.wasm # env.__floatditf
+930622-2.c.o.wasm O0 # env.__floatditf
 930725-1.c.o.wasm O0 # env.strcmp
 941014-2.c.o.wasm # env.malloc
 950221-1.c.o.wasm O0 # env.strcpy
@@ -77,7 +77,7 @@ pr44942.c.o.wasm # arity mismatch: toolchain problem.
 960215-1.c.o.wasm # env.__addtf3
 960327-1.c.o.wasm O0 # env.sprintf
 960405-1.c.o.wasm # env.__eqtf2
-960513-1.c.o.wasm # env.__subtf3
+960513-1.c.o.wasm O0 # env.__subtf3
 960521-1.c.o.wasm # env.memset
 980506-3.c.o.wasm # env.memset
 980605-1.c.o.wasm # env.sprintf
@@ -87,9 +87,9 @@ pr44942.c.o.wasm # arity mismatch: toolchain problem.
 align-2.c.o.wasm # env.__eqtf2
 builtin-bitops-1.c.o.wasm # env.__builtin_clrsb
 complex-5.c.o.wasm # env.__divsc3
-complex-6.c.o.wasm # env.__subtf3
+complex-6.c.o.wasm O0 # env.__subtf3
 complex-7.c.o.wasm # env.__netf2
-conversion.c.o.wasm # env.__floatunsitf
+conversion.c.o.wasm O0 # env.__floatunsitf
 ipa-sra-2.c.o.wasm # env.calloc
 loop-2f.c.o.wasm # env.memset
 loop-2g.c.o.wasm # env.memset
@@ -100,7 +100,7 @@ memset-1.c.o.wasm # env.memset
 memset-3.c.o.wasm # env.memset
 mode-dependent-address.c.o.wasm O0 # env.memcpy
 multi-ix.c.o.wasm # env.memset
-p18298.c.o.wasm # env.strcmp
+p18298.c.o.wasm O0 # env.strcmp
 pr15262-1.c.o.wasm O0 # env.malloc
 pr20621-1.c.o.wasm O0 # env.memcpy
 pr22061-1.c.o.wasm O0 # env.memset
@@ -119,7 +119,7 @@ pr39228.c.o.wasm # env.__builtin_isinff
 pr41395-1.c.o.wasm # env.malloc
 pr41395-2.c.o.wasm # env.malloc
 pr41463.c.o.wasm # env.malloc
-pr42614.c.o.wasm # env.malloc
+pr42614.c.o.wasm O0 # env.malloc
 pr43008.c.o.wasm # env.__builtin_malloc
 pr43236.c.o.wasm # env.memcmp
 pr43784.c.o.wasm # env.memcpy
@@ -170,7 +170,7 @@ vprintf-1.c.o.wasm # vprintf
 vprintf-chk-1.c.o.wasm # vprintf
 fprintf-1.c.o.wasm # env.stdout
 fprintf-chk-1.c.o.wasm # env.stdout
-gofast.c.o.wasm # env.stdout
+gofast.c.o.wasm O0 # env.stdout
 vfprintf-1.c.o.wasm # env.stdout
 vfprintf-chk-1.c.o.wasm # env.stdout
 
@@ -318,12 +318,12 @@ tree-ssa__pr63841.C.o.wasm
 ubsan__return-2.C.o.wasm
 warn__pr33738.C.o.wasm
 
-abi__covariant3.C.o.wasm
+abi__covariant3.C.o.wasm O0 O0
 abi__param1.C.o.wasm O0
 abi__vbase15.C.o.wasm O0
 asan__pr62017.C.o.wasm O0
-expr__anew1.C.o.wasm
-expr__anew2.C.o.wasm
+expr__anew1.C.o.wasm O0
+expr__anew2.C.o.wasm O0
 expr__lval2.C.o.wasm O0
 expr__pr29066.C.o.wasm O0
 inherit__covariant1.C.o.wasm O0
@@ -331,8 +331,8 @@ inherit__covariant18.C.o.wasm O0
 inherit__using2.C.o.wasm O0
 inherit__virtual8.C.o.wasm O0
 init__new23.C.o.wasm O0
-init__new28.C.o.wasm
-init__new29.C.o.wasm
+init__new28.C.o.wasm O0
+init__new29.C.o.wasm O0
 init__new31.C.o.wasm O0
 init__value10.C.o.wasm O0
 ipa__pr46053.C.o.wasm O0
@@ -342,51 +342,37 @@ ipa__pr60640-4.C.o.wasm O0
 ipa__pr61160-2.C.o.wasm O0
 ipa__pr61160-3.C.o.wasm O0
 opt__alias4.C.o.wasm O0
-opt__anchor1.C.o.wasm
-opt__covariant1.C.o.wasm
+opt__anchor1.C.o.wasm O0
+opt__covariant1.C.o.wasm O0
 opt__pr15054.C.o.wasm O0
-opt__pr15054-2.C.o.wasm
 opt__pr17697-1.C.o.wasm O0
 opt__pr17697-2.C.o.wasm O0
 opt__pr17697-3.C.o.wasm O0
-opt__pr22167.C.o.wasm
-opt__pr30590.C.o.wasm
-opt__pr36185.C.o.wasm
+opt__pr22167.C.o.wasm O0
+opt__pr30590.C.o.wasm O0
+opt__pr36185.C.o.wasm O0
 opt__pr60912.C.o.wasm O0
+opt__preinc1.C.o.wasm O0
 opt__rtti1.C.o.wasm O0
 opt__stack1.C.o.wasm O0
-opt__strength-reduce.C.o.wasm
+opt__strength-reduce.C.o.wasm O0
 opt__thunk1.C.o.wasm O0
-opt__thunk2.C.o.wasm
+opt__thunk2.C.o.wasm O0
 opt__typeinfo1.C.o.wasm O0
 other__complex1.C.o.wasm O0
-other__no-strict-enum-precision-1.C.o.wasm
-pr59695.C.o.wasm
+other__no-strict-enum-precision-1.C.o.wasm O0
+pr59695.C.o.wasm O0
 rtti__cv1.C.o.wasm O0
 template__new1.C.o.wasm O0
 template__overload7.C.o.wasm O0
-torture__pr30252.C.o.wasm
+torture__pr30252.C.o.wasm O0
 torture__pr33572.C.o.wasm O0
 torture__pr44535.C.o.wasm O0
 torture__pr45699.C.o.wasm O0
 torture__pr48661.C.o.wasm O0
 torture__pr48695.C.o.wasm O0
-torture__pr49039.C.o.wasm
+torture__pr49039.C.o.wasm O0
 torture__pr49394.C.o.wasm O0
 torture__pr49644.C.o.wasm O0
 torture__pr53970.C.o.wasm O0
 tree-ssa__20040317-1.C.o.wasm O0
-init__dtor1.C.o.wasm
-init__dtor2.C.o.wasm
-init__lifetime1.C.o.wasm
-init__lifetime2.C.o.wasm O0
-init__lifetime3.C.o.wasm O0
-init__ref12.C.o.wasm O0
-ipa__devirt-d-1.C.o.wasm O0
-ipa__pr61085.C.o.wasm O0
-other__array4.C.o.wasm O0
-tc1__dr193.C.o.wasm O0
-template__vtable1.C.o.wasm O0
-torture__pr45934.C.o.wasm O0
-torture__pr47382.C.o.wasm O0
-opt__preinc1.C.o.wasm
