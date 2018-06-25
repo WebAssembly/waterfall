@@ -228,10 +228,6 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
   if exclusions:
     input_exclusions = parse_exclude_files(exclusions, None)
     inputs = [i for i in inputs if os.path.basename(i) not in input_exclusions]
-  if fails:
-    input_expected_failures = parse_exclude_files(fails, attributes)
-  else:
-    input_expected_failures = []
   sys.stdout.write('Executing tests.')
   if single_threaded:
     results = map(tester, inputs)
@@ -241,20 +237,29 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
     pool.close()
     pool.join()
   sys.stdout.write('\nDone.')
+
   results = sorted(results)
   successes = [r for r in results if r]
   failures = [r for r in results if not r]
+
+  sys.stdout.write('\nResults:\n')
+  for result in results:
+    sys.stdout.write(str(result) + '\n\n')
+
   if not fails:
+    if failures:
+      sys.stdout.write('Unexpected failures:\n')
+      for f in failures:
+        sys.stdout.write('\t%s\n' % f.test)
     return failures
+
+  input_expected_failures = parse_exclude_files(fails, attributes)
   expected_failures = [t for t in failures
                        if t.test in input_expected_failures]
   unexpected_failures = [t for t in failures
                          if t.test not in input_expected_failures]
   unexpected_successes = [t for t in successes
                           if t.test in input_expected_failures]
-  sys.stdout.write('\nResults:\n')
-  for result in results:
-    sys.stdout.write(str(result) + '\n\n')
 
   similarity_cutoff = 0.9
   # Calculating similarity is pretty expensive. If too many tests are failing,
