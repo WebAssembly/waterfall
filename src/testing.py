@@ -247,15 +247,15 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
     sys.stdout.write(str(result) + '\n\n')
 
   if not fails:
-    sys.stdout.write('\n'.join([
-                 'Ran %s tests.' % len(results),
-                 'Got %s successes.' % len(successes),
-                 'Got %s failures.' % len(failures)]))
+    sys.stdout.write(
+        '\n'.join(['Ran %s tests.' % len(results),
+                   'Got %s successes.' % len(successes),
+                   'Got %s failures.' % len(failures)]))
     if failures:
       sys.stdout.write('\nUnexpected failures:\n')
       for f in failures:
         sys.stdout.write('\t%s\n' % f.test)
-    return  len(failures)
+    return len(failures)
 
   input_expected_failures = parse_exclude_files(fails, attributes)
   expected_failures = [t for t in failures
