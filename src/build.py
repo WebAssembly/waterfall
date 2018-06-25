@@ -245,7 +245,7 @@ SPEC_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
                                             'spec_' + IT_IS_KNOWN)]
 LLD_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
                               'lld_' + IT_IS_KNOWN)]
-VALIDATE_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test', 
+VALIDATE_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
                                    'validate_' + IT_IS_KNOWN)]
 
 # Exclusions (known failures are compiled and run, and expected to fail,
@@ -1438,7 +1438,7 @@ def ExecuteLLVMTorture(name, runner, indir, fails, attributes, extension, opt,
 def ValidateLLVMTorture(indir, ext, opt):
   validate = os.path.join(INSTALL_BIN, 'wasm-validate')
   ExecuteLLVMTorture('validate', validate, indir,
-          VALIDATE_KNOWN_TORTURE_FAILURES, [], ext, opt)
+                     VALIDATE_KNOWN_TORTURE_FAILURES, [], ext, opt)
 
 
 class Build(object):
