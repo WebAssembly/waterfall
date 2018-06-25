@@ -245,8 +245,6 @@ SPEC_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
                                             'spec_' + IT_IS_KNOWN)]
 LLD_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
                               'lld_' + IT_IS_KNOWN)]
-LLD_NOSTDLIB_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
-                                       'lld_nostdlib_' + IT_IS_KNOWN)]
 
 # Exclusions (known failures are compiled and run, and expected to fail,
 # whereas exclusions are not even run, e.g. because they have UB which
@@ -1563,7 +1561,7 @@ def TestBare():
     LinkLLVMTorture(
         name='lld-nostdlib',
         linker=Executable(os.path.join(INSTALL_BIN, 'wasm32-clang++')),
-        fails=LLD_NOSTDLIB_KNOWN_TORTURE_FAILURES,
+        fails=None,
         indir=GetTortureDir('o', opt),
         outdir=GetTortureDir('lld-nostdlib', opt),
         extension='o',
