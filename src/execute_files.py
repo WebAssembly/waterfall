@@ -53,7 +53,8 @@ def execute(infile, outfile, extras):
           '--', infile] + extra_files,
       'jsc-asm2wasm': [runner, '--useWebAssembly=1', infile],
       'wasm': [runner, infile],
-      'node': [runner] + wasmjs + [infile] + extra_files
+      'node': [runner] + wasmjs + [infile] + extra_files,
+      'wasm-validate': [runner, '--enable-mutable-globals', infile],
   }
   return commands[config]
 
