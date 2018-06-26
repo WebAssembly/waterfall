@@ -4,9 +4,6 @@
 # To run this test:
 # waterfall/src/execute_files.py --runner waterfall/src/work/wasm-install/bin/wasm --files torture-lld-nostdlib/OPT/\*.wasm --fails waterfall/src/test/spec_known_gcc_test_failures.txt
 # (replace OPT with optimization level, such as O0 or O2)
-#
-# .wasm files are available from wasm-stat.us as wasm-torture-s2wasm-$BUILD.tbz2
-pr44942.c.o.wasm # arity mismatch: toolchain problem.
 
 # The following expect to receive functions from the environment.
 #
