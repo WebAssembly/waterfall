@@ -1,0 +1,12 @@
+# Expected validation failures in output of llvm backend.
+# Failure here means that llvm is producing bad wasm. This should never happen :(
+
+# error: type mismatch in call
+builtin-bitops-1.c.o
+pr39228.c.o
+pr44942.c.o
+pr47237.c.o
+pr58419.c.o
+
+# error: type mismatch in i32.store
+va-arg-pack-1.c.o
