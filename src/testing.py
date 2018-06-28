@@ -228,7 +228,7 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
   if exclusions:
     input_exclusions = parse_exclude_files(exclusions, None)
     inputs = [i for i in inputs if os.path.basename(i) not in input_exclusions]
-  sys.stdout.write('Executing tests.')
+  sys.stdout.write('Executing tests.\n')
   if single_threaded:
     results = map(tester, inputs)
   else:

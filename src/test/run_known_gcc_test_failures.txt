@@ -200,6 +200,9 @@ pr22493-1.c.o.wasm O2 # abort() # UB
 eeprof-1.c.o.wasm # tests -finstrument-functions
 pr23047.c.o.wasm O2 # tests -fwrapv
 
+# See: https://bugs.llvm.org/show_bug.cgi?id=37979
+conversion__bitfield1.C.o.wasm d8
+
 ### Failures specific to lld-linked binaries
 
 # Calls to user-defined-new is elided by clang (effects non-wasm too)
