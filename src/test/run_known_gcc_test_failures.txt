@@ -173,7 +173,6 @@ vprintf-chk-1.c.js O3
 ### Failures for lld-linked binaries
 
 # printf or other libc feature missing
-# All these failures also occur with s2wasm linked binaries
 920501-8.c.o.wasm
 pr56982.c.o.wasm
 struct-ret-1.c.o.wasm
@@ -186,12 +185,10 @@ printf-chk-1.c.o.wasm O2
 vprintf-chk-1.c.o.wasm O2
 
 # TypeError: invalid type
-# All these failures also occur with s2wasm linked binaries
 stdarg-2.c.o.wasm
 va-arg-6.c.o.wasm
 
 # Don't care/won't fix:
-# All these failures also occur with s2wasm linked binaries
 920612-1.c.o.wasm O2 # abort() # UB
 920711-1.c.o.wasm O2 # abort() # UB for 32-bit longs
 bcp-1.c.o.wasm O2 # abort() # builtin_constant_p depends on opt setting
