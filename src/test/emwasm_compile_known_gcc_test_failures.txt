@@ -67,10 +67,10 @@
 
 # Works with asm2wasm
 	20030913-1.c # glob multiply defined in wasm but not asm2wasm
-        960218-1.c # glob multiply defined in wasm but not asm2wasm
+	960218-1.c # glob multiply defined in wasm but not asm2wasm
 	pr17377.c # __builtin_return_address
-        20030323-1.c # __builtin_return_address
-        20030811-1.c # __builtin_return_address
+	20030323-1.c # __builtin_return_address
+	20030811-1.c # __builtin_return_address
 
 # Untriaged
 	pr56982.c O3
