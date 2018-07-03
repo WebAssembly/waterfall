@@ -80,7 +80,3 @@
 builtin-bitops-1.c emscripten,O3 # __builtin_clrsb
 va-arg-pack-1.c emscripten # __builtin_va_arg_pack
 pr39228.c emscripten,O3 # __builtin_isinff
-
-# WebAssembly hasn't implemented (will never?) __builtin_return_address
-20030323-1.c emscripten
-20030811-1.c emscripten
