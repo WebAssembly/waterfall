@@ -20,3 +20,9 @@ override_dh_auto_install:
 	cp src/emscripten_config* debian/wasm-toolchain/opt/wasm
 	rm -f debian/wasm-toolchain/opt/wasm/emscripten_config*sanity*
 	perl -pi -e 's/{{WASM_INSTALL}}/\/opt\/wasm/' debian/wasm-toolchain/opt/wasm/emscripten_config*
+
+override_dh_strip:
+	# Don't try to strip any library containing wasm object files because
+	# the native tools can't understand them and end up removing the ar
+	# indexes
+	dh_strip -Xopt/wasm/sysroot -Xwasm32.a
