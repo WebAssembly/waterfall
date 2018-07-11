@@ -74,6 +74,3 @@
 
 # Untriaged
 	pr56982.c O3
-
-builtin-bitops-1.c emscripten,O3 # __builtin_clrsb
-pr39228.c emscripten,O3 # __builtin_isinff
