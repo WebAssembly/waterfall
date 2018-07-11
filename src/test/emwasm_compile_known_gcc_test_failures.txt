@@ -76,5 +76,4 @@
 	pr56982.c O3
 
 builtin-bitops-1.c emscripten,O3 # __builtin_clrsb
-va-arg-pack-1.c emscripten # __builtin_va_arg_pack
 pr39228.c emscripten,O3 # __builtin_isinff
