@@ -63,7 +63,6 @@
 920501-9.c.o.wasm # env.sprintf
 920726-1.c.o.wasm # env.sprintf
 920810-1.c.o.wasm O0 # env.malloc
-921006-1.c.o.wasm O0 # env.strcmp
 921117-1.c.o.wasm # env.strcmp
 930513-1.c.o.wasm # env.sprintf
 930622-2.c.o.wasm O0 # env.__floatditf
