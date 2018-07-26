@@ -101,7 +101,6 @@ pr15262-1.c.o.wasm O0 # env.malloc
 pr20621-1.c.o.wasm O0 # env.memcpy
 pr22061-1.c.o.wasm O0 # env.memset
 pr23135.c.o.wasm O0 # env.memcpy
-pr30778.c.o.wasm O0 # env.memset
 pr33142.c.o.wasm O0 # env.abs
 pr33870-1.c.o.wasm # env.memset
 pr33870.c.o.wasm # env.memset
