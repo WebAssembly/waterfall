@@ -1,0 +1,2 @@
+[flake8]
+exclude = ./debian,./src/work
