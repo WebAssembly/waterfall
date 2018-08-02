@@ -1657,10 +1657,14 @@ def TestEmwasm():
 def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only=False):
   buildbot.Step('Execute emscripten testsuite (%s)' % name)
   Mkdir(outdir)
+  # Currently we run the binaryen2 as well as wasmobj2.  The later
+  # is the same test suite but using wasm native object files rather
+  # than bitcode.
+  # TODO(sbc): remove wasmobj2 once that becomes the default.
   try:
     proc.check_call(
         [os.path.join(INSTALL_DIR, 'emscripten', 'tests', 'runner.py'),
-         'binaryen2', '--em-config', config],
+         'binaryen2', 'wasmobj2', '--em-config', config],
         cwd=outdir)
   except proc.CalledProcessError:
     buildbot.FailUnless(lambda: warn_only)
