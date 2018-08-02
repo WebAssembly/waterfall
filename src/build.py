@@ -1672,14 +1672,16 @@ def TestEmtest():
   # than bitcode.
   # TODO(sbc): remove wasmobj2 once that becomes the default.
   ExecuteEmscriptenTestSuite(
-      'emwasm', ['binaryen2', 'wasmobj2'],
+      'emwasm',
+      ['binaryen2', 'wasmobj2'],
       EMSCRIPTEN_CONFIG_WASM,
       EMSCRIPTEN_TEST_OUT_DIR)
 
 
 def TestEmtestAsm2Wasm():
   ExecuteEmscriptenTestSuite(
-      'asm2wasm', ['binaryen2'],
+      'asm2wasm',
+      ['binaryen2'],
       EMSCRIPTEN_CONFIG_ASMJS,
       EMSCRIPTEN_ASMJS_TEST_OUT_DIR)
 
