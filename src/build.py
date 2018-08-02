@@ -1654,32 +1654,32 @@ def TestEmwasm():
         outdir=GetTortureDir('emwasm', opt))
 
 
-def ExecuteEmscriptenTestSuite(name, config, outdir, warn_only=False):
+def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
   buildbot.Step('Execute emscripten testsuite (%s)' % name)
   Mkdir(outdir)
-  # Currently we run the binaryen2 as well as wasmobj2.  The later
-  # is the same test suite but using wasm native object files rather
-  # than bitcode.
-  # TODO(sbc): remove wasmobj2 once that becomes the default.
   try:
     proc.check_call(
         [os.path.join(INSTALL_DIR, 'emscripten', 'tests', 'runner.py'),
-         'binaryen2', 'wasmobj2', '--em-config', config],
+         '--em-config', config] + tests,
         cwd=outdir)
   except proc.CalledProcessError:
     buildbot.FailUnless(lambda: warn_only)
 
 
 def TestEmtest():
+  # Currently we run the binaryen2 as well as wasmobj2.  The later
+  # is the same test suite but using wasm native object files rather
+  # than bitcode.
+  # TODO(sbc): remove wasmobj2 once that becomes the default.
   ExecuteEmscriptenTestSuite(
-      'emwasm',
+      'emwasm', ['binaryen2', 'wasmobj2'],
       EMSCRIPTEN_CONFIG_WASM,
       EMSCRIPTEN_TEST_OUT_DIR)
 
 
 def TestEmtestAsm2Wasm():
   ExecuteEmscriptenTestSuite(
-      'asm2wasm',
+      'asm2wasm', ['binaryen2'],
       EMSCRIPTEN_CONFIG_ASMJS,
       EMSCRIPTEN_ASMJS_TEST_OUT_DIR)
 
