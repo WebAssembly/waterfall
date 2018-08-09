@@ -48,7 +48,6 @@
 # See wasm.js for the list of libc functions which are missing.
 # The right place to put libc functionality would really be libc anyways.
 20101011-1.c.js # signal
-builtin-bitops-1.c.js # __builtin_clrsb
 pr47237.c.js # __builtin_apply_args
 pr39228.c.js #  __builtin_isinff/isinfl
 
@@ -177,7 +176,6 @@ vprintf-chk-1.c.js O3
 pr56982.c.o.wasm
 struct-ret-1.c.o.wasm
 930513-1.c.o.wasm
-builtin-bitops-1.c.o.wasm
 pr39228.c.o.wasm
 pr47237.c.o.wasm
 

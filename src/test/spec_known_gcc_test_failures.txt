@@ -81,7 +81,6 @@
 990628-1.c.o.wasm # env.memset
 991112-1.c.o.wasm # env.isprint
 align-2.c.o.wasm # env.__eqtf2
-builtin-bitops-1.c.o.wasm # env.__builtin_clrsb
 complex-5.c.o.wasm # env.__divsc3
 complex-6.c.o.wasm O0 # env.__subtf3
 complex-7.c.o.wasm # env.__netf2
