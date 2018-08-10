@@ -17,7 +17,7 @@
 20010605-2.c.o.wasm O0 # env.__netf2
 20010915-1.c.o.wasm # env.strcmp
 20010925-1.c.o.wasm O0 # env.memcpy
-20011024-1.c.o.wasm # env.strcmp
+20011024-1.c.o.wasm O0 # env.strcmp
 20011121-1.c.o.wasm O0 # env.memcpy
 20020406-1.c.o.wasm # env.malloc
 20020413-1.c.o.wasm # env.__lttf2
