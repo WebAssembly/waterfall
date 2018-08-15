@@ -1434,7 +1434,7 @@ def ExecuteLLVMTorture(name, runner, indir, fails, attributes, extension, opt,
 
 
 def ValidateLLVMTorture(indir, ext, opt):
-  validate = os.path.join(INSTALL_BIN, 'wasm-validate')
+  validate = Executable(os.path.join(INSTALL_BIN, 'wasm-validate'))
   ExecuteLLVMTorture('validate', validate, indir, None, [], ext, opt)
 
 
