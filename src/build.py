@@ -960,7 +960,7 @@ def LLVM():
 def V8():
   buildbot.Step('V8')
   proc.check_call([os.path.join(V8_SRC_DIR, 'tools', 'dev', 'v8gen.py'),
-                   'x64.release'],
+                   '-vv', 'x64.release'],
                   cwd=V8_SRC_DIR)
   jobs = host_toolchains.NinjaJobs()
   proc.check_call(['ninja', '-v', '-C', V8_OUT_DIR, 'd8', 'unittests'] + jobs,
