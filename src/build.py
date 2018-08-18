@@ -1117,16 +1117,17 @@ def Emscripten():
   # rebuilt in the step below.
   Remove(os.path.expanduser(os.path.join('~', '.emscripten_cache')))
   emscripten_dir = os.path.join(INSTALL_DIR, 'emscripten')
-  #Remove(emscripten_dir)
+  Remove(emscripten_dir)
   print 'Copying directory %s to %s' % (EMSCRIPTEN_SRC_DIR, emscripten_dir)
-  #shutil.copytree(EMSCRIPTEN_SRC_DIR,
-  #                emscripten_dir,
-  #                symlinks=True,
-  #                # Ignore the big git blob so it doesn't get archived.
-  #                ignore=shutil.ignore_patterns('.git'))
+  shutil.copytree(EMSCRIPTEN_SRC_DIR,
+                  emscripten_dir,
+                  symlinks=True,
+                  # Ignore the big git blob so it doesn't get archived.
+                  ignore=shutil.ignore_patterns('.git'))
 
 
-  # Manually build the emscripten optimizer
+  # Manually build the native asm.js optimizer (the cmake build in embuilder
+  # doesn't work on the waterfall)
   optimizer_out_dir = os.path.join(WORK_DIR, 'em-optimizer-out')
   Mkdir(optimizer_out_dir)
   cc_env = BuildEnv(optimizer_out_dir)
@@ -1138,7 +1139,7 @@ def Emscripten():
   proc.check_call(['ninja'] + host_toolchains.NinjaJobs(),
                   cwd=optimizer_out_dir, env=cc_env)
   CopyBinaryToArchive(Executable(os.path.join(optimizer_out_dir, 'optimizer')))
-  
+
   def WriteEmscriptenConfig(infile, outfile):
     with open(infile) as config:
       text = config.read().replace('{{WASM_INSTALL}}',
