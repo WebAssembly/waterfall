@@ -17,7 +17,7 @@ BINARYEN_ROOT = os.path.join(WASM_INSTALL) # directory
 
 # Add this if you have manually built the JS optimizer executable (in Emscripten/tools/optimizer) and want to run it from a custom location.
 # Alternatively, you can set this as the environment variable EMSCRIPTEN_NATIVE_OPTIMIZER.
-# EMSCRIPTEN_NATIVE_OPTIMIZER='/path/to/custom/optimizer(.exe)'
+EMSCRIPTEN_NATIVE_OPTIMIZER=os.path.join(WASM_INSTALL, 'bin', 'optimizer')
 
 # See below for notes on which JS engine(s) you need
 prebuilt_node = '{{PREBUILT_NODE}}'
