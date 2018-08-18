@@ -1125,7 +1125,6 @@ def Emscripten():
                   # Ignore the big git blob so it doesn't get archived.
                   ignore=shutil.ignore_patterns('.git'))
 
-
   # Manually build the native asm.js optimizer (the cmake build in embuilder
   # doesn't work on the waterfall)
   optimizer_out_dir = os.path.join(WORK_DIR, 'em-optimizer-out')
