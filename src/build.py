@@ -281,21 +281,12 @@ def IsBuildbot():
   return BUILDBOT_BUILDNUMBER is not None
 
 
-if IsMac():
+if IsMac() and IsBuildbot():
   # Experimental temp fix for crbug.com/829034 stdout write sometimes fails
   from fcntl import fcntl, F_GETFL, F_SETFL
   fd = sys.stdout.fileno()
   flags = fcntl(fd, F_GETFL)
   fcntl(fd, F_SETFL, flags & ~os.O_NONBLOCK)
-
-  # Use gclient-managed hermetic toolchain on mac LUCI bots.
-  # TODO: Convert bot build to recipes, and this should no longer be necessary.
-  # Force gclient to install the hermetic mac toolchain
-  os.environ['FORCE_MAC_TOOLCHAIN'] = '1'
-  # The V8 build_overrides/build.gni specifically forces use of the system
-  # Xcode, so override the override.
-  os.environ['DEVELOPER_DIR'] = os.path.join(V8_SRC_DIR,
-                                             'build', 'mac_files', 'Xcode.app')
 
 # Pin the GCC revision so that new torture tests don't break the bot. This
 # should be manually updated when convenient.
