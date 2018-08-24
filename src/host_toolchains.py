@@ -15,8 +15,10 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import glob
 import json
 import os
+import shutil
 
 import file_util
 import proc
@@ -69,8 +71,18 @@ def GetVSEnv(dir):
         continue
       var, val = e.split('=', 1)
       env[var] = val
+      print('ENV: %s = %s' % (var, val))
 
   return env
+
+
+def GetRuntimeDir():
+  # Get the chromium-packaged toolchain directory info in a JSON file
+  proc.check_call([VS_TOOLCHAIN, 'get_toolchain_dir'])
+  with open(WIN_TOOLCHAIN_JSON) as f:
+    paths = json.load(f)
+  # Extract the 64-bit runtime path
+  return [path for path in paths['runtime_dirs'] if path.endswith('64')][0]
 
 
 def SetUpVSEnv(outdir):
@@ -94,7 +106,10 @@ def SetUpVSEnv(outdir):
 def CopyDlls(dir, configuration):
   """Copy MSVS Runtime dlls into a build directory"""
   proc.check_call([VS_TOOLCHAIN, 'copy_dlls', dir, configuration, 'x64'])
-
+  # LLD needs also concrt140.dll, which the Chromium copy_dlls doesn't include.
+  for dll in glob.glob(os.path.join(GetRuntimeDir(), 'concrt140*.dll')):
+    print 'Copying %s to %s' % (dll, dir)
+    shutil.copy2(dll, dir)
 
 def UsingGoma():
   return 'GOMA_DIR' in os.environ
