@@ -111,6 +111,7 @@ def CopyDlls(dir, configuration):
     print 'Copying %s to %s' % (dll, dir)
     shutil.copy2(dll, dir)
 
+
 def UsingGoma():
   return 'GOMA_DIR' in os.environ
 
