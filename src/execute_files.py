@@ -34,6 +34,9 @@ def execute(infile, outfile, extras):
   """Create the command-line for an execution."""
   runner = extras['runner']
   basename = os.path.splitext(os.path.basename(runner))[0]
+  if basename == 'v8':
+    # The d8 installed by JSVU is named 'v8'
+    basename = 'd8'
   out_opt = ['-o', outfile] if outfile else []
   extra_files = extras['extra_files']
   config = basename

@@ -82,7 +82,7 @@ CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
 
 LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out.gn', 'x64.release')
-JSC_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
+JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
 WABT_OUT_DIR = os.path.join(WORK_DIR, 'wabt-out')
 OCAML_OUT_DIR = os.path.join(WORK_DIR, 'ocaml-out')
 BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
@@ -207,6 +207,8 @@ JSVU_BIN = Executable(os.path.join(JSVU_DIR,
                                    'node_modules', 'jsvu', 'cli.js'))
 
 D8_BIN = Executable(os.path.join(INSTALL_BIN, 'd8'))
+if IsMac():
+  D8_BIN = os.path.join(JSVU_OUT_DIR, 'v8')
 
 # Java installed in the buildbots are too old while emscripten uses closure
 # compiler that requires Java SE 8.0 (version 52) or above
@@ -989,7 +991,7 @@ def Jsvu():
       js_engines = 'chakra'
     elif IsMac():
       os_id = 'mac64'
-      js_engines = 'javascriptcore'
+      js_engines = 'javascriptcore,v8'
     else:
       return
 
@@ -1454,7 +1456,7 @@ def ValidateLLVMTorture(indir, ext, opt):
 
 class Build(object):
   def __init__(self, name_, runnable_,
-               no_windows=False, no_linux=False,
+               no_windows=False, no_linux=False, no_mac=False,
                *args, **kwargs):
     self.name = name_
     self.runnable = runnable_
@@ -1464,6 +1466,7 @@ class Build(object):
     # Temporarily disable them.
     self.no_windows = no_windows
     self.no_linux = no_linux
+    self.no_mac = no_mac
 
   def Run(self):
     if IsWindows() and self.no_windows:
@@ -1471,6 +1474,9 @@ class Build(object):
       return
     if IsLinux() and self.no_linux:
       print "Skipping %s: Doesn't work on Linux" % self.runnable.__name__
+      return
+    if IsMac() and self.no_mac:
+      print "Skipping %s: Doesn't work on Mac" % self.runnable.__name__
       return
     self.runnable(*self.args, **self.kwargs)
 
@@ -1513,7 +1519,7 @@ def AllBuilds():
   return [
       # Host tools
       Build('llvm', LLVM),
-      Build('v8', V8),
+      Build('v8', V8, no_mac=True),
       Build('jsvu', Jsvu, no_windows=True, no_linux=True),
       Build('wabt', Wabt),
       Build('ocaml', OCaml, no_windows=True),
@@ -1616,7 +1622,7 @@ def TestBare():
     for opt in BARE_TEST_OPT_FLAGS:
       ExecuteLLVMTorture(
           name='jsc',
-          runner=os.path.join(JSC_OUT_DIR, 'jsc'),
+          runner=os.path.join(JSVU_OUT_DIR, 'jsc'),
           indir=GetTortureDir('lld', opt),
           fails=RUN_KNOWN_TORTURE_FAILURES,
           attributes=common_attrs + ['jsc', 'lld'],
