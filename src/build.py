@@ -968,7 +968,6 @@ def LLVM():
 
 def V8():
   buildbot.Step('V8')
-  proc.check_call(['xcode-select', '-p'])
   proc.check_call([os.path.join(V8_SRC_DIR, 'tools', 'dev', 'v8gen.py'),
                    '-vv', 'x64.release'],
                   cwd=V8_SRC_DIR)
