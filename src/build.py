@@ -164,7 +164,7 @@ def WindowsFSEscape(path):
 def NodePlatformName():
   return {'darwin': 'darwin-x64',
           'linux2': 'linux-x64',
-          'win32': 'win32'}[sys.platform]
+          'win32': 'win-x64'}[sys.platform]
 
 
 def CMakePlatformName():
@@ -185,7 +185,7 @@ def CMakeBinDir():
 
 
 # Use prebuilt Node.js because the buildbots don't have node preinstalled
-NODE_VERSION = '8.9.3'
+NODE_VERSION = '8.12.0'
 NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
 
 PREBUILT_CMAKE_VERSION = '3.7.2'
@@ -196,7 +196,7 @@ PREBUILT_CMAKE_DIR = os.path.join(WORK_DIR, PREBUILT_CMAKE_BASE_NAME)
 PREBUILT_CMAKE_BIN = os.path.join(PREBUILT_CMAKE_DIR, CMakeBinDir(), 'cmake')
 
 NODE_DIR = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName())
-NODE_BIN_DIR = os.path.join(NODE_DIR, 'bin')
+NODE_BIN_DIR = NODE_DIR if IsWindows() else os.path.join(NODE_DIR, 'bin')
 # `npm` uses whatever `node` is in `PATH`. To make sure it uses the
 # Node.js version we want, we prepend `NODE_BIN_DIR` to `PATH`.
 os.environ['PATH'] = NODE_BIN_DIR + os.pathsep + os.environ['PATH']
@@ -599,31 +599,12 @@ def SyncPrebuiltCMake(name, src_dir, git_repo):
   SyncArchive(PREBUILT_CMAKE_DIR, 'cmake', url)
 
 
-def SyncWindowsNode():
-  if os.path.isfile(NODE_BIN):
-    print NODE_BIN, 'already exists'
-    return
-  Mkdir(os.path.dirname(NODE_BIN))
-  node_url = WASM_STORAGE_BASE + 'node.exe'
-  print 'Downloading node.js %s from %s' % (NODE_VERSION, node_url)
-  try:
-    f = urllib2.urlopen(node_url)
-    print 'URL: %s' % f.geturl()
-    print 'Info: %s' % f.info()
-    with open(NODE_BIN, 'wb') as n:
-      n.write(f.read())
-  except urllib2.URLError as e:
-    print 'Error downloading %s: %s' % (node_url, e)
-    raise
-  return
-
-
 def SyncPrebuiltNodeJS(name, src_dir, git_repo):
-  if IsWindows():
-    return SyncWindowsNode()
-  extension = {'darwin': 'gz', 'linux2': 'xz'}[sys.platform]
+  extension = {'darwin': 'tar.gz',
+               'linux2': 'tar.xz',
+               'win32': 'zip'}[sys.platform]
   out_dir = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName())
-  tarball = NODE_BASE_NAME + NodePlatformName() + '.tar.' + extension
+  tarball = NODE_BASE_NAME + NodePlatformName() + '.' + extension
   node_url = WASM_STORAGE_BASE + tarball
   return SyncArchive(out_dir, name, node_url)
 
