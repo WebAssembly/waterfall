@@ -1576,6 +1576,7 @@ def TestBare():
 
   # Execute
   common_attrs = ['bare']
+  common_attrs += ['win'] if IsWindows() else ['posix']
 
   for opt in BARE_TEST_OPT_FLAGS:
     ExecuteLLVMTorture(
