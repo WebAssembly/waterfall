@@ -214,12 +214,6 @@ vfprintf-chk-1.c.o.wasm O2
 # Missing _Unwind_* functions
 cleanup-5.C.o.wasm
 
-# https://bugs.chromium.org/p/v8/issues/detail?id=8211
-20040629-1.c.o.wasm win
-20040705-1.c.o.wasm win
-20040705-2.c.o.wasm win
-pr53645-2.c.o.wasm win
-
 # Untriaged lld failures
 tc1__dr20.C.o.wasm O2
 torture__pr48695.C.o.wasm O2
