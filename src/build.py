@@ -1583,7 +1583,7 @@ def TestBare():
         runner=D8_BIN,
         indir=GetTortureDir('lld', opt),
         fails=RUN_KNOWN_TORTURE_FAILURES,
-        attributes=common_attrs + ['d8', 'lld'],
+        attributes=common_attrs + ['d8', 'lld', opt],
         extension='wasm',
         opt=opt,
         wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
