@@ -239,12 +239,12 @@ init__delete2.C.o.wasm
 init__dtor3.C.o.wasm
 init__for1.C.o.wasm
 init__init-ref2.C.o.wasm
-init__new11.C.o.wasm
+init__new11.C.o.wasm O0
 init__new26.C.o.wasm
 init__new36.C.o.wasm
 init__placement2.C.o.wasm
 init__ref9.C.o.wasm
-init__value3.C.o.wasm
+init__value3.C.o.wasm O0
 ipa__pr46287-1.C.o.wasm
 ipa__pr46287-2.C.o.wasm
 ipa__pr46287-3.C.o.wasm
