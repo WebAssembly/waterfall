@@ -74,3 +74,12 @@
 
 # Untriaged
 	pr56982.c O3
+
+20071018-1.c # undefined symbol __builtin_malloc
+20071120-1.c # undefined symbol __builtin_malloc
+medce-1.c # link_error
+pr36765.c # undefined symbol __builtin_malloc
+pr39228.c # undefined symbol __builtin_isinff
+pr43008.c # undefined symbol __builtin_malloc
+pr47237.c # undefined symbol __builtin_apply
+va-arg-pack-1.c # undefined symbol bar
