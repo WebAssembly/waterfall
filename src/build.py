@@ -1199,6 +1199,7 @@ def CompilerRT():
   cc_env = BuildEnv(COMPILER_RT_SRC_DIR, bin_subdir=True)
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja',
              os.path.join(COMPILER_RT_SRC_DIR, 'lib', 'builtins'),
+             '-DCMAKE_BUILD_TYPE=Release',
              '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE,
              '-DCMAKE_C_COMPILER_WORKS=ON',
              '-DCOMPILER_RT_BAREMETAL_BUILD=On',
