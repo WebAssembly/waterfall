@@ -236,6 +236,7 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
     results = pool.map(tester, inputs)
     pool.close()
     pool.join()
+    sys.stdout.flush()
   sys.stdout.write('\nDone.')
 
   results = sorted(results)
