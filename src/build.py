@@ -900,8 +900,7 @@ def LLVM():
              '-DLLVM_TOOL_LTO_BUILD=OFF',
              '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
              '-DLLVM_ENABLE_ASSERTIONS=ON',
-             '-DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=WebAssembly',
-             '-DLLVM_TARGETS_TO_BUILD=X86']
+             '-DLLVM_TARGETS_TO_BUILD=X86;WebAssembly']
 
   command.extend(OverrideCMakeCompiler())
 
