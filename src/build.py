@@ -283,7 +283,7 @@ def IsBuildbot():
   return BUILDBOT_BUILDNUMBER is not None
 
 
-if IsMac() and IsBuildbot():
+if IsMac():
   # Experimental temp fix for crbug.com/829034 stdout write sometimes fails
   from fcntl import fcntl, F_GETFL, F_SETFL
   fd = sys.stdout.fileno()
