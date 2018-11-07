@@ -14,12 +14,54 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+import os
 import sys
 
 
 failed_steps = []
 warned_steps = []
 current_step = None
+
+# Schedulers which can kick off new builds, from:
+# https://chromium.googlesource.com/chromium/tools/build/+/master/masters/master.client.wasm.llvm/builders.pyl
+SCHEDULERS = {
+    None: 'forced',
+    'None': 'forced',
+    'llvm_commits': 'llvm',
+    'clang_commits': 'clang'
+}
+
+# Buildbot-provided environment.
+BUILDBOT_SCHEDULER = os.environ.get('BUILDBOT_SCHEDULER', None)
+SCHEDULER = SCHEDULERS[BUILDBOT_SCHEDULER]
+BUILDBOT_REVISION = os.environ.get('BUILDBOT_REVISION', None)
+BUILDBOT_BUILDNUMBER = os.environ.get('BUILDBOT_BUILDNUMBER', None)
+BUILDBOT_BUILDERNAME = os.environ.get('BUILDBOT_BUILDERNAME', None)
+
+
+def IsBot():
+  """Return True if we are running on bot, False otherwise."""
+  return BUILDBOT_BUILDNUMBER is not None
+
+
+def Revision():
+  return BUILDBOT_REVISION
+
+
+def BuildNumber():
+  return BUILDBOT_BUILDNUMBER
+
+
+def ShouldClobber():
+  return os.environ.get('BUILDBOT_CLOBBER')
+
+
+def BuilderName():
+  return BUILDBOT_BUILDERNAME
+
+
+def Scheduler():
+  return BUILDBOT_SCHEDULER
 
 
 # Magic annotations:

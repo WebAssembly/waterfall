@@ -261,27 +261,6 @@ EMSCRIPTEN_TEST_OPT_FLAGS = ['O0', 'O3']
 
 NPROC = multiprocessing.cpu_count()
 
-# Schedulers which can kick off new builds, from:
-# https://chromium.googlesource.com/chromium/tools/build/+/master/masters/master.client.wasm.llvm/builders.pyl
-SCHEDULERS = {
-    None: 'forced',
-    'None': 'forced',
-    'llvm_commits': 'llvm',
-    'clang_commits': 'clang'
-}
-
-# Buildbot-provided environment.
-BUILDBOT_SCHEDULER = os.environ.get('BUILDBOT_SCHEDULER', None)
-SCHEDULER = SCHEDULERS[BUILDBOT_SCHEDULER]
-BUILDBOT_REVISION = os.environ.get('BUILDBOT_REVISION', None)
-BUILDBOT_BUILDNUMBER = os.environ.get('BUILDBOT_BUILDNUMBER', None)
-BUILDBOT_BUILDERNAME = os.environ.get('BUILDBOT_BUILDERNAME', None)
-
-
-def IsBuildbot():
-  """Return True if we are running on bot, False otherwise."""
-  return BUILDBOT_BUILDNUMBER is not None
-
 
 if IsMac():
   # Experimental temp fix for crbug.com/829034 stdout write sometimes fails
@@ -323,7 +302,7 @@ def CopyLibraryToSysroot(library):
 def Archive(directory, print_content=False):
   """Create an archive file from directory."""
   # Use the format "native" to the platform
-  if not IsBuildbot():
+  if not buildbot.IsBot():
     return
   if IsWindows():
     return Zip(directory, print_content)
@@ -362,15 +341,15 @@ def Zip(directory, print_content=False):
 
 def UploadFile(local_name, remote_name):
   """Archive the file with the given name, and with the LLVM git hash."""
-  if not IsBuildbot():
+  if not buildbot.IsBot():
     return
   buildbot.Link('download', cloud.Upload(local_name, '%s/%s/%s' % (
-      BUILDBOT_BUILDERNAME, BUILDBOT_BUILDNUMBER, remote_name)))
+      buildbot.BuilderName(), buildbot.BuildNumber(), remote_name)))
 
 
 def UploadArchive(name, archive):
   """Archive the tar/zip file with the given name and the build number."""
-  if not IsBuildbot():
+  if not buildbot.IsBot():
     return
   extension = os.path.splitext(archive)[1]
   UploadFile(archive, 'wasm-%s%s' % (name, extension))
@@ -720,8 +699,8 @@ def SyncLLVMClang(good_hashes=None):
   def get_rev(rev_name):
     if good_hashes and good_hashes.get(rev_name):
       return good_hashes[rev_name]
-    elif SCHEDULER == rev_name:
-      return BUILDBOT_REVISION
+    elif buildbot.Scheduler() == rev_name:
+      return buildbot.Revision()
     else:
       return RemoteBranch('master')
 
@@ -732,7 +711,7 @@ def SyncLLVMClang(good_hashes=None):
   # clang revision, even if clang may not have triggered the build: usually
   # LLVM provides APIs which clang uses, which means that most synchronized
   # commits touch LLVM before clang. This should reduce the chance of breakage.
-  primary = LLVM_SRC_DIR if SCHEDULER == 'llvm' else CLANG_SRC_DIR
+  primary = LLVM_SRC_DIR if buildbot.Scheduler() == 'llvm' else CLANG_SRC_DIR
   primary_svn_rev = CurrentSvnRev(primary)
   print 'SVN REV for %s: %d' % (primary, primary_svn_rev)
   for srcdir in (LLVM_SRC_DIR, CLANG_SRC_DIR, LLD_SRC_DIR,
@@ -742,7 +721,7 @@ def SyncLLVMClang(good_hashes=None):
 
 
 def Clobber():
-  if os.environ.get('BUILDBOT_CLOBBER'):
+  if buildbot.ShouldClobber():
     buildbot.Step('Clobbering work dir')
     if os.path.isdir(WORK_DIR):
       Remove(WORK_DIR)
@@ -1320,21 +1299,21 @@ def ArchiveBinaries():
 
 
 def DebianPackage():
-  if not (IsLinux() and IsBuildbot()):
+  if not (IsLinux() and buildbot.IsBot()):
     return
 
   buildbot.Step('Debian package')
   top_dir = os.path.dirname(SCRIPT_DIR)
   try:
-    if BUILDBOT_BUILDNUMBER:
+    if buildbot.BuildNumber():
       message = ('Automatic build %s produced on http://wasm-stat.us' %
-                 BUILDBOT_BUILDNUMBER)
-      version = '0.1.' + BUILDBOT_BUILDNUMBER
+                 buildbot.BuildNumber())
+      version = '0.1.' + buildbot.BuildNumber()
       proc.check_call(['dch', '-D', 'unstable', '-v', version, message],
                       cwd=top_dir)
     proc.check_call(['debuild', '--no-lintian', '-i', '-us', '-uc', '-b'],
                     cwd=top_dir)
-    if BUILDBOT_BUILDNUMBER:
+    if buildbot.BuildNumber():
       proc.check_call(['git', 'checkout', 'debian/changelog'], cwd=top_dir)
 
       debfile = os.path.join(os.path.dirname(top_dir),
@@ -1465,11 +1444,11 @@ class Build(object):
 def Summary(repos):
   buildbot.Step('Summary')
   info = {'repositories': repos}
-  info['build'] = BUILDBOT_BUILDNUMBER
-  info['scheduler'] = SCHEDULER
+  info['build'] = buildbot.BuildNumber()
+  info['scheduler'] = buildbot.Scheduler()
   info_file = os.path.join(INSTALL_DIR, 'buildinfo.json')
 
-  if IsBuildbot():
+  if buildbot.IsBot():
     info_json = json.dumps(info, indent=2)
     print info_json
 
@@ -1484,15 +1463,15 @@ def Summary(repos):
   for step in buildbot.WarnedList():
     print '    %s' % step
 
-  if IsBuildbot():
-    latest_file = '%s/%s' % (BUILDBOT_BUILDERNAME, 'latest.json')
+  if buildbot.IsBot():
+    latest_file = '%s/%s' % (buildbot.BuilderName(), 'latest.json')
     buildbot.Link('latest.json', cloud.Upload(info_file, latest_file))
 
   if buildbot.Failed():
     buildbot.Fail()
   else:
-    if IsBuildbot():
-      lkgr_file = '%s/%s' % (BUILDBOT_BUILDERNAME, 'lkgr.json')
+    if buildbot.IsBot():
+      lkgr_file = '%s/%s' % (buildbot.BuilderName(), 'lkgr.json')
       buildbot.Link('lkgr.json', cloud.Upload(info_file, lkgr_file))
 
 
@@ -1798,7 +1777,7 @@ def run(sync_filter, build_filter, test_filter):
   Chdir(SCRIPT_DIR)
   Mkdir(WORK_DIR)
   SyncRepos(sync_filter, options.sync_lkgr)
-  repos = GetRepoInfo() if IsBuildbot() else {}
+  repos = GetRepoInfo() if buildbot.IsBot() else {}
   if build_filter.All():
     Remove(INSTALL_DIR)
     Mkdir(INSTALL_DIR)
