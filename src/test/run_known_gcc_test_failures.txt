@@ -190,6 +190,8 @@ va-arg-6.c.o.wasm
 # Don't care/won't fix:
 920612-1.c.o.wasm O2 # abort() # UB
 920711-1.c.o.wasm O2 # abort() # UB for 32-bit longs
+bcp-1.c.o.wasm O2 # abort() # builtin_constant_p depends on opt setting
+builtin-constant.c.o.wasm O2 # abort() # builtin_constant_p depends on opt setting
 pr22493-1.c.o.wasm O2 # abort() # UB
 eeprof-1.c.o.wasm # tests -finstrument-functions
 pr23047.c.o.wasm O2 # tests -fwrapv
