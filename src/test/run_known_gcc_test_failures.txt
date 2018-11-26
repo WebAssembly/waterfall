@@ -161,8 +161,6 @@ pr60960.c.js asm2wasm # actually fails in asm2wasm, but JS file is still there
 920612-1.c.js O3
 920711-1.c.js O3
 990208-1.c.js O3
-bcp-1.c.js O3
-builtin-constant.c.js O3
 fprintf-chk-1.c.js O3
 pr22493-1.c.js O3
 printf-chk-1.c.js O3
