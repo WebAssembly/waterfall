@@ -161,8 +161,8 @@ pr60960.c.js asm2wasm # actually fails in asm2wasm, but JS file is still there
 920612-1.c.js O3
 920711-1.c.js O3
 990208-1.c.js O3
-bcp-1.c.js asm2wasm,O3
-builtin-constant.c.js asm2wasm,O3
+bcp-1.c.js O3
+builtin-constant.c.js O3
 fprintf-chk-1.c.js O3
 pr22493-1.c.js O3
 printf-chk-1.c.js O3
@@ -190,6 +190,8 @@ va-arg-6.c.o.wasm
 # Don't care/won't fix:
 920612-1.c.o.wasm O2 # abort() # UB
 920711-1.c.o.wasm O2 # abort() # UB for 32-bit longs
+bcp-1.c.o.wasm O2 # abort() # builtin_constant_p depends on opt setting
+builtin-constant.c.o.wasm O2 # abort() # builtin_constant_p depends on opt setting
 pr22493-1.c.o.wasm O2 # abort() # UB
 eeprof-1.c.o.wasm # tests -finstrument-functions
 pr23047.c.o.wasm O2 # tests -fwrapv
