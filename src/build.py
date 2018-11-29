@@ -861,6 +861,15 @@ def BuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
 
 def LLVM():
   buildbot.Step('LLVM')
+
+  # Debugging LUCI shenanigans
+  print "PATH: " + os.environ.get('PATH', '')
+  print "which python: " + proc.Which("python", os.getcwd())
+  print "which python2.7: " + proc.Which("python2.7", os.getcwd())
+  print proc.check_output(
+    ['python', '-c',
+     'import sys; sys.stdout.write(\';\'.join([str(x) for x in sys.version_info[:3]]))'])
+
   Mkdir(LLVM_OUT_DIR)
   cc_env = BuildEnv(LLVM_OUT_DIR, bin_subdir=True)
   build_dylib = 'ON' if not IsWindows() else 'OFF'
