@@ -890,7 +890,7 @@ def LLVM():
              '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
              '-DLLVM_ENABLE_ASSERTIONS=ON',
              # CMake needs help finding python on the LUCI bots
-             '-DPYTHON_EXECUTABLE=%s' % proc.Which("python", os.getcwd()),
+             # '-DPYTHON_EXECUTABLE=%s' % proc.Which("python", os.getcwd()),
              '-DLLVM_TARGETS_TO_BUILD=X86;WebAssembly']
 
   command.extend(OverrideCMakeCompiler())
