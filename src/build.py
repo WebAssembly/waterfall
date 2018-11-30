@@ -836,6 +836,7 @@ def CMakeCommandBase(args):
 
 def CMakeCommandNative(args):
   command = CMakeCommandBase(args)
+  command.append('-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR)
   command.extend(OverrideCMakeCompiler())
   command.extend(host_toolchains.CMakeLauncherFlags())
   return command
@@ -888,7 +889,6 @@ def LLVM():
   build_dylib = 'ON' if not IsWindows() else 'OFF'
   command = CMakeCommandNative([
       LLVM_SRC_DIR,
-       '-DCMAKE_INSTALL_PREFIX=' + INSTALL_DIR,
       '-DLLVM_INCLUDE_EXAMPLES=OFF',
       '-DCOMPILER_RT_BUILD_XRAY=OFF',
       '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
@@ -998,7 +998,6 @@ def Wabt():
 
   proc.check_call(CMakeCommandNative([
       WABT_SRC_DIR,
-      '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR,
       '-DBUILD_TESTS=OFF'
   ]), cwd=WABT_OUT_DIR, env=cc_env)
 
@@ -1056,7 +1055,6 @@ def Binaryen():
 
   proc.check_call(CMakeCommandNative([
       BINARYEN_SRC_DIR,
-      '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR
   ]), cwd=BINARYEN_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', '-v'], cwd=BINARYEN_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=BINARYEN_OUT_DIR, env=cc_env)
@@ -1070,7 +1068,6 @@ def Fastcomp():
   cc_env = BuildEnv(FASTCOMP_OUT_DIR, bin_subdir=True)
   command = CMakeCommandNative([
       FASTCOMP_SRC_DIR,
-      '-DCMAKE_INSTALL_PREFIX=' + install_dir,
       '-DLLVM_INCLUDE_EXAMPLES=OFF',
       '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
       '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
@@ -1108,7 +1105,7 @@ def Emscripten():
   Mkdir(optimizer_out_dir)
   cc_env = BuildEnv(optimizer_out_dir)
   command = CMakeCommandNative([
-       os.path.join(EMSCRIPTEN_SRC_DIR, 'tools', 'optimizer')
+      os.path.join(EMSCRIPTEN_SRC_DIR, 'tools', 'optimizer')
   ])
   proc.check_call(command, cwd=optimizer_out_dir, env=cc_env)
   proc.check_call(['ninja'] + host_toolchains.NinjaJobs(),
