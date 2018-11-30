@@ -825,12 +825,25 @@ def OverrideCMakeCompiler():
           '-DCMAKE_CXX_COMPILER=' + CXX]
 
 
-def CMakeCommand(args):
+def CMakeCommandBase(args):
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja'] + args
   # Python's location could change, so always update CMake's cache
-  command.append('-DPYTHON_EXECUTABLE=%s' % proc.Which('python', os.getcwd()))
+  command.append('-DPYTHON_EXECUTABLE=%s' % sys.executable)
+  command.append('-DCMAKE_EXPORT_COMPILE_COMMANDS=ON')
+  command.append('-DCMAKE_BUILD_TYPE=Release')
+  return command
+
+
+def CMakeCommandNative(args):
+  command = CMakeCommandBase(args)
   command.extend(OverrideCMakeCompiler())
   command.extend(host_toolchains.CMakeLauncherFlags())
+  return command
+
+
+def CMakeCommandWack(args):
+  command = CMakeCommandBase(args)
+  command.append('-DCMAKE_TOOLCHAIN_FILE=%s' % CMAKE_TOOLCHAIN_FILE)
   return command
 
 
@@ -873,12 +886,9 @@ def LLVM():
   Mkdir(LLVM_OUT_DIR)
   cc_env = BuildEnv(LLVM_OUT_DIR, bin_subdir=True)
   build_dylib = 'ON' if not IsWindows() else 'OFF'
-  command = CMakeCommand([
+  command = CMakeCommandNative([
       LLVM_SRC_DIR,
-      '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
-      '-DLLVM_BUILD_TESTS=ON',
-      '-DCMAKE_BUILD_TYPE=Release',
-      '-DCMAKE_INSTALL_PREFIX=' + INSTALL_DIR,
+       '-DCMAKE_INSTALL_PREFIX=' + INSTALL_DIR,
       '-DLLVM_INCLUDE_EXAMPLES=OFF',
       '-DCOMPILER_RT_BUILD_XRAY=OFF',
       '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
@@ -986,9 +996,8 @@ def Wabt():
   Mkdir(WABT_OUT_DIR)
   cc_env = BuildEnv(WABT_OUT_DIR)
 
-  proc.check_call(CMakeCommand([
+  proc.check_call(CMakeCommandNative([
       WABT_SRC_DIR,
-      '-DCMAKE_BUILD_TYPE=Release',
       '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR,
       '-DBUILD_TESTS=OFF'
   ]), cwd=WABT_OUT_DIR, env=cc_env)
@@ -1045,9 +1054,8 @@ def Binaryen():
   # Currently it's a bad idea to do a non-asserts build of Binaryen
   cc_env = BuildEnv(BINARYEN_OUT_DIR, bin_subdir=True, runtime='Debug')
 
-  proc.check_call(CMakeCommand([
+  proc.check_call(CMakeCommandNative([
       BINARYEN_SRC_DIR,
-      '-DCMAKE_BUILD_TYPE=Release',
       '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR
   ]), cwd=BINARYEN_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', '-v'], cwd=BINARYEN_OUT_DIR, env=cc_env)
@@ -1060,10 +1068,8 @@ def Fastcomp():
   install_dir = os.path.join(INSTALL_DIR, 'fastcomp')
   build_dylib = 'ON' if not IsWindows() else 'OFF'
   cc_env = BuildEnv(FASTCOMP_OUT_DIR, bin_subdir=True)
-  command = CMakeCommand([
+  command = CMakeCommandNative([
       FASTCOMP_SRC_DIR,
-      '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
-      '-DCMAKE_BUILD_TYPE=Release',
       '-DCMAKE_INSTALL_PREFIX=' + install_dir,
       '-DLLVM_INCLUDE_EXAMPLES=OFF',
       '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
@@ -1101,9 +1107,8 @@ def Emscripten():
   optimizer_out_dir = os.path.join(WORK_DIR, 'em-optimizer-out')
   Mkdir(optimizer_out_dir)
   cc_env = BuildEnv(optimizer_out_dir)
-  command = CMakeCommand([
-      '-DCMAKE_BUILD_TYPE=Release',
-      os.path.join(EMSCRIPTEN_SRC_DIR, 'tools', 'optimizer')
+  command = CMakeCommandNative([
+       os.path.join(EMSCRIPTEN_SRC_DIR, 'tools', 'optimizer')
   ])
   proc.check_call(command, cwd=optimizer_out_dir, env=cc_env)
   proc.check_call(['ninja'] + host_toolchains.NinjaJobs(),
@@ -1185,10 +1190,8 @@ def CompilerRT():
 
   Mkdir(COMPILER_RT_OUT_DIR)
   cc_env = BuildEnv(COMPILER_RT_SRC_DIR, bin_subdir=True)
-  command = CMakeCommand([
+  command = CMakeCommandWack([
       os.path.join(COMPILER_RT_SRC_DIR, 'lib', 'builtins'),
-      '-DCMAKE_BUILD_TYPE=Release',
-      '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE,
       '-DCMAKE_C_COMPILER_WORKS=ON',
       '-DCOMPILER_RT_BAREMETAL_BUILD=On',
       '-DCOMPILER_RT_BUILD_XRAY=OFF',
@@ -1213,7 +1216,7 @@ def LibCXX():
     Remove(LIBCXX_OUT_DIR)
   Mkdir(LIBCXX_OUT_DIR)
   cc_env = BuildEnv(LIBCXX_SRC_DIR, bin_subdir=True)
-  command = CMakeCommand([
+  command = CMakeCommandWack([
       os.path.join(LIBCXX_SRC_DIR),
       '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
       '-DLIBCXX_ENABLE_THREADS=OFF',
@@ -1223,7 +1226,6 @@ def LibCXX():
       '-DLIBCXX_CXX_ABI_INCLUDE_PATHS=' +
       os.path.join(LIBCXXABI_SRC_DIR, 'include'),
       '-DLLVM_PATH=' + LLVM_SRC_DIR,
-      '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE
   ])
 
   proc.check_call(command, cwd=LIBCXX_OUT_DIR, env=cc_env)
@@ -1237,7 +1239,7 @@ def LibCXXABI():
     Remove(LIBCXXABI_OUT_DIR)
   Mkdir(LIBCXXABI_OUT_DIR)
   cc_env = BuildEnv(LIBCXXABI_SRC_DIR, bin_subdir=True)
-  command = CMakeCommand([
+  command = CMakeCommandWack([
       os.path.join(LIBCXXABI_SRC_DIR),
       '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
       '-DLIBCXXABI_ENABLE_SHARED=OFF',
@@ -1250,7 +1252,6 @@ def LibCXXABI():
       '-DLIBCXXABI_LIBCXX_INCLUDES=' +
       os.path.join(INSTALL_SYSROOT, 'include', 'c++', 'v1'),
       '-DLLVM_PATH=' + LLVM_SRC_DIR,
-      '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE
   ])
 
   proc.check_call(command, cwd=LIBCXXABI_OUT_DIR, env=cc_env)
