@@ -120,7 +120,7 @@ def GomaDir():
   return os.environ['GOMA_DIR']
 
 
-def CmakeLauncherFlags():
+def CMakeLauncherFlags():
   flags = []
   if UsingGoma():
     compiler_launcher = os.path.join(GomaDir(), 'gomacc')

@@ -825,6 +825,15 @@ def OverrideCMakeCompiler():
           '-DCMAKE_CXX_COMPILER=' + CXX]
 
 
+def CMakeCommand(args):
+  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja'] + args
+  # Python's location could change, so always update CMake's cache
+  command.append('-DPYTHON_EXECUTABLE=%s' % proc.Which('python', os.getcwd()))
+  command.extend(OverrideCMakeCompiler())
+  command.extend(host_toolchains.CMakeLauncherFlags())
+  return command
+
+
 def CopyLLVMTools(build_dir, prefix=''):
   # The following isn't useful for now, and takes up space.
   Remove(os.path.join(INSTALL_DIR, prefix, 'bin', 'clang-check'))
@@ -864,26 +873,25 @@ def LLVM():
   Mkdir(LLVM_OUT_DIR)
   cc_env = BuildEnv(LLVM_OUT_DIR, bin_subdir=True)
   build_dylib = 'ON' if not IsWindows() else 'OFF'
-  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', LLVM_SRC_DIR,
-             '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
-             '-DLLVM_BUILD_TESTS=ON',
-             '-DCMAKE_BUILD_TYPE=Release',
-             '-DCMAKE_INSTALL_PREFIX=' + INSTALL_DIR,
-             '-DLLVM_INCLUDE_EXAMPLES=OFF',
-             '-DCOMPILER_RT_BUILD_XRAY=OFF',
-             '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
-             '-DCOMPILER_RT_ENABLE_IOS=OFF',
-             '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
-             '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
-             # Our mac bot's toolchain's ld64 is too old for trunk libLTO.
-             '-DLLVM_TOOL_LTO_BUILD=OFF',
-             '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
-             '-DLLVM_ENABLE_ASSERTIONS=ON',
-             '-DLLVM_TARGETS_TO_BUILD=X86;WebAssembly']
+  command = CMakeCommand([
+      LLVM_SRC_DIR,
+      '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
+      '-DLLVM_BUILD_TESTS=ON',
+      '-DCMAKE_BUILD_TYPE=Release',
+      '-DCMAKE_INSTALL_PREFIX=' + INSTALL_DIR,
+      '-DLLVM_INCLUDE_EXAMPLES=OFF',
+      '-DCOMPILER_RT_BUILD_XRAY=OFF',
+      '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
+      '-DCOMPILER_RT_ENABLE_IOS=OFF',
+      '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
+      '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
+      # Our mac bot's toolchain's ld64 is too old for trunk libLTO.
+      '-DLLVM_TOOL_LTO_BUILD=OFF',
+      '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
+      '-DLLVM_ENABLE_ASSERTIONS=ON',
+      '-DLLVM_TARGETS_TO_BUILD=X86;WebAssembly'
+  ])
 
-  command.extend(OverrideCMakeCompiler())
-
-  command.extend(host_toolchains.CmakeLauncherFlags())
   jobs = host_toolchains.NinjaJobs()
 
   proc.check_call(command, cwd=LLVM_OUT_DIR, env=cc_env)
@@ -978,11 +986,13 @@ def Wabt():
   Mkdir(WABT_OUT_DIR)
   cc_env = BuildEnv(WABT_OUT_DIR)
 
-  proc.check_call([PREBUILT_CMAKE_BIN, '-G', 'Ninja', WABT_SRC_DIR,
-                   '-DCMAKE_BUILD_TYPE=Release',
-                   '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR,
-                   '-DBUILD_TESTS=OFF'] + OverrideCMakeCompiler(),
-                  cwd=WABT_OUT_DIR, env=cc_env)
+  proc.check_call(CMakeCommand([
+      WABT_SRC_DIR,
+      '-DCMAKE_BUILD_TYPE=Release',
+      '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR,
+      '-DBUILD_TESTS=OFF'
+  ]), cwd=WABT_OUT_DIR, env=cc_env)
+
   proc.check_call(['ninja'], cwd=WABT_OUT_DIR, env=cc_env)
   # TODO(sbc): git submodules are not yet fetched so we can't yet endable
   # wabt tests.
@@ -1035,11 +1045,11 @@ def Binaryen():
   # Currently it's a bad idea to do a non-asserts build of Binaryen
   cc_env = BuildEnv(BINARYEN_OUT_DIR, bin_subdir=True, runtime='Debug')
 
-  proc.check_call(
-      [PREBUILT_CMAKE_BIN, '-G', 'Ninja', BINARYEN_SRC_DIR,
-       '-DCMAKE_BUILD_TYPE=Release',
-       '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR] + OverrideCMakeCompiler(),
-      cwd=BINARYEN_OUT_DIR, env=cc_env)
+  proc.check_call(CMakeCommand([
+      BINARYEN_SRC_DIR,
+      '-DCMAKE_BUILD_TYPE=Release',
+      '-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR
+  ]), cwd=BINARYEN_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', '-v'], cwd=BINARYEN_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=BINARYEN_OUT_DIR, env=cc_env)
 
@@ -1050,18 +1060,18 @@ def Fastcomp():
   install_dir = os.path.join(INSTALL_DIR, 'fastcomp')
   build_dylib = 'ON' if not IsWindows() else 'OFF'
   cc_env = BuildEnv(FASTCOMP_OUT_DIR, bin_subdir=True)
-  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', FASTCOMP_SRC_DIR,
-             '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
-             '-DCMAKE_BUILD_TYPE=Release',
-             '-DCMAKE_INSTALL_PREFIX=' + install_dir,
-             '-DLLVM_INCLUDE_EXAMPLES=OFF',
-             '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
-             '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
-             '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
-             '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
-             '-DLLVM_ENABLE_ASSERTIONS=ON'] + OverrideCMakeCompiler()
-
-  command.extend(host_toolchains.CmakeLauncherFlags())
+  command = CMakeCommand([
+      FASTCOMP_SRC_DIR,
+      '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
+      '-DCMAKE_BUILD_TYPE=Release',
+      '-DCMAKE_INSTALL_PREFIX=' + install_dir,
+      '-DLLVM_INCLUDE_EXAMPLES=OFF',
+      '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
+      '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
+      '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
+      '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
+      '-DLLVM_ENABLE_ASSERTIONS=ON'
+  ])
   proc.check_call(command, cwd=FASTCOMP_OUT_DIR, env=cc_env)
 
   jobs = host_toolchains.NinjaJobs()
@@ -1091,10 +1101,10 @@ def Emscripten():
   optimizer_out_dir = os.path.join(WORK_DIR, 'em-optimizer-out')
   Mkdir(optimizer_out_dir)
   cc_env = BuildEnv(optimizer_out_dir)
-  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja',
-             '-DCMAKE_BUILD_TYPE=Release',
-             os.path.join(EMSCRIPTEN_SRC_DIR, 'tools', 'optimizer')
-             ] + OverrideCMakeCompiler()
+  command = CMakeCommand([
+      '-DCMAKE_BUILD_TYPE=Release',
+      os.path.join(EMSCRIPTEN_SRC_DIR, 'tools', 'optimizer')
+  ])
   proc.check_call(command, cwd=optimizer_out_dir, env=cc_env)
   proc.check_call(['ninja'] + host_toolchains.NinjaJobs(),
                   cwd=optimizer_out_dir, env=cc_env)
@@ -1175,21 +1185,22 @@ def CompilerRT():
 
   Mkdir(COMPILER_RT_OUT_DIR)
   cc_env = BuildEnv(COMPILER_RT_SRC_DIR, bin_subdir=True)
-  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja',
-             os.path.join(COMPILER_RT_SRC_DIR, 'lib', 'builtins'),
-             '-DCMAKE_BUILD_TYPE=Release',
-             '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE,
-             '-DCMAKE_C_COMPILER_WORKS=ON',
-             '-DCOMPILER_RT_BAREMETAL_BUILD=On',
-             '-DCOMPILER_RT_BUILD_XRAY=OFF',
-             '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
-             '-DCOMPILER_RT_ENABLE_IOS=OFF',
-             '-DCOMPILER_RT_DEFAULT_TARGET_ONLY=On',
-             '-DLLVM_CONFIG_PATH=' +
-             Executable(os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config')),
-             '-DCOMPILER_RT_OS_DIR=.',
-             '-DCMAKE_INSTALL_PREFIX=' +
-             os.path.join(INSTALL_DIR, 'lib', 'clang', LLVM_VERSION)]
+  command = CMakeCommand([
+      os.path.join(COMPILER_RT_SRC_DIR, 'lib', 'builtins'),
+      '-DCMAKE_BUILD_TYPE=Release',
+      '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE,
+      '-DCMAKE_C_COMPILER_WORKS=ON',
+      '-DCOMPILER_RT_BAREMETAL_BUILD=On',
+      '-DCOMPILER_RT_BUILD_XRAY=OFF',
+      '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
+      '-DCOMPILER_RT_ENABLE_IOS=OFF',
+      '-DCOMPILER_RT_DEFAULT_TARGET_ONLY=On',
+      '-DLLVM_CONFIG_PATH=' +
+      Executable(os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config')),
+      '-DCOMPILER_RT_OS_DIR=.',
+      '-DCMAKE_INSTALL_PREFIX=' +
+      os.path.join(INSTALL_DIR, 'lib', 'clang', LLVM_VERSION)
+  ])
 
   proc.check_call(command, cwd=COMPILER_RT_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', '-v'], cwd=COMPILER_RT_OUT_DIR, env=cc_env)
@@ -1202,16 +1213,18 @@ def LibCXX():
     Remove(LIBCXX_OUT_DIR)
   Mkdir(LIBCXX_OUT_DIR)
   cc_env = BuildEnv(LIBCXX_SRC_DIR, bin_subdir=True)
-  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', os.path.join(LIBCXX_SRC_DIR),
-             '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
-             '-DLIBCXX_ENABLE_THREADS=OFF',
-             '-DLIBCXX_ENABLE_SHARED=OFF',
-             '-DLIBCXX_HAS_MUSL_LIBC=ON',
-             '-DLIBCXX_CXX_ABI=libcxxabi',
-             '-DLIBCXX_CXX_ABI_INCLUDE_PATHS=' +
-             os.path.join(LIBCXXABI_SRC_DIR, 'include'),
-             '-DLLVM_PATH=' + LLVM_SRC_DIR,
-             '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE]
+  command = CMakeCommand([
+      os.path.join(LIBCXX_SRC_DIR),
+      '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
+      '-DLIBCXX_ENABLE_THREADS=OFF',
+      '-DLIBCXX_ENABLE_SHARED=OFF',
+      '-DLIBCXX_HAS_MUSL_LIBC=ON',
+      '-DLIBCXX_CXX_ABI=libcxxabi',
+      '-DLIBCXX_CXX_ABI_INCLUDE_PATHS=' +
+      os.path.join(LIBCXXABI_SRC_DIR, 'include'),
+      '-DLLVM_PATH=' + LLVM_SRC_DIR,
+      '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE
+  ])
 
   proc.check_call(command, cwd=LIBCXX_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', '-v'], cwd=LIBCXX_OUT_DIR, env=cc_env)
@@ -1224,20 +1237,21 @@ def LibCXXABI():
     Remove(LIBCXXABI_OUT_DIR)
   Mkdir(LIBCXXABI_OUT_DIR)
   cc_env = BuildEnv(LIBCXXABI_SRC_DIR, bin_subdir=True)
-  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja',
-             os.path.join(LIBCXXABI_SRC_DIR),
-             '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
-             '-DLIBCXXABI_ENABLE_SHARED=OFF',
-             '-DLIBCXXABI_ENABLE_THREADS=OFF',
-             # HandleLLVMOptions.cmake include CheckCompilerVersion.cmake.
-             # This checks for working <atomic> header, which in turn errors
-             # out on systems with threads disabled
-             '-DLLVM_COMPILER_CHECKED=ON',
-             '-DLIBCXXABI_LIBCXX_PATH=' + LIBCXX_SRC_DIR,
-             '-DLIBCXXABI_LIBCXX_INCLUDES=' +
-             os.path.join(INSTALL_SYSROOT, 'include', 'c++', 'v1'),
-             '-DLLVM_PATH=' + LLVM_SRC_DIR,
-             '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE]
+  command = CMakeCommand([
+      os.path.join(LIBCXXABI_SRC_DIR),
+      '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
+      '-DLIBCXXABI_ENABLE_SHARED=OFF',
+      '-DLIBCXXABI_ENABLE_THREADS=OFF',
+      # HandleLLVMOptions.cmake include CheckCompilerVersion.cmake.
+      # This checks for working <atomic> header, which in turn errors
+      # out on systems with threads disabled
+      '-DLLVM_COMPILER_CHECKED=ON',
+      '-DLIBCXXABI_LIBCXX_PATH=' + LIBCXX_SRC_DIR,
+      '-DLIBCXXABI_LIBCXX_INCLUDES=' +
+      os.path.join(INSTALL_SYSROOT, 'include', 'c++', 'v1'),
+      '-DLLVM_PATH=' + LLVM_SRC_DIR,
+      '-DCMAKE_TOOLCHAIN_FILE=' + CMAKE_TOOLCHAIN_FILE
+  ])
 
   proc.check_call(command, cwd=LIBCXXABI_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', '-v'], cwd=LIBCXXABI_OUT_DIR, env=cc_env)
