@@ -861,20 +861,10 @@ def BuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
 
 def LLVM():
   buildbot.Step('LLVM')
-
-  # Debugging LUCI shenanigans
-  print "PATH: " + os.environ.get('PATH', '')
-  print "which python: " + proc.Which("python", os.getcwd())
-  print "which python2.7: " + proc.Which("python2.7", os.getcwd())
-  print proc.check_output(
-    ['python', '-c',
-     'import sys; sys.stdout.write(\';\'.join([str(x) for x in sys.version_info[:3]]))'])
-
   Mkdir(LLVM_OUT_DIR)
   cc_env = BuildEnv(LLVM_OUT_DIR, bin_subdir=True)
   build_dylib = 'ON' if not IsWindows() else 'OFF'
   command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja', LLVM_SRC_DIR,
-             '--trace-expand',
              '-DCMAKE_EXPORT_COMPILE_COMMANDS=ON',
              '-DLLVM_BUILD_TESTS=ON',
              '-DCMAKE_BUILD_TYPE=Release',
@@ -889,8 +879,6 @@ def LLVM():
              '-DLLVM_TOOL_LTO_BUILD=OFF',
              '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
              '-DLLVM_ENABLE_ASSERTIONS=ON',
-             # CMake needs help finding python on the LUCI bots
-             # '-DPYTHON_EXECUTABLE=%s' % proc.Which("python", os.getcwd()),
              '-DLLVM_TARGETS_TO_BUILD=X86;WebAssembly']
 
   command.extend(OverrideCMakeCompiler())
