@@ -825,8 +825,8 @@ def OverrideCMakeCompiler():
           '-DCMAKE_CXX_COMPILER=' + CXX]
 
 
-def CMakeCommandBase(args):
-  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja'] + args
+def CMakeCommandBase():
+  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja']
   # Python's location could change, so always update CMake's cache
   command.append('-DPYTHON_EXECUTABLE=%s' % sys.executable)
   command.append('-DCMAKE_EXPORT_COMPILE_COMMANDS=ON')
@@ -835,16 +835,18 @@ def CMakeCommandBase(args):
 
 
 def CMakeCommandNative(args):
-  command = CMakeCommandBase(args)
+  command = CMakeCommandBase()
   command.append('-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR)
   command.extend(OverrideCMakeCompiler())
   command.extend(host_toolchains.CMakeLauncherFlags())
+  command.extend(args)
   return command
 
 
 def CMakeCommandWack(args):
-  command = CMakeCommandBase(args)
+  command = CMakeCommandBase()
   command.append('-DCMAKE_TOOLCHAIN_FILE=%s' % CMAKE_TOOLCHAIN_FILE)
+  command.extend(args)
   return command
 
 
@@ -1071,6 +1073,7 @@ def Fastcomp():
       '-DLLVM_INCLUDE_EXAMPLES=OFF',
       '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
       '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
+      '-DCMAKE_INSTALL_PREFIX=%s' % install_dir,
       '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
       '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
       '-DLLVM_ENABLE_ASSERTIONS=ON'
