@@ -1071,6 +1071,7 @@ def Fastcomp():
       '-DLLVM_INCLUDE_EXAMPLES=OFF',
       '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
       '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
+      '-DCMAKE_INSTALL_PREFIX=%s' % install_dir,
       '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
       '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
       '-DLLVM_ENABLE_ASSERTIONS=ON'
