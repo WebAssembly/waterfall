@@ -245,6 +245,7 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
 
   sys.stdout.write('\nResults:\n')
   for result in results:
+    sys.stdout.flush()
     sys.stdout.write(str(result) + '\n\n')
 
   if not fails:
