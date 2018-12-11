@@ -138,6 +138,11 @@ GNUWIN32_ZIP = 'gnuwin32.zip'
 # where LLVM expects it.
 LLVM_VERSION = '8.0.0'
 
+# Update this number each time you want to create a clobber build.  If the
+# clobber_version.txt file in WORK_DIR doesn't match we remove the entire
+# WORK_DIR.  This works like a simpler version chromium's landmine feature.
+CLOBBER_BUILD_TAG = 1
+
 options = None
 
 
@@ -721,10 +726,24 @@ def SyncLLVMClang(good_hashes=None):
 
 
 def Clobber():
-  if buildbot.ShouldClobber():
-    buildbot.Step('Clobbering work dir')
-    if os.path.isdir(WORK_DIR):
-      Remove(WORK_DIR)
+  clobber = buildbot.ShouldClobber
+  clobber_file = os.path.join(WORK_DIR, "clobber_version.txt")
+  if not clobber:
+    if not os.path.exists(clobber_file):
+      clobber = True
+    else:
+      existing_tag = int(open(clobber_file).read().strip())
+      if existing_tag != CLOBBER_BUILD_TAG:
+        clobber = True
+
+  if not clobber:
+    return
+
+  buildbot.Step('Clobbering work dir')
+  Remove(WORK_DIR)
+  Mkdir(WORK_DIR)
+  with open(clobber_file, 'w') as f:
+    f.write('%s\n' % CLOBBER_BUILD_TAG)
 
 
 class Filter(object):
