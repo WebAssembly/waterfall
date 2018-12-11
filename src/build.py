@@ -140,7 +140,7 @@ LLVM_VERSION = '8.0.0'
 
 # Update this number each time you want to create a clobber build.  If the
 # clobber_version.txt file in WORK_DIR doesn't match we remove the entire
-# WORK_DIR.  This works like a simpler version chromium's landmine feature.
+# WORK_DIR.  This works like a simpler version of chromium's landmine feature.
 CLOBBER_BUILD_TAG = 1
 
 options = None
@@ -726,7 +726,7 @@ def SyncLLVMClang(good_hashes=None):
 
 
 def Clobber():
-  clobber = buildbot.ShouldClobber
+  clobber = buildbot.ShouldClobber()
   clobber_file = os.path.join(WORK_DIR, "clobber_version.txt")
   if not clobber:
     if not os.path.exists(clobber_file):
