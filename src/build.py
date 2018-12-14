@@ -272,7 +272,8 @@ if IsMac():
   from fcntl import fcntl, F_GETFL, F_SETFL
   fd = sys.stdout.fileno()
   flags = fcntl(fd, F_GETFL)
-  fcntl(fd, F_SETFL, flags & ~os.O_NONBLOCK)
+  print 'Flags: %s, nonblock: ' % (hex(flags), flags & os.O_NONBLOCK)
+  #fcntl(fd, F_SETFL, flags & ~os.O_NONBLOCK)
 
 # Pin the GCC revision so that new torture tests don't break the bot. This
 # should be manually updated when convenient.

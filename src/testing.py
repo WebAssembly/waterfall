@@ -228,7 +228,7 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
   if exclusions:
     input_exclusions = parse_exclude_files(exclusions, None)
     inputs = [i for i in inputs if os.path.basename(i) not in input_exclusions]
-  sys.stdout.write('Executing tests.')
+  print 'Executing tests.'
   if single_threaded:
     results = map(tester, inputs)
   else:
@@ -237,26 +237,25 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
     pool.close()
     pool.join()
     sys.stdout.flush()
-  sys.stdout.write('\nDone.')
+  print '\nDone.'
 
   results = sorted(results)
   successes = [r for r in results if r]
   failures = [r for r in results if not r]
 
-  sys.stdout.write('\nResults:\n')
+  print '\nResults:'
   for result in results:
     sys.stdout.flush()
-    sys.stdout.write(str(result) + '\n\n')
+    print str(result) + '\n\n'
 
   if not fails:
-    sys.stdout.write(
-        '\n'.join(['Ran %s tests.' % len(results),
-                   'Got %s successes.' % len(successes),
-                   'Got %s failures.' % len(failures)]))
+    print 'Ran %s tests.' % len(results)
+    print 'Got %s successes.' % len(successes)
+    print 'Got %s failures.' % len(failures)
     if failures:
-      sys.stdout.write('\nUnexpected failures:\n')
+      print '\nUnexpected failures:'
       for f in failures:
-        sys.stdout.write('\t%s\n' % f.test)
+        print '\t%s\n' % f.test
     return len(failures)
 
   input_expected_failures = parse_exclude_files(fails, attributes)
@@ -288,15 +287,15 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
     for s in similar:
       tests = ' '.join(s.tests)
       if s.average >= similarity_cutoff * 100.:
-        sys.stdout.write(('\nSimilar %s failures, '
-                          'average %s%% similarity with stddev %s: '
-                          '%s\n') % (label, s.average, s.stddev, tests))
+        print ('\nSimilar %s failures, ' +
+               'average %s%% similarity with stddev %s: '+
+               '%s') % (label, s.average, s.stddev, tests)
         sample = [f for f in failures if f.test == s.tests[0]][0]
-        sys.stdout.write('Sample failure: %s\n' % sample)
+        print 'Sample failure: %s' % sample
       else:
-        sys.stdout.write(('\nUngrouped %s failures, '
-                          'average %s%% similarity with stddev %s: '
-                          '%s\n') % (label, s.average, s.stddev, tests))
+        print ('\nUngrouped %s failures, ' +
+               'average %s%% similarity with stddev %s: '
+               '%s\n') % (label, s.average, s.stddev, tests)
 
   show_similar_failures('expected',
                         similar_expected_failures,
@@ -306,29 +305,27 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
                         unexpected_failures)
 
   if expected_failures:
-    sys.stdout.write('Expected failures:\n')
+    print 'Expected failures:'
     for f in expected_failures:
-      sys.stdout.write('\t%s\n' % f.test)
+      print '\t%s' % f.test
   if unexpected_failures:
-    sys.stdout.write('Unexpected failures:\n')
+    print 'Unexpected failures:'
     for f in unexpected_failures:
-      sys.stdout.write('\t%s\n' % f.test)
+      print '\t%s' % f.test
   if unexpected_successes:
-    sys.stdout.write('Unexpected successes:\n')
+    print  'Unexpected successes:'
     for f in unexpected_successes:
-      sys.stdout.write('\t%s\n' % f.test)
-  sys.stdout.write(
-      '\n'.join(['\n',
-                 'Ran %s tests.' % len(results),
-                 'Got %s successes.' % len(successes),
-                 'Got %s failures.' % len(failures),
-                 'Expected %s failures.' % len(input_expected_failures),
-                 'Got %s expected failures in %s similarity groups.' % (
-                     len(expected_failures),
-                     len(similar_expected_failures)),
-                 'Got %s unexpected failures in %s similarity groups.' % (
-                     len(unexpected_failures),
-                     len(similar_unexpected_failures)),
-                 'Got %s unexpected successes.' % len(unexpected_successes),
-                 '\n']))
+      print'\t%s' % f.test)
+  print (
+      'Ran %s tests.' % len(results) +
+      'Got %s successes.' % len(successes) +
+      'Got %s failures.' % len(failures) +
+      'Expected %s failures.' % len(input_expected_failures) +
+      'Got %s expected failures in %s similarity groups.' % (
+          len(expected_failures),
+          len(similar_expected_failures)) +
+      'Got %s unexpected failures in %s similarity groups.' % (
+          len(unexpected_failures),
+          len(similar_unexpected_failures)),
+      'Got %s unexpected successes.' % len(unexpected_successes))
   return len(unexpected_failures) + len(unexpected_successes)
