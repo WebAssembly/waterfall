@@ -29,20 +29,20 @@ import sys
 from subprocess import * # flake8: noqa
 
 
-def Which(filename, cwd, require_executable=True):
+def Which(filename, cwd, is_executable=True):
   if os.path.isabs(filename):
     return filename
 
   to_search = [cwd] + os.environ.get('PATH', '').split(os.pathsep)
   exe_suffixes = ['']
-  if sys.platform == 'win32':
+  if sys.platform == 'win32' and is_executable:
     exe_suffixes = ['.exe', '.bat'] + exe_suffixes
   for path in to_search:
     abs_path = os.path.abspath(os.path.join(path, filename))
     for suffix in exe_suffixes:
       full_path = abs_path + suffix
       if (os.path.isfile(full_path) and
-          (not require_executable or os.access(full_path, os.X_OK))):
+          (not is_executable or os.access(full_path, os.X_OK))):
         return full_path
   raise Exception('File "%s" not found. (cwd=`%s`, PATH=`%s`' %
                   (filename, cwd, os.environ['PATH']))
@@ -51,7 +51,7 @@ def Which(filename, cwd, require_executable=True):
 def SpecialCases(cmd, cwd):
   exe = cmd[0]
   if exe.endswith('.py'):
-    script = Which(exe, cwd, require_executable=False)
+    script = Which(exe, cwd, is_executable=False)
     return [sys.executable, script] + cmd[1:]
   if exe == 'git' or exe == 'gclient':
     return [Which(exe, cwd)] + cmd[1:]
