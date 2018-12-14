@@ -33,7 +33,7 @@ WIN_TOOLCHAIN_JSON = os.path.join(V8_SRC_DIR, 'build', 'win_toolchain.json')
 
 # TODO(sbc): Remove this once upstream llvm is fixed rolled into chrome.
 # See: https://bugs.llvm.org/show_bug.cgi?id=38165
-PREBUILD_CLANG_REVISION = 'f6641a3f5eeda23fbc80c9996dce8b576e99c000'
+PREBUILD_CLANG_REVISION = 'ebf0d4a36bb989c366e78a4c20564cd4656197e6'
 
 
 def SyncPrebuiltClang(name, src_dir, git_repo):
