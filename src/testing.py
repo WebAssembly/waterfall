@@ -290,8 +290,8 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
       tests = ' '.join(s.tests)
       if s.average >= similarity_cutoff * 100.:
         print(('\nSimilar %s failures, '
-                          'average %s%% similarity with stddev %s: '
-                          '%s') % (label, s.average, s.stddev, tests))
+               'average %s%% similarity with stddev %s: '
+               '%s') % (label, s.average, s.stddev, tests))
         sample = [f for f in failures if f.test == s.tests[0]][0]
         print('Sample failure: %s' % sample)
       else:

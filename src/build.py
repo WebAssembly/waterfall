@@ -267,13 +267,13 @@ EMSCRIPTEN_TEST_OPT_FLAGS = ['O0', 'O3']
 NPROC = multiprocessing.cpu_count()
 
 
-if IsMac():
+if IsMac() or True:
   # Experimental temp fix for crbug.com/829034 stdout write sometimes fails
-  from fcntl import fcntl, F_GETFL, F_SETFL
+  from fcntl import fcntl, F_GETFL
   fd = sys.stdout.fileno()
   flags = fcntl(fd, F_GETFL)
-  print 'Flags: %s, nonblock: ' % (hex(flags), flags & os.O_NONBLOCK)
-  #fcntl(fd, F_SETFL, flags & ~os.O_NONBLOCK)
+  print 'Flags: %s, nonblock: %s' % (hex(flags), flags & os.O_NONBLOCK)
+  # fcntl(fd, F_SETFL, flags & ~os.O_NONBLOCK)
 
 # Pin the GCC revision so that new torture tests don't break the bot. This
 # should be manually updated when convenient.
