@@ -296,8 +296,8 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
         print('Sample failure: %s' % sample)
       else:
         print(('\nUngrouped %s failures, '
-                          'average %s%% similarity with stddev %s: '
-                          '%s') % (label, s.average, s.stddev, tests))
+               'average %s%% similarity with stddev %s: '
+               '%s') % (label, s.average, s.stddev, tests))
 
   show_similar_failures('expected',
                         similar_expected_failures,

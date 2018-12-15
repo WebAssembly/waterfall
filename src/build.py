@@ -267,7 +267,7 @@ EMSCRIPTEN_TEST_OPT_FLAGS = ['O0', 'O3']
 NPROC = multiprocessing.cpu_count()
 
 
-if IsMac() or True:
+if IsMac():
   # Experimental temp fix for crbug.com/829034 stdout write sometimes fails
   from fcntl import fcntl, F_GETFL
   fd = sys.stdout.fileno()
