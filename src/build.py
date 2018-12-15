@@ -727,6 +727,10 @@ def SyncLLVMClang(good_hashes=None):
 
 
 def Clobber():
+  # Don't ever clobber non-bot (local) work directories
+  if not buildbot.IsBot():
+    return
+
   clobber = buildbot.ShouldClobber()
   clobber_file = os.path.join(WORK_DIR, "clobber_version.txt")
   if not clobber:
