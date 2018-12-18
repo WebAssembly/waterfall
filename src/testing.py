@@ -232,7 +232,7 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
   if single_threaded:
     results = map(tester, inputs)
   else:
-    pool = multiprocessing.Pool()
+    pool = multiprocessing.Pool(maxtasksperchild=32)
     results = pool.map(tester, inputs)
     pool.close()
     pool.join()
