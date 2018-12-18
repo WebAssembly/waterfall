@@ -75,7 +75,8 @@ class Tester(object):
       from fcntl import fcntl, F_GETFL, F_SETFL
       fd = sys.stdout.fileno()
       flags = fcntl(fd, F_GETFL)
-      print >> sys.stderr, 'Flags: %s, nonblock: %s' % (hex(flags), flags & os.O_NONBLOCK)
+      print >> sys.stderr, 'Flags: %s, nonblock: %s' % (hex(flags),
+                                                        flags & os.O_NONBLOCK)
       fcntl(fd, F_SETFL, flags & ~os.O_NONBLOCK)
     except:
       raise
