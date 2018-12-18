@@ -34,10 +34,10 @@ class ParallelRunner(object):
   def init_processes(self, test_function, test_queue):
     self.processes = []
     self.result_queue = multiprocessing.Queue()
-    #self.dedicated_temp_dirs = [tempfile.mkdtemp() for x in range(num_cores())]
-    for x in range(16 or multiprocessing.cpu_count()):
-      p = multiprocessing.Process(target=g_testing_thread,
-                                  args=(test_function, test_queue, self.result_queue))
+    for x in range(multiprocessing.cpu_count()):
+      p = multiprocessing.Process(
+          target=g_testing_thread,
+          args=(test_function, test_queue, self.result_queue))
       p.start()
       self.processes.append(p)
 
@@ -54,16 +54,6 @@ class ParallelRunner(object):
   def clear_finished_processes(self):
     self.processes = [p for p in self.processes if p.is_alive()]
 
-  def combine_results(self, result, buffered_results):
-    print()
-    print('DONE: combining results on main thread')
-    print()
-    # Sort the results back into alphabetical order. Running the tests in
-    # parallel causes mis-orderings, this makes the results more readable.
-    results = sorted(buffered_results, key=lambda res: str(res.test))
-    for r in results:
-      r.updateResult(result)
-    return result
 
 def get_from_queue(q):
   try:
