@@ -16,11 +16,11 @@
 
 import difflib
 import math
-import multiprocessing
 import os
 import os.path
 import sys
 
+import parallel_runner
 import proc
 
 # Set to True to disable execution via thread pool
@@ -87,9 +87,8 @@ class Tester(object):
           self.command_ctor(test_file, outfile, self.extras),
           stderr=proc.STDOUT, cwd=self.outdir or os.getcwd(),
           # preexec_fn is not supported on Windows
-          preexec_fn=Tester.setlimits if sys.platform != 'win32' else None)
-      # Flush the logged command so buildbots don't think the script is dead.
-      sys.stdout.flush()
+          preexec_fn=Tester.setlimits if sys.platform != 'win32' else None,
+          should_log=False)
       return Result(test=basename, success=True, output=output)
     except proc.CalledProcessError as e:
       return Result(test=basename, success=False, output=e.output)
@@ -232,10 +231,9 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
   if single_threaded:
     results = map(tester, inputs)
   else:
-    pool = multiprocessing.Pool(maxtasksperchild=32)
-    results = pool.map(tester, inputs)
-    pool.close()
-    pool.join()
+    runner = parallel_runner.ParallelRunner()
+    results = runner.map(tester, inputs)
+
     sys.stdout.flush()
   sys.stdout.write('\nDone.')
 
