@@ -222,6 +222,18 @@ def similarity(results, cutoff):
   return similar_groups
 
 
+def make_blocking(fileno):
+  try:
+    from fcntl import fcntl, F_GETFL, F_SETFL
+    fd = sys.stdout.fileno()
+    flags = fcntl(fd, F_GETFL)
+    if flags & os.O_NONBLOCK:
+      fcntl(fd, F_SETFL, flags & ~os.O_NONBLOCK)
+    print 'make_blocking old flags %s' % hex(flags)
+  except ImportError:
+    pass
+
+
 def execute(tester, inputs, fails, exclusions=None, attributes=None):
   """Execute tests in parallel, output results, return failure count."""
   if exclusions:
@@ -234,12 +246,16 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
     runner = parallel_runner.ParallelRunner()
     results = runner.map(tester, inputs)
 
-    sys.stdout.flush()
+  sys.stdout.flush()
   sys.stdout.write('\nDone.')
 
   results = sorted(results)
   successes = [r for r in results if r]
   failures = [r for r in results if not r]
+
+  # For some reason it's always here.
+  make_blocking(sys.stdout.fileno())
+  make_blocking(sys.stderr.fileno())
 
   sys.stdout.write('\nResults:\n')
   for result in results:
