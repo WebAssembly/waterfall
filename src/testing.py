@@ -87,7 +87,8 @@ class Tester(object):
           self.command_ctor(test_file, outfile, self.extras),
           stderr=proc.STDOUT, cwd=self.outdir or os.getcwd(),
           # preexec_fn is not supported on Windows
-          preexec_fn=Tester.setlimits if sys.platform != 'win32' else None)
+          preexec_fn=Tester.setlimits if sys.platform != 'win32' else None,
+          should_log=False)
       # Flush the logged command so buildbots don't think the script is dead.
       #sys.stdout.flush()
       return Result(test=basename, success=True, output=output)
@@ -233,7 +234,7 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
     results = map(tester, inputs)
   else:
     runner = parallel_runner.ParallelRunner()
-    results = runner.run(tester, inputs)
+    results = runner.map(tester, inputs)
 
     sys.stdout.flush()
   sys.stdout.write('\nDone.')

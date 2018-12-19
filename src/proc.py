@@ -48,7 +48,7 @@ def Which(filename, cwd, is_executable=True):
                   (filename, cwd, os.environ['PATH']))
 
 
-def SpecialCases(cmd, cwd):
+def MungeExe(cmd, cwd):
   exe = cmd[0]
   if exe.endswith('.py'):
     script = Which(exe, cwd, is_executable=False)
@@ -56,6 +56,14 @@ def SpecialCases(cmd, cwd):
   if exe == 'git' or exe == 'gclient':
     return [Which(exe, cwd)] + cmd[1:]
   return cmd
+
+
+def MungeKwargs(kwargs):
+  should_log = True
+  if 'should_log' in kwargs:
+    should_log = kwargs['should_log']
+    del kwargs['should_log']
+  return should_log, kwargs
 
 
 def LogCall(funcname, cmd, cwd):
@@ -69,8 +77,10 @@ def LogCall(funcname, cmd, cwd):
 # Now we can override any parts of subprocess we want, while leaving the rest.
 def check_call(cmd, **kwargs):
   cwd = kwargs.get('cwd', os.getcwd())
-  cmd = SpecialCases(cmd, cwd)
-  LogCall('subprocess.check_call', cmd, cwd)
+  should_log, kwargs = MungeKwargs(kwargs)
+  cmd = MungeExe(cmd, cwd)
+  if should_log:
+    LogCall('subprocess.check_call', cmd, cwd)
   sys.stdout.flush()
   try:
     subprocess.check_call(cmd, **kwargs)
@@ -80,7 +90,9 @@ def check_call(cmd, **kwargs):
 
 def check_output(cmd, **kwargs):
   cwd = kwargs.get('cwd', os.getcwd())
-  cmd = SpecialCases(cmd, cwd)
-  LogCall('subprocess.check_output', cmd, cwd)
+  should_log, kwargs = MungeKwargs(kwargs)
+  cmd = MungeExe(cmd, cwd)
+  if should_log:
+    LogCall('subprocess.check_output', cmd, cwd)
   sys.stdout.flush()
   return subprocess.check_output(cmd, **kwargs)
