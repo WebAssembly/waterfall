@@ -89,8 +89,6 @@ class Tester(object):
           # preexec_fn is not supported on Windows
           preexec_fn=Tester.setlimits if sys.platform != 'win32' else None,
           should_log=False)
-      # Flush the logged command so buildbots don't think the script is dead.
-      #sys.stdout.flush()
       return Result(test=basename, success=True, output=output)
     except proc.CalledProcessError as e:
       return Result(test=basename, success=False, output=e.output)
