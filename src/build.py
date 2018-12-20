@@ -1333,7 +1333,10 @@ def ArchiveBinaries():
   buildbot.Step('Archive binaries')
   # All relevant binaries were copied to the LLVM directory.
   UploadArchive('torture-c', Archive(GCC_TEST_DIR))
-  UploadArchive('binaries', Archive(INSTALL_DIR, print_content=True))
+  # TODO(sergiyb): Restore printing list of binaries on Mac once it works. See
+  # https://crbug.com/916775 for more details.
+  UploadArchive(
+      'binaries', Archive(INSTALL_DIR, print_content=not IsMac()))
 
 
 def DebianPackage():
