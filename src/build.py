@@ -1335,8 +1335,8 @@ def ArchiveBinaries():
   UploadArchive('torture-c', Archive(GCC_TEST_DIR))
   # TODO(sergiyb): Restore printing list of binaries on Mac once it works. See
   # https://crbug.com/916775 for more details.
-  UploadArchive('binaries', Archive(
-    INSTALL_DIR, print_content=not IsMac()))
+  UploadArchive(
+      'binaries', Archive(INSTALL_DIR, print_content=not IsMac()))
 
 
 def DebianPackage():
