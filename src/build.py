@@ -136,7 +136,7 @@ GNUWIN32_ZIP = 'gnuwin32.zip'
 # manually updated to the latest x.0.0 version whenever LLVM starts development
 # on a new major version. This is so our manual build of compiler-rt is put
 # where LLVM expects it.
-LLVM_VERSION = '8.0.0'
+LLVM_VERSION = '9.0.0'
 
 options = None
 
