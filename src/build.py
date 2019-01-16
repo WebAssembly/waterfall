@@ -110,11 +110,10 @@ EMSCRIPTEN_CONFIG_WASM = os.path.join(INSTALL_DIR, 'emscripten_config_vanilla')
 GITHUB_REMOTE = 'github'
 GITHUB_SSH = 'git@github.com:'
 GIT_MIRROR_BASE = 'https://chromium.googlesource.com/'
-LLVM_MIRROR_BASE = 'https://llvm.googlesource.com/'
-GITHUB_MIRROR_BASE = GIT_MIRROR_BASE + 'external/github.com/'
-WASM_GIT_BASE = GITHUB_MIRROR_BASE + 'WebAssembly/'
+GITHUB_MIRROR_BASE = 'https://github.googlesource.com/'
+LLVM_MIRROR_BASE = GITHUB_MIRROR_BASE + 'llvm/'
+WASM_GIT_BASE = GIT_MIRROR_BASE + 'external/github.com/WebAssembly/'
 EMSCRIPTEN_GIT_BASE = GITHUB_MIRROR_BASE + 'kripken/'
-LLVM_GIT_BASE = 'https://github.com/llvm/'
 MUSL_GIT_BASE = 'https://github.com/jfbastien/'
 OCAML_GIT_BASE = 'https://github.com/ocaml/'
 
@@ -374,37 +373,6 @@ def GitRemoteUrl(cwd, remote):
       ['git', 'config', '--get', 'remote.%s.url' % remote], cwd=cwd).strip()
 
 
-def HasRemote(cwd, remote):
-  """"Checked whether the named remote exists."""
-  remotes = proc.check_output(['git', 'remote'], cwd=cwd).strip().splitlines()
-  return remote in remotes
-
-
-def AddGithubRemote(cwd):
-  """When using the cloned repository for development, it's useful to have a
-  remote to github because origin points at a cache which is read-only."""
-  remote_url = GitRemoteUrl(cwd, WATERFALL_REMOTE)
-  if WASM_GIT_BASE not in remote_url:
-    print '%s not a github mirror' % cwd
-    return
-  if HasRemote(cwd, GITHUB_REMOTE):
-    print '%s has %s as its "%s" remote' % (
-        cwd, GitRemoteUrl(cwd, GITHUB_REMOTE), GITHUB_REMOTE)
-    return
-  remote = GITHUB_SSH + '/'.join(remote_url.split('/')[-2:])
-  print '%s has no github remote, adding %s' % (cwd, remote)
-  proc.check_call(['git', 'remote', 'add', GITHUB_REMOTE, remote], cwd=cwd)
-
-
-def GitConfigRebaseMaster(cwd):
-  """Avoid generating a non-linear history in the clone
-
-  The upstream repository is in Subversion. Use `git pull --rebase` instead of
-  git pull: llvm.org/docs/GettingStarted.html#git-mirror
-  """
-  proc.check_call(['git', 'config', 'branch.master.rebase', 'true'], cwd=cwd)
-
-
 def RemoteBranch(branch):
   """Get the remote-qualified branch name to use for waterfall"""
   return WATERFALL_REMOTE + '/' + branch
@@ -523,7 +491,6 @@ class Source(object):
                         'remote (%s), checking out local branch'
                         % (self.checkout, WATERFALL_REMOTE)))
     proc.check_call(['git', 'checkout', self.checkout], cwd=self.src_dir)
-    AddGithubRemote(self.src_dir)
 
   def CurrentGitInfo(self):
     if not os.path.exists(self.src_dir):
@@ -668,9 +635,9 @@ def NoSync(*args):
 ALL_SOURCES = [
     Source('waterfall', SCRIPT_DIR, None, custom_sync=NoSync),
     Source('llvm', LLVM_PROJECT_SRC_DIR,
-           LLVM_GIT_BASE + 'llvm-project.git'),
+           LLVM_MIRROR_BASE + 'llvm-project.git'),
     Source('llvm-test-suite', LLVM_TEST_SUITE_SRC_DIR,
-           LLVM_MIRROR_BASE + 'test-suite.git'),
+           LLVM_MIRROR_BASE + 'llvm-test-suite.git'),
     Source('emscripten', EMSCRIPTEN_SRC_DIR,
            EMSCRIPTEN_GIT_BASE + 'emscripten.git',
            checkout=RemoteBranch('incoming')),
