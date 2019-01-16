@@ -1707,8 +1707,12 @@ def TestWasmSimd():
 
 ALL_TESTS = [
     Test('bare', TestBare),
-    Test('asm', TestAsm),
-    Test('emwasm', TestEmwasm),
+    # The windows/mac exclusions here are just to reduce the test matrix, since
+    # these tests only test codegen, which should be the same on all OSes
+    Test('asm', TestAsm, Filter(exclude=['windows', 'mac'])),
+    Test('emwasm', TestEmwasm, Filter(exclude=['mac'])),
+    # These tests do have interesting differences on OSes (especially the
+    # 'other' tests) and eventually should run everywhere.
     Test('emtest', TestEmtest, Filter(exclude=['windows'])),
     Test('emtest-asm', TestEmtestAsm2Wasm, Filter(exclude=['windows'])),
     Test('wasm-simd', TestWasmSimd),
