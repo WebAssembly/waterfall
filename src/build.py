@@ -178,6 +178,12 @@ def CMakePlatformName():
           'win32': 'win64'}[sys.platform]
 
 
+def BuilderPlatformName():
+  return {'linux2': 'linux',
+          'darwin': 'mac',
+          'win32': 'windows'}[sys.platform]
+
+
 def CMakeArch():
   return 'x64' if IsWindows() else 'x86_64'
 
@@ -415,21 +421,69 @@ def GitUpdateRemote(src_dir, git_repo, remote_name):
         ['git', 'remote', 'add', remote_name, git_repo], cwd=src_dir)
 
 
+class Filter(object):
+  """Filter for source or build rules, to allow including or excluding only
+     selected targets.
+  """
+  def __init__(self, name=None, include=None, exclude=None):
+    """
+    include:
+      if present, only items in it will be included (if empty, nothing will
+      be included).
+    exclude:
+      if present, items in it will be excluded.
+      include ane exclude cannot both be present.
+    """
+    if include and exclude:
+      raise Exception('Filter cannot include both include and exclude rules')
+
+    self.name = name
+    self.include = include
+    self.exclude = exclude
+
+  def Apply(self, targets):
+    """Return the filtered list of targets."""
+    all_names = [t.name for t in targets]
+    specified_names = self.include or self.exclude or []
+    missing_names = [i for i in specified_names if i not in all_names]
+    if missing_names:
+      raise Exception('Invalid step name(s): {0}\n\n'
+                      'Valid {1} steps:\n{2}'
+                      .format(missing_names, self.name,
+                              TextWrapNameList(prefix='', items=targets)))
+
+    return [t for t in targets if self.Check(t.name)]
+
+  def Check(self, target):
+    """Return true if the specified target will be run."""
+    if self.include is not None:
+      return target in self.include
+
+    if self.exclude is not None:
+      return target not in self.exclude
+    return True
+
+  def All(self):
+    """Return true if all possible targets will be run."""
+    return self.include is None and not self.exclude
+
+  def Any(self):
+    """Return true if any targets can be run."""
+    return self.include is None or len(self.include)
+
+
 class Source(object):
   """Metadata about a sync-able source repo on the waterfall"""
   def __init__(self, name, src_dir, git_repo,
                checkout=RemoteBranch('master'), depth=None,
-               custom_sync=None, no_windows=False, no_linux=False):
+               custom_sync=None, os_filter=None):
     self.name = name
     self.src_dir = src_dir
     self.git_repo = git_repo
     self.checkout = checkout
     self.depth = depth
     self.custom_sync = custom_sync
-    # Several of these steps have not been made to work on other platforms yet.
-    # Temporarily disable them.
-    self.no_windows = no_windows
-    self.no_linux = no_linux
+    self.os_filter = os_filter
 
     # Ensure that git URLs end in .git.  We have had issues in the past where
     # github would not recognize the requests correctly otherwise due to
@@ -439,11 +493,9 @@ class Source(object):
       assert git_repo.endswith('.git'), 'Git URLs should end in .git'
 
   def Sync(self, good_hashes=None):
-    if IsWindows() and self.no_windows:
-      print "Skipping %s: Doesn't work on Windows" % self.name
-      return
-    if IsLinux() and self.no_linux:
-      print "Skipping %s: Doesn't work on Linux" % self.name
+    if self.os_filter and not self.os_filter.Check(BuilderPlatformName()):
+      print "Skipping %s: Doesn't work on %s" % (self.name,
+                                                 BuilderPlatformName())
       return
     if good_hashes and good_hashes.get(self.name):
       self.checkout = good_hashes[self.name]
@@ -659,13 +711,15 @@ ALL_SOURCES = [
     Source('wabt', WABT_SRC_DIR,
            WASM_GIT_BASE + 'wabt.git'),
     Source('spec', SPEC_SRC_DIR,
-           WASM_GIT_BASE + 'spec.git', no_windows=True),
+           WASM_GIT_BASE + 'spec.git', os_filter=Filter(exclude=['windows'])),
     Source('ocaml', OCAML_DIR,
            OCAML_GIT_BASE + 'ocaml.git',
-           checkout='refs/tags/' + OCAML_VERSION, no_windows=True),
+           checkout='refs/tags/' + OCAML_VERSION,
+           os_filter=Filter(exclude=['windows'])),
     Source('ocamlbuild', OCAMLBUILD_DIR,
            OCAML_GIT_BASE + 'ocamlbuild.git',
-           checkout='refs/tags/' + OCAMLBUILD_VERSION, no_windows=True),
+           checkout='refs/tags/' + OCAMLBUILD_VERSION,
+           os_filter=Filter(exclude=['windows'])),
     Source('binaryen', BINARYEN_SRC_DIR,
            WASM_GIT_BASE + 'binaryen.git'),
     Source('musl', MUSL_SRC_DIR,
@@ -750,57 +804,6 @@ def Clobber():
     f.write('%s\n' % CLOBBER_BUILD_TAG)
 
 
-class Filter(object):
-  """Filter for source or build rules, to allow including or excluding only
-     selected targets.
-  """
-  def __init__(self, name=None, include=None, exclude=None):
-    """
-    include:
-      if present, only items in it will be included (if empty, nothing will
-      be included).
-    exclude:
-      if present, items in it will be excluded.
-      include ane exclude cannot both be present.
-    """
-    if include and exclude:
-      raise Exception('Filter cannot include both include and exclude rules')
-
-    self.name = name
-    self.include = include
-    self.exclude = exclude
-
-  def Apply(self, targets):
-    """Return the filtered list of targets."""
-    all_names = [t.name for t in targets]
-    specified_names = self.include or self.exclude or []
-    missing_names = [i for i in specified_names if i not in all_names]
-    if missing_names:
-      raise Exception('Invalid step name(s): {0}\n\n'
-                      'Valid {1} steps:\n{2}'
-                      .format(missing_names, self.name,
-                              TextWrapNameList(prefix='', items=targets)))
-
-    return [t for t in targets if self.Check(t.name)]
-
-  def Check(self, target):
-    """Return true if the specified target will be run."""
-    if self.include is not None:
-      return target in self.include
-
-    if self.exclude is not None:
-      return target not in self.exclude
-    return True
-
-  def All(self):
-    """Return true if all possible targets will be run."""
-    return self.include is None and not self.exclude
-
-  def Any(self):
-    """Return true if any targets can be run."""
-    return self.include is None or len(self.include)
-
-
 def SyncRepos(filter, sync_lkgr=False):
   if not filter.Any():
     return
@@ -808,16 +811,8 @@ def SyncRepos(filter, sync_lkgr=False):
 
   good_hashes = None
   if sync_lkgr:
-    if sys.platform.startswith('linux'):
-      buildername = 'linux'
-    elif sys.platform == 'darwin':
-      buildername = 'mac'
-    elif sys.platform == 'win32':
-      buildername = 'windows'
-    else:
-      raise Exception('Unknown platform: %s' % sys.platform)
     lkgr_file = os.path.join(WORK_DIR, 'lkgr.json')
-    cloud.Download('%s/lkgr.json' % buildername, lkgr_file)
+    cloud.Download('%s/lkgr.json' % BuilderPlatformName(), lkgr_file)
     lkgr = json.loads(open(lkgr_file).read())
     good_hashes = {}
     for k, v in lkgr['repositories'].iteritems():
@@ -1456,28 +1451,18 @@ def ValidateLLVMTorture(indir, ext, opt):
 
 
 class Build(object):
-  def __init__(self, name_, runnable_,
-               no_windows=False, no_linux=False, no_mac=False,
+  def __init__(self, name_, runnable_, os_filter=None,
                *args, **kwargs):
     self.name = name_
     self.runnable = runnable_
+    self.os_filter = os_filter
     self.args = args
     self.kwargs = kwargs
-    # Almost all of these steps depend directly or indirectly on CMake.
-    # Temporarily disable them.
-    self.no_windows = no_windows
-    self.no_linux = no_linux
-    self.no_mac = no_mac
 
   def Run(self):
-    if IsWindows() and self.no_windows:
-      print "Skipping %s: Doesn't work on windows" % self.runnable.__name__
-      return
-    if IsLinux() and self.no_linux:
-      print "Skipping %s: Doesn't work on Linux" % self.runnable.__name__
-      return
-    if IsMac() and self.no_mac:
-      print "Skipping %s: Doesn't work on Mac" % self.runnable.__name__
+    if self.os_filter and not self.os_filter.Check(BuilderPlatformName()):
+      print "Skipping %s: Doesn't work on %s" % (self.runnable.__name__,
+                                                 BuilderPlatformName())
       return
     self.runnable(*self.args, **self.kwargs)
 
@@ -1520,11 +1505,11 @@ def AllBuilds():
   return [
       # Host tools
       Build('llvm', LLVM),
-      Build('v8', V8, no_mac=True),
-      Build('jsvu', Jsvu, no_windows=True, no_linux=True),
+      Build('v8', V8, os_filter=Filter(exclude=['mac'])),
+      Build('jsvu', Jsvu, os_filter=Filter(include=['mac'])),
       Build('wabt', Wabt),
-      Build('ocaml', OCaml, no_windows=True),
-      Build('spec', Spec, no_windows=True),
+      Build('ocaml', OCaml, os_filter=Filter(exclude=['windows'])),
+      Build('spec', Spec, os_filter=Filter(exclude=['windows'])),
       Build('binaryen', Binaryen),
       Build('fastcomp', Fastcomp),
       Build('emscripten', Emscripten),
@@ -1545,14 +1530,15 @@ def BuildRepos(filter):
 
 
 class Test(object):
-  def __init__(self, name_, runnable_, no_windows=False):
+  def __init__(self, name_, runnable_, os_filter=None):
     self.name = name_
     self.runnable = runnable_
-    self.no_windows = no_windows
+    self.os_filter = os_filter
 
   def Test(self):
-    if IsWindows() and self.no_windows:
-      print "Skipping %s: Doesn't work on windows" % self.runnable.__name__
+    if self.os_filter and not self.os_filter.Check(BuilderPlatformName()):
+      print "Skipping %s: Doesn't work on %s" % (self.name,
+                                                 BuilderPlatformName())
       return
     self.runnable()
 
@@ -1723,8 +1709,8 @@ ALL_TESTS = [
     Test('bare', TestBare),
     Test('asm', TestAsm),
     Test('emwasm', TestEmwasm),
-    Test('emtest', TestEmtest, no_windows=True),
-    Test('emtest-asm', TestEmtestAsm2Wasm, no_windows=True),
+    Test('emtest', TestEmtest, Filter(exclude=['windows'])),
+    Test('emtest-asm', TestEmtestAsm2Wasm, Filter(exclude=['windows'])),
     Test('wasm-simd', TestWasmSimd),
 ]
 
