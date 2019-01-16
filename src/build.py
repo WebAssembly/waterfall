@@ -44,12 +44,13 @@ import testing
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 WORK_DIR = os.path.join(SCRIPT_DIR, 'work')
 
-LLVM_SRC_DIR = os.path.join(WORK_DIR, 'llvm')
-CLANG_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'clang')
-LLD_SRC_DIR = os.path.join(LLVM_SRC_DIR, 'tools', 'lld')
-COMPILER_RT_SRC_DIR = os.path.join(WORK_DIR, 'compiler-rt')
-LIBCXX_SRC_DIR = os.path.join(WORK_DIR, 'libcxx')
-LIBCXXABI_SRC_DIR = os.path.join(WORK_DIR, 'libcxxabi')
+LLVM_PROJECT_SRC_DIR = os.path.join(WORK_DIR, 'llvm-project')
+LLVM_SRC_DIR = os.path.join(LLVM_PROJECT_SRC_DIR, 'llvm')
+CLANG_SRC_DIR = os.path.join(LLVM_PROJECT_SRC_DIR, 'clang')
+LLD_SRC_DIR = os.path.join(LLVM_PROJECT_SRC_DIR, 'lld')
+COMPILER_RT_SRC_DIR = os.path.join(LLVM_PROJECT_SRC_DIR, 'compiler-rt')
+LIBCXX_SRC_DIR = os.path.join(LLVM_PROJECT_SRC_DIR, 'libcxx')
+LIBCXXABI_SRC_DIR = os.path.join(LLVM_PROJECT_SRC_DIR, 'libcxxabi')
 LLVM_TEST_SUITE_SRC_DIR = os.path.join(WORK_DIR, 'llvm-test-suite')
 
 EMSCRIPTEN_SRC_DIR = os.path.join(WORK_DIR, 'emscripten')
@@ -70,8 +71,6 @@ SPEC_SRC_DIR = os.path.join(WORK_DIR, 'spec')
 ML_DIR = os.path.join(SPEC_SRC_DIR, 'interpreter')
 BINARYEN_SRC_DIR = os.path.join(WORK_DIR, 'binaryen')
 MUSL_SRC_DIR = os.path.join(WORK_DIR, 'musl')
-
-FIND_SVN_REV = os.path.join(SCRIPT_DIR, 'find_svn_rev.py')
 
 PREBUILT_CLANG = os.path.join(WORK_DIR, 'chromium-clang')
 PREBUILT_CLANG_TOOLS_CLANG = os.path.join(PREBUILT_CLANG, 'tools', 'clang')
@@ -115,6 +114,7 @@ LLVM_MIRROR_BASE = 'https://llvm.googlesource.com/'
 GITHUB_MIRROR_BASE = GIT_MIRROR_BASE + 'external/github.com/'
 WASM_GIT_BASE = GITHUB_MIRROR_BASE + 'WebAssembly/'
 EMSCRIPTEN_GIT_BASE = GITHUB_MIRROR_BASE + 'kripken/'
+LLVM_GIT_BASE = 'https://github.com/llvm/'
 MUSL_GIT_BASE = 'https://github.com/jfbastien/'
 OCAML_GIT_BASE = 'https://github.com/ocaml/'
 
@@ -667,20 +667,10 @@ def NoSync(*args):
 
 ALL_SOURCES = [
     Source('waterfall', SCRIPT_DIR, None, custom_sync=NoSync),
-    Source('llvm', LLVM_SRC_DIR,
-           LLVM_MIRROR_BASE + 'llvm.git'),
-    Source('clang', CLANG_SRC_DIR,
-           LLVM_MIRROR_BASE + 'clang.git'),
-    Source('compiler-rt', COMPILER_RT_SRC_DIR,
-           LLVM_MIRROR_BASE + 'compiler-rt.git'),
-    Source('libcxx', LIBCXX_SRC_DIR,
-           LLVM_MIRROR_BASE + 'libcxx.git'),
-    Source('libcxxabi', LIBCXXABI_SRC_DIR,
-           LLVM_MIRROR_BASE + 'libcxxabi.git'),
+    Source('llvm', LLVM_PROJECT_SRC_DIR,
+           LLVM_GIT_BASE + 'llvm-project.git'),
     Source('llvm-test-suite', LLVM_TEST_SUITE_SRC_DIR,
            LLVM_MIRROR_BASE + 'test-suite.git'),
-    Source('lld', LLD_SRC_DIR,
-           LLVM_MIRROR_BASE + 'lld.git'),
     Source('emscripten', EMSCRIPTEN_SRC_DIR,
            EMSCRIPTEN_GIT_BASE + 'emscripten.git',
            checkout=RemoteBranch('incoming')),
@@ -730,55 +720,6 @@ ALL_SOURCES = [
 ]
 
 
-def CurrentSvnRev(path):
-  return int(proc.check_output(
-      [FIND_SVN_REV, 'HEAD'], cwd=path).strip())
-
-
-def FindPriorSvnRev(path, goal):
-  revs = proc.check_output(
-      ['git', 'rev-list', RemoteBranch('master')], cwd=path).splitlines()
-  for rev in revs:
-    num = proc.check_output(
-        [FIND_SVN_REV, rev], cwd=path).strip()
-    if int(num) <= goal:
-      return rev
-  raise Exception('Cannot find svn rev at or before %d' % goal)
-
-
-def SyncToSvnRev(src_dir, svn_rev):
-  """Sync git-svn-based repository to a given svn rev."""
-  print 'Finding prior %s rev' % src_dir
-  prior_rev = FindPriorSvnRev(src_dir, svn_rev)
-  print 'Checking out %s rev: %s' % (src_dir, prior_rev)
-  proc.check_call(['git', 'checkout', prior_rev], cwd=src_dir)
-
-
-def SyncLLVMClang(good_hashes=None):
-  def get_rev(rev_name):
-    if good_hashes and good_hashes.get(rev_name):
-      return good_hashes[rev_name]
-    elif buildbot.Scheduler() == rev_name:
-      return buildbot.Revision()
-    else:
-      return RemoteBranch('master')
-
-  proc.check_call(['git', 'checkout', get_rev('llvm')], cwd=LLVM_SRC_DIR)
-  proc.check_call(['git', 'checkout', get_rev('clang')], cwd=CLANG_SRC_DIR)
-
-  # If LLVM didn't trigger the new build then sync LLVM to the corresponding
-  # clang revision, even if clang may not have triggered the build: usually
-  # LLVM provides APIs which clang uses, which means that most synchronized
-  # commits touch LLVM before clang. This should reduce the chance of breakage.
-  primary = LLVM_SRC_DIR if buildbot.Scheduler() == 'llvm' else CLANG_SRC_DIR
-  primary_svn_rev = CurrentSvnRev(primary)
-  print 'SVN REV for %s: %d' % (primary, primary_svn_rev)
-  for srcdir in (LLVM_SRC_DIR, CLANG_SRC_DIR, LLD_SRC_DIR,
-                 COMPILER_RT_SRC_DIR):
-    if srcdir != primary:
-      SyncToSvnRev(srcdir, primary_svn_rev)
-
-
 def Clobber():
   # Don't ever clobber non-bot (local) work directories
   if not buildbot.IsBot():
@@ -820,9 +761,6 @@ def SyncRepos(filter, sync_lkgr=False):
 
   for repo in filter.Apply(ALL_SOURCES):
     repo.Sync(good_hashes)
-  # Special cases
-  if filter.Check('clang') and not IsWindows():
-    SyncLLVMClang(good_hashes)
 
 
 def GetRepoInfo():
@@ -919,7 +857,9 @@ def LLVM():
       '-DLLVM_TOOL_LTO_BUILD=OFF',
       '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
       '-DLLVM_ENABLE_ASSERTIONS=ON',
-      '-DLLVM_TARGETS_TO_BUILD=X86;WebAssembly'
+      '-DLLVM_TARGETS_TO_BUILD=X86;WebAssembly',
+      '-DLLVM_EXTERNAL_CLANG_SOURCE_DIR=%s' % CLANG_SRC_DIR,
+      '-DLLVM_EXTERNAL_LLD_SOURCE_DIR=%s' % LLD_SRC_DIR
   ])
 
   jobs = host_toolchains.NinjaJobs()
