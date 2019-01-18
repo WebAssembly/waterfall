@@ -110,10 +110,11 @@ EMSCRIPTEN_CONFIG_WASM = os.path.join(INSTALL_DIR, 'emscripten_config_vanilla')
 GITHUB_REMOTE = 'github'
 GITHUB_SSH = 'git@github.com:'
 GIT_MIRROR_BASE = 'https://chromium.googlesource.com/'
-GITHUB_MIRROR_BASE = 'https://github.googlesource.com/'
-LLVM_MIRROR_BASE = GITHUB_MIRROR_BASE + 'llvm/'
+LLVM_MIRROR_BASE = 'https://llvm.googlesource.com/'
+GITHUB_MIRROR_BASE = GIT_MIRROR_BASE + 'external/github.com/'
 WASM_GIT_BASE = GITHUB_MIRROR_BASE + 'WebAssembly/'
 EMSCRIPTEN_GIT_BASE = GITHUB_MIRROR_BASE + 'kripken/'
+LLVM_GIT_BASE = 'https://github.com/llvm/'
 MUSL_GIT_BASE = 'https://github.com/jfbastien/'
 OCAML_GIT_BASE = 'https://github.com/ocaml/'
 
@@ -635,9 +636,9 @@ def NoSync(*args):
 ALL_SOURCES = [
     Source('waterfall', SCRIPT_DIR, None, custom_sync=NoSync),
     Source('llvm', LLVM_PROJECT_SRC_DIR,
-           LLVM_MIRROR_BASE + 'llvm-project.git'),
+           LLVM_GIT_BASE + 'llvm-project.git'),
     Source('llvm-test-suite', LLVM_TEST_SUITE_SRC_DIR,
-           LLVM_MIRROR_BASE + 'llvm-test-suite.git'),
+           LLVM_MIRROR_BASE + 'test-suite.git'),
     Source('emscripten', EMSCRIPTEN_SRC_DIR,
            EMSCRIPTEN_GIT_BASE + 'emscripten.git',
            checkout=RemoteBranch('incoming')),
