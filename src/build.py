@@ -114,7 +114,7 @@ GIT_MIRROR_BASE = 'https://chromium.googlesource.com/'
 LLVM_MIRROR_BASE = 'https://llvm.googlesource.com/'
 GITHUB_MIRROR_BASE = GIT_MIRROR_BASE + 'external/github.com/'
 WASM_GIT_BASE = GITHUB_MIRROR_BASE + 'WebAssembly/'
-EMSCRIPTEN_GIT_BASE = GITHUB_MIRROR_BASE + 'kripken/'
+EMSCRIPTEN_GIT_BASE = GITHUB_MIRROR_BASE + 'emscripten-core/'
 MUSL_GIT_BASE = 'https://github.com/jfbastien/'
 OCAML_GIT_BASE = 'https://github.com/ocaml/'
 
