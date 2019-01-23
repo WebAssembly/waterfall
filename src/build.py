@@ -113,7 +113,7 @@ GIT_MIRROR_BASE = 'https://chromium.googlesource.com/'
 LLVM_MIRROR_BASE = 'https://llvm.googlesource.com/'
 GITHUB_MIRROR_BASE = GIT_MIRROR_BASE + 'external/github.com/'
 WASM_GIT_BASE = GITHUB_MIRROR_BASE + 'WebAssembly/'
-EMSCRIPTEN_GIT_BASE = GITHUB_MIRROR_BASE + 'kripken/'
+EMSCRIPTEN_GIT_BASE = 'https://github.com/emscripten-core/'
 LLVM_GIT_BASE = 'https://github.com/llvm/'
 MUSL_GIT_BASE = 'https://github.com/jfbastien/'
 OCAML_GIT_BASE = 'https://github.com/ocaml/'
@@ -1615,8 +1615,12 @@ def TestWasmSimd():
 
 ALL_TESTS = [
     Test('bare', TestBare),
-    Test('asm', TestAsm),
-    Test('emwasm', TestEmwasm),
+    # The windows/mac exclusions here are just to reduce the test matrix, since
+    # these tests only test codegen, which should be the same on all OSes
+    Test('asm', TestAsm, Filter(exclude=['windows', 'mac'])),
+    Test('emwasm', TestEmwasm, Filter(exclude=['mac'])),
+    # These tests do have interesting differences on OSes (especially the
+    # 'other' tests) and eventually should run everywhere.
     Test('emtest', TestEmtest, Filter(exclude=['windows'])),
     Test('emtest-asm', TestEmtestAsm2Wasm, Filter(exclude=['windows'])),
     Test('wasm-simd', TestWasmSimd),
