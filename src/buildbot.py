@@ -44,10 +44,6 @@ def IsBot():
   return BUILDBOT_BUILDNUMBER is not None
 
 
-def Revision():
-  return BUILDBOT_REVISION
-
-
 def BuildNumber():
   return BUILDBOT_BUILDNUMBER
 
