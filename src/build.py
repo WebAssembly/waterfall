@@ -46,8 +46,6 @@ WORK_DIR = os.path.join(SCRIPT_DIR, 'work')
 
 LLVM_PROJECT_SRC_DIR = os.path.join(WORK_DIR, 'llvm-project')
 LLVM_SRC_DIR = os.path.join(LLVM_PROJECT_SRC_DIR, 'llvm')
-CLANG_SRC_DIR = os.path.join(LLVM_PROJECT_SRC_DIR, 'clang')
-LLD_SRC_DIR = os.path.join(LLVM_PROJECT_SRC_DIR, 'lld')
 COMPILER_RT_SRC_DIR = os.path.join(LLVM_PROJECT_SRC_DIR, 'compiler-rt')
 LIBCXX_SRC_DIR = os.path.join(LLVM_PROJECT_SRC_DIR, 'libcxx')
 LIBCXXABI_SRC_DIR = os.path.join(LLVM_PROJECT_SRC_DIR, 'libcxxabi')
@@ -826,8 +824,7 @@ def LLVM():
       '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
       '-DLLVM_ENABLE_ASSERTIONS=ON',
       '-DLLVM_TARGETS_TO_BUILD=X86;WebAssembly',
-      '-DLLVM_EXTERNAL_CLANG_SOURCE_DIR=%s' % CLANG_SRC_DIR,
-      '-DLLVM_EXTERNAL_LLD_SOURCE_DIR=%s' % LLD_SRC_DIR
+      '-DLLVM_LLVM_ENABLE_PROJECTS=lld;clang',
   ])
 
   jobs = host_toolchains.NinjaJobs()
