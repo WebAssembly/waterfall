@@ -824,7 +824,7 @@ def LLVM():
       '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
       '-DLLVM_ENABLE_ASSERTIONS=ON',
       '-DLLVM_TARGETS_TO_BUILD=X86;WebAssembly',
-      '-DLLVM_LLVM_ENABLE_PROJECTS=lld;clang',
+      '-DLLVM_ENABLE_PROJECTS=lld;clang',
   ])
 
   jobs = host_toolchains.NinjaJobs()
