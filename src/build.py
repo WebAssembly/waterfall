@@ -1580,13 +1580,9 @@ def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
 
 
 def TestEmtest():
-  # Currently we run the core test suite in two different configures:
-  # binaryen2 and wasmobj2.  The later uses the wasm native object files rather
-  # than bitcode.
-  # TODO(sbc): remove wasmobj2 once that becomes the default.
   ExecuteEmscriptenTestSuite(
       'emwasm',
-      ['binaryen2', 'wasmobj2', 'other'],
+      ['wasm2', 'other'],
       EMSCRIPTEN_CONFIG_WASM,
       EMSCRIPTEN_TEST_OUT_DIR)
 
@@ -1594,7 +1590,7 @@ def TestEmtest():
 def TestEmtestAsm2Wasm():
   ExecuteEmscriptenTestSuite(
       'asm2wasm',
-      ['binaryen2'],
+      ['wasm2'],
       EMSCRIPTEN_CONFIG_ASMJS,
       EMSCRIPTEN_ASMJS_TEST_OUT_DIR)
 
