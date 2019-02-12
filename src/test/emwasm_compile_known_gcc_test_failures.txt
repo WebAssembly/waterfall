@@ -51,14 +51,6 @@
 	pr60003.c
 
 
-# Multiply-defined symbols because emcc doesn't link libc/libm as archives
-	20021127-1.c
-	20030125-1.c
-	20090711-1.c
-	960909-1.c
-	980701-1.c
-	cbrt.c
-
 # Computed gotos (but works with bare wasm clang)
 	20041214-1.c O0
 	20071220-1.c
@@ -66,8 +58,6 @@
 	990208-1.c # no computed goto, but a blockaddress instruction that we can't select
 
 # Works with asm2wasm
-	20030913-1.c # glob multiply defined in wasm but not asm2wasm
-	960218-1.c # glob multiply defined in wasm but not asm2wasm
 	pr17377.c # __builtin_return_address
 	20030323-1.c # __builtin_return_address
 	20030811-1.c # __builtin_return_address
