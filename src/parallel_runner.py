@@ -66,7 +66,7 @@ class ParallelRunner(object):
         num += 1
         # Print periodically to assure the bot monitor that we are still alive
         if num % 10 == 0:
-          print 'Got result', num
+          print 'Got test results:', num
         buffered_results.append(res)
       else:
         self.clear_finished_processes()
