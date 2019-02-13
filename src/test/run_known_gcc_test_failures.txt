@@ -62,6 +62,8 @@ va-arg-pack-1.c.js # No import error but missing __builtin_va_arg_pack
 
 
 # Don't care/won't fix:
+20021127-1.c.o.wasm O0 # Broken test AFAICT
+20021127-1.c.js 00,emwasm # Broken test AFAICT
 eeprof-1.c.js # tests -finstrument-functions
 pr23047.c.js O2,emwasm # tests -fwrapv
 pr23047.c.js O3,emwasm # tests -fwrapv
@@ -219,7 +221,6 @@ pr53645-2.c.o.wasm win,O0
 tc1__dr20.C.o.wasm O2
 torture__pr48695.C.o.wasm O2
 
-20021127-1.c.o.wasm O0
 20031003-1.c.o.wasm O0
 pr23135.c.o.wasm O0
 abi__covariant3.C.o.wasm O0
