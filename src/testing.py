@@ -239,7 +239,7 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
   if exclusions:
     input_exclusions = parse_exclude_files(exclusions, None)
     inputs = [i for i in inputs if os.path.basename(i) not in input_exclusions]
-  sys.stdout.write('Executing tests.')
+  sys.stdout.write('Executing tests.\n')
   if single_threaded:
     results = map(tester, inputs)
   else:
@@ -247,7 +247,7 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
     results = runner.map(tester, inputs)
 
   sys.stdout.flush()
-  sys.stdout.write('\nDone.')
+  sys.stdout.write('Done.\n')
 
   results = sorted(results)
   successes = [r for r in results if r]
@@ -266,9 +266,9 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
     sys.stdout.write(
         '\n'.join(['Ran %s tests.' % len(results),
                    'Got %s successes.' % len(successes),
-                   'Got %s failures.' % len(failures)]))
+                   'Got %s failures.' % len(failures)]) + '\n')
     if failures:
-      sys.stdout.write('\nUnexpected failures:\n')
+      sys.stdout.write('Unexpected failures:\n')
       for f in failures:
         sys.stdout.write('\t%s\n' % f.test)
     return len(failures)
