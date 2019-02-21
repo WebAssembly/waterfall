@@ -5,13 +5,11 @@
 # This builtin is not supported by clang
 va-arg-pack-1.c.o
 
-# undefined symbol: link_error
-# Don't care. The test case is faulty. link_error() does not exist.
-medce-1.c.o O0
+# Same behviour with x86 clang
+medce-1.c.o O0 # undefined symbol: link_error
 
 asan__interception-test-1.C.o  # Undefined symbol: __interceptor_strtol
 tree-ssa__pr20458.C.o  # Undefined symbol: std::locale::locale
-
 
 # These tests compile but need to actually create threads to run correctly.
 tls__thread_local3.C.o
@@ -20,6 +18,10 @@ tls__thread_local4.C.o
 tls__thread_local4g.C.o
 tls__thread_local5.C.o
 tls__thread_local5g.C.o
+
+# Conflicting signatures for `abort()` import that our AddMissingPrototypes
+# pass is unable to handle.
+921110-1.c.o
 
 # Untriaged
 warn__pr33738.C.o
