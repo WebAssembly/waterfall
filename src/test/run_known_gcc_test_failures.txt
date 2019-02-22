@@ -211,6 +211,9 @@ vfprintf-chk-1.c.o.wasm O2
 # Missing _Unwind_* functions
 cleanup-5.C.o.wasm
 
+# signature mismatches
+tc1__dr20.C.o.wasm # printf
+
 # https://bugs.chromium.org/p/v8/issues/detail?id=8211
 20040629-1.c.o.wasm win,O0
 20040705-1.c.o.wasm win,O0
@@ -218,7 +221,6 @@ cleanup-5.C.o.wasm
 pr53645-2.c.o.wasm win,O0
 
 # Untriaged lld failures
-tc1__dr20.C.o.wasm O2
 torture__pr48695.C.o.wasm O2
 
 20031003-1.c.o.wasm O0
@@ -318,4 +320,3 @@ torture__stackalign__throw-1.C.o.wasm
 torture__stackalign__throw-2.C.o.wasm
 torture__stackalign__throw-3.C.o.wasm
 tree-ssa__pr33604.C.o.wasm
-opt__pr15551.C.o.wasm
