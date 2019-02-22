@@ -82,13 +82,15 @@ class Tester(object):
       outfile = self.outname_ctor(self.outdir, test_file, self.extras)
     else:
       outfile = ''
+    should_log = sys.platform != 'darwin'
     try:
+
       output = proc.check_output(
           self.command_ctor(test_file, outfile, self.extras),
           stderr=proc.STDOUT, cwd=self.outdir or os.getcwd(),
           # preexec_fn is not supported on Windows
           preexec_fn=Tester.setlimits if sys.platform != 'win32' else None,
-          should_log=False)
+          should_log=should_log)
       return Result(test=basename, success=True, output=output)
     except proc.CalledProcessError as e:
       return Result(test=basename, success=False, output=e.output)
