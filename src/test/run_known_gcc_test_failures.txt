@@ -93,9 +93,6 @@ pr38151.c.o.wasm
 pr38151.c.js emwasm # abort()
 pr44575.c.o.wasm
 pr44575.c.js emwasm # abort()
-stdarg-1.c.o.wasm
-stdarg-1.c.js emwasm # abort()
-stdarg-2.c.js emwasm # abort()
 stdarg-3.c.o.wasm
 stdarg-3.c.js emwasm # abort()
 strct-stdarg-1.c.o.wasm
@@ -104,7 +101,6 @@ strct-varg-1.c.o.wasm
 strct-varg-1.c.js emwasm # abort()
 va-arg-22.c.o.wasm
 va-arg-22.c.js emwasm # abort()
-va-arg-6.c.js emwasm # abort()
 
 ### Failures specific to emscripten
 # no builtin returnaddress or frameaddress
@@ -182,10 +178,6 @@ pr47237.c.o.wasm
 
 printf-chk-1.c.o.wasm O2
 vprintf-chk-1.c.o.wasm O2
-
-# TypeError: invalid type
-stdarg-2.c.o.wasm
-va-arg-6.c.o.wasm
 
 # Don't care/won't fix:
 920612-1.c.o.wasm O2 # abort() # UB
