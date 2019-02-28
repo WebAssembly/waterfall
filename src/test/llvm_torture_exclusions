@@ -1,2 +1,12 @@
 # Clang optimizes loop into infinite loop for -O2
 930529-1.c
+
+# https://bugs.chromium.org/p/v8/issues/detail?id=8211
+# These have flaky behavior when run on windows, which makes it impossible
+# to keep the bots green. Putting them here means we don't even build them,
+# and ignore them on non-windows as well, so we should look into this when
+# we can.
+20040629-1.c
+20040705-1.c
+20040705-2.c
+pr53645-2.c
