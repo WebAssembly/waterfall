@@ -206,16 +206,6 @@ cleanup-5.C.o.wasm
 # signature mismatches
 tc1__dr20.C.o.wasm # printf
 
-# https://bugs.chromium.org/p/v8/issues/detail?id=8211
-20040629-1.c.o.wasm win,O0
-20040705-1.c.o.wasm win,O0
-20040705-2.c.o.wasm win,O0
-pr53645-2.c.o.wasm win,O0
-20040629-1.c.js win,O0
-20040705-1.c.js win,O0
-20040705-2.c.js win,O0
-pr53645-2.c.js win,O0
-
 # Untriaged lld failures
 torture__pr48695.C.o.wasm O2
 
