@@ -1537,17 +1537,21 @@ def TestAsm():
         GetTortureDir('asm2wasm', opt),
         ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES,
         opt)
-  for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
-    ExecuteLLVMTorture(
-        name='asm2wasm',
-        runner=D8_BIN,
-        indir=GetTortureDir('asm2wasm', opt),
-        fails=RUN_KNOWN_TORTURE_FAILURES,
-        attributes=['asm2wasm', 'd8'],
-        extension='c.js',
-        opt=opt,
-        # emscripten's wasm.js expects all files in cwd.
-        outdir=GetTortureDir('asm2wasm', opt))
+
+  # Avoid d8 execution on windows because of flakiness,
+  # https://bugs.chromium.org/p/v8/issues/detail?id=8211
+  if not IsWindows():
+    for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
+      ExecuteLLVMTorture(
+          name='asm2wasm',
+          runner=D8_BIN,
+          indir=GetTortureDir('asm2wasm', opt),
+          fails=RUN_KNOWN_TORTURE_FAILURES,
+          attributes=['asm2wasm', 'd8'],
+          extension='c.js',
+          opt=opt,
+          # emscripten's wasm.js expects all files in cwd.
+          outdir=GetTortureDir('asm2wasm', opt))
 
 
 def TestEmwasm():
@@ -1559,16 +1563,19 @@ def TestEmwasm():
         EMWASM_KNOWN_TORTURE_COMPILE_FAILURES,
         opt)
 
-  for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
-    ExecuteLLVMTorture(
-        name='emwasm',
-        runner=D8_BIN,
-        indir=GetTortureDir('emwasm', opt),
-        fails=RUN_KNOWN_TORTURE_FAILURES,
-        attributes=['emwasm', 'lld', 'd8'],
-        extension='c.js',
-        opt=opt,
-        outdir=GetTortureDir('emwasm', opt))
+  # Avoid d8 execution on windows because of flakiness,
+  # https://bugs.chromium.org/p/v8/issues/detail?id=8211
+  if not IsWindows():
+    for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
+      ExecuteLLVMTorture(
+          name='emwasm',
+          runner=D8_BIN,
+          indir=GetTortureDir('emwasm', opt),
+          fails=RUN_KNOWN_TORTURE_FAILURES,
+          attributes=['emwasm', 'lld', 'd8'],
+          extension='c.js',
+          opt=opt,
+          outdir=GetTortureDir('emwasm', opt))
 
 
 def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
