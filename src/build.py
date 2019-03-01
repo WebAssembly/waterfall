@@ -1489,17 +1489,21 @@ def TestBare():
   common_attrs = ['bare']
   common_attrs += ['win'] if IsWindows() else ['posix']
 
-  for opt in BARE_TEST_OPT_FLAGS:
-    ExecuteLLVMTorture(
-        name='d8',
-        runner=D8_BIN,
-        indir=GetTortureDir('lld', opt),
-        fails=RUN_KNOWN_TORTURE_FAILURES,
-        attributes=common_attrs + ['d8', 'lld', opt],
-        extension='wasm',
-        opt=opt,
-        wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
+  # Avoid d8 execution on windows because of flakiness,
+  # https://bugs.chromium.org/p/v8/issues/detail?id=8211
+  if not IsWindows():
+    for opt in BARE_TEST_OPT_FLAGS:
+      ExecuteLLVMTorture(
+          name='d8',
+          runner=D8_BIN,
+          indir=GetTortureDir('lld', opt),
+          fails=RUN_KNOWN_TORTURE_FAILURES,
+          attributes=common_attrs + ['d8', 'lld', opt],
+          extension='wasm',
+          opt=opt,
+          wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
 
+  # We don't have a build of the spec interpreter for Windows.
   if not IsWindows():
     for opt in BARE_TEST_OPT_FLAGS:
       ExecuteLLVMTorture(
