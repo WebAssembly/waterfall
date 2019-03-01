@@ -1489,17 +1489,21 @@ def TestBare():
   common_attrs = ['bare']
   common_attrs += ['win'] if IsWindows() else ['posix']
 
-  for opt in BARE_TEST_OPT_FLAGS:
-    ExecuteLLVMTorture(
-        name='d8',
-        runner=D8_BIN,
-        indir=GetTortureDir('lld', opt),
-        fails=RUN_KNOWN_TORTURE_FAILURES,
-        attributes=common_attrs + ['d8', 'lld', opt],
-        extension='wasm',
-        opt=opt,
-        wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
+  # Avoid d8 execution on windows because of flakiness,
+  # https://bugs.chromium.org/p/v8/issues/detail?id=8211
+  if not IsWindows():
+    for opt in BARE_TEST_OPT_FLAGS:
+      ExecuteLLVMTorture(
+          name='d8',
+          runner=D8_BIN,
+          indir=GetTortureDir('lld', opt),
+          fails=RUN_KNOWN_TORTURE_FAILURES,
+          attributes=common_attrs + ['d8', 'lld', opt],
+          extension='wasm',
+          opt=opt,
+          wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
 
+  # We don't have a build of the spec interpreter for Windows.
   if not IsWindows():
     for opt in BARE_TEST_OPT_FLAGS:
       ExecuteLLVMTorture(
@@ -1533,17 +1537,21 @@ def TestAsm():
         GetTortureDir('asm2wasm', opt),
         ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES,
         opt)
-  for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
-    ExecuteLLVMTorture(
-        name='asm2wasm',
-        runner=D8_BIN,
-        indir=GetTortureDir('asm2wasm', opt),
-        fails=RUN_KNOWN_TORTURE_FAILURES,
-        attributes=['asm2wasm', 'd8'],
-        extension='c.js',
-        opt=opt,
-        # emscripten's wasm.js expects all files in cwd.
-        outdir=GetTortureDir('asm2wasm', opt))
+
+  # Avoid d8 execution on windows because of flakiness,
+  # https://bugs.chromium.org/p/v8/issues/detail?id=8211
+  if not IsWindows():
+    for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
+      ExecuteLLVMTorture(
+          name='asm2wasm',
+          runner=D8_BIN,
+          indir=GetTortureDir('asm2wasm', opt),
+          fails=RUN_KNOWN_TORTURE_FAILURES,
+          attributes=['asm2wasm', 'd8'],
+          extension='c.js',
+          opt=opt,
+          # emscripten's wasm.js expects all files in cwd.
+          outdir=GetTortureDir('asm2wasm', opt))
 
 
 def TestEmwasm():
@@ -1555,16 +1563,19 @@ def TestEmwasm():
         EMWASM_KNOWN_TORTURE_COMPILE_FAILURES,
         opt)
 
-  for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
-    ExecuteLLVMTorture(
-        name='emwasm',
-        runner=D8_BIN,
-        indir=GetTortureDir('emwasm', opt),
-        fails=RUN_KNOWN_TORTURE_FAILURES,
-        attributes=['emwasm', 'lld', 'd8'],
-        extension='c.js',
-        opt=opt,
-        outdir=GetTortureDir('emwasm', opt))
+  # Avoid d8 execution on windows because of flakiness,
+  # https://bugs.chromium.org/p/v8/issues/detail?id=8211
+  if not IsWindows():
+    for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
+      ExecuteLLVMTorture(
+          name='emwasm',
+          runner=D8_BIN,
+          indir=GetTortureDir('emwasm', opt),
+          fails=RUN_KNOWN_TORTURE_FAILURES,
+          attributes=['emwasm', 'lld', 'd8'],
+          extension='c.js',
+          opt=opt,
+          outdir=GetTortureDir('emwasm', opt))
 
 
 def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
