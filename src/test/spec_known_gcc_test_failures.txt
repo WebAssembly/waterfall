@@ -221,12 +221,11 @@ eh__uncaught4.C.o.wasm
 eh__unexpected1.C.o.wasm
 expr__anew3.C.o.wasm
 expr__anew4.C.o.wasm
-expr__cast4.C.o.wasm
+expr__cast4.C.o.wasm O2
 guality__pr55665.C.o.wasm
 inherit__covariant17.C.o.wasm
 inherit__covariant4.C.o.wasm
 inherit__thunk10.C.o.wasm
-init__aggr2.C.o.wasm
 init__array12.C.o.wasm
 init__array15.C.o.wasm
 init__array25.C.o.wasm
@@ -236,7 +235,6 @@ init__const6.C.o.wasm
 init__ctor1.C.o.wasm
 init__ctor2.C.o.wasm
 init__delete2.C.o.wasm
-init__dtor3.C.o.wasm
 init__for1.C.o.wasm
 init__init-ref2.C.o.wasm
 init__new11.C.o.wasm O0
@@ -265,7 +263,6 @@ opt__pr42508.C.o.wasm
 opt__range-test-1.C.o.wasm
 opt__range-test-2.C.o.wasm
 opt__reg-stack.C.o.wasm
-opt__static5.C.o.wasm
 opt__static6.C.o.wasm
 opt__temp2.C.o.wasm
 opt__tmp1.C.o.wasm
@@ -331,13 +328,10 @@ init__new31.C.o.wasm O0
 init__value10.C.o.wasm O0
 ipa__pr46053.C.o.wasm O0
 ipa__pr46984.C.o.wasm O0
-ipa__pr60640-3.C.o.wasm O0
-ipa__pr60640-4.C.o.wasm O0
 ipa__pr61160-2.C.o.wasm O0
 ipa__pr61160-3.C.o.wasm O0
 opt__alias4.C.o.wasm O0
 opt__anchor1.C.o.wasm O0
-opt__covariant1.C.o.wasm O0
 opt__pr15054.C.o.wasm O0
 opt__pr17697-1.C.o.wasm O0
 opt__pr17697-2.C.o.wasm O0
@@ -351,7 +345,6 @@ opt__rtti1.C.o.wasm O0
 opt__stack1.C.o.wasm O0
 opt__strength-reduce.C.o.wasm O0
 opt__thunk1.C.o.wasm O0
-opt__thunk2.C.o.wasm O0
 opt__typeinfo1.C.o.wasm O0
 other__complex1.C.o.wasm O0
 other__no-strict-enum-precision-1.C.o.wasm O0
