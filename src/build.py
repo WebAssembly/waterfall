@@ -824,6 +824,9 @@ def LLVM():
       '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
       '-DLLVM_ENABLE_ASSERTIONS=ON',
       '-DLLVM_TARGETS_TO_BUILD=X86;WebAssembly',
+      # TODO(sbc): Remove this:
+      # https://github.com/WebAssembly/waterfall/issues/467
+      '-DLLVM_TEMPORARILY_ALLOW_OLD_TOOLCHAIN=ON',
       '-DLLVM_ENABLE_PROJECTS=lld;clang',
   ])
 
@@ -895,7 +898,8 @@ def Jsvu():
       os_id = 'mac64'
       js_engines = 'javascriptcore,v8'
     else:
-      return
+      os_id = 'linux64'
+      js_engines = 'javascriptcore'
 
     # https://github.com/GoogleChromeLabs/jsvu#installation
     # ...except we install it locally instead of globally.
@@ -1411,7 +1415,7 @@ def AllBuilds():
       # Host tools
       Build('llvm', LLVM),
       Build('v8', V8, os_filter=Filter(exclude=['mac'])),
-      Build('jsvu', Jsvu, os_filter=Filter(include=['mac'])),
+      Build('jsvu', Jsvu, os_filter=Filter(exclude=['windows'])),
       Build('wabt', Wabt),
       Build('ocaml', OCaml, os_filter=Filter(exclude=['windows'])),
       Build('spec', Spec, os_filter=Filter(exclude=['windows'])),
