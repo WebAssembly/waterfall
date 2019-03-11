@@ -320,7 +320,7 @@ def Archive(directory, print_content=False):
 
 def Tar(directory, print_content=False):
   assert os.path.isdir(directory), 'Must tar a directory to avoid tarbombs'
-  (up_directory, basename) = os.path.split(directory)
+  up_directory, basename = os.path.split(directory)
   tar = os.path.join(up_directory, basename + '.tbz2')
   Remove(tar)
   if print_content:
@@ -1237,10 +1237,10 @@ def ArchiveBinaries():
   buildbot.Step('Archive binaries')
   # All relevant binaries were copied to the LLVM directory.
   UploadArchive('torture-c', Archive(GCC_TEST_DIR))
-  # TODO(sergiyb): Restore printing list of binaries on Mac once it works. See
-  # https://crbug.com/916775 for more details.
+  # TODO(sergiyb): Restore printing list of binaries on Linux and Mac once it
+  # works. See https://crbug.com/916775 and https://crbug.com/940663
   UploadArchive(
-      'binaries', Archive(INSTALL_DIR, print_content=not IsMac()))
+      'binaries', Archive(INSTALL_DIR, print_content=IsWindows()))
 
 
 def DebianPackage():
