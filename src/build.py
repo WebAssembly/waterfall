@@ -1595,24 +1595,13 @@ def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
 
 
 def TestEmtest():
-  # Running in parallel hits a problem on the bots where things hang.
-  if IsMac():
-    old_emcc_cores = os.environ.get('EMCC_CORES')
-    os.environ['EMCC_CORES'] = '1'
-
-  try:
+  # These tests hang on the Mac bots for reasons we don't understand yet.
+  if not IsMac():
     ExecuteEmscriptenTestSuite(
         'emwasm',
         ['wasm2', 'other'],
         EMSCRIPTEN_CONFIG_WASM,
         EMSCRIPTEN_TEST_OUT_DIR)
-
-  finally:
-    if IsMac():
-      if old_emcc_cores:
-        os.environ['EMCC_CORES'] = old_emcc_cores
-      else:
-        del os.environ['EMCC_CORES']
 
 
 def TestEmtestAsm2Wasm():
