@@ -157,7 +157,7 @@ class TriangularArray:
     k = self.canonicalize(key)
     # Support single-insertion only, the intended usage would be a bug if there
     # were multiple insertions of the same key.
-    assert k not in self.arr, 'Double insertion of key %s' % k
+    assert k not in self.arr, 'Double insertion of key %s' % str(k)
     self.arr[k] = value
 
   def __iter__(self):

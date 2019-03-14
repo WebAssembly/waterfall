@@ -62,11 +62,6 @@ JSVU_DIR = os.path.join(WORK_DIR, 'jsvu')
 V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
 WABT_SRC_DIR = os.path.join(WORK_DIR, 'wabt')
 
-OCAML_DIR = os.path.join(WORK_DIR, 'ocaml')  # OCaml always does in-tree build
-OCAMLBUILD_DIR = os.path.join(WORK_DIR, 'ocamlbuild')
-
-SPEC_SRC_DIR = os.path.join(WORK_DIR, 'spec')
-ML_DIR = os.path.join(SPEC_SRC_DIR, 'interpreter')
 BINARYEN_SRC_DIR = os.path.join(WORK_DIR, 'binaryen')
 MUSL_SRC_DIR = os.path.join(WORK_DIR, 'musl')
 
@@ -81,7 +76,6 @@ LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out.gn', 'x64.release')
 JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
 WABT_OUT_DIR = os.path.join(WORK_DIR, 'wabt-out')
-OCAML_OUT_DIR = os.path.join(WORK_DIR, 'ocaml-out')
 BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
 FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
 MUSL_OUT_DIR = os.path.join(WORK_DIR, 'musl-out')
@@ -114,18 +108,12 @@ WASM_GIT_BASE = GITHUB_MIRROR_BASE + 'WebAssembly/'
 EMSCRIPTEN_GIT_BASE = 'https://github.com/emscripten-core/'
 LLVM_GIT_BASE = 'https://github.com/llvm/'
 MUSL_GIT_BASE = 'https://github.com/jfbastien/'
-OCAML_GIT_BASE = 'https://github.com/ocaml/'
 
 # Name of remote for build script to use. Don't touch origin to avoid
 # clobbering any local development.
 WATERFALL_REMOTE = '_waterfall'
 
 WASM_STORAGE_BASE = 'https://wasm.storage.googleapis.com/'
-
-# These versions are the git tags to check out.
-OCAML_VERSION = '4.05.0'
-OCAMLBUILD_VERSION = '0.11.0'
-OCAML_BIN_DIR = os.path.join(OCAML_OUT_DIR, 'bin')
 
 GNUWIN32_DIR = os.path.join(WORK_DIR, 'gnuwin32')
 GNUWIN32_ZIP = 'gnuwin32.zip'
@@ -252,8 +240,6 @@ EMWASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
 
 RUN_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
                                            'run_' + IT_IS_KNOWN)]
-SPEC_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
-                                            'spec_' + IT_IS_KNOWN)]
 LLD_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
                               'lld_' + IT_IS_KNOWN)]
 
@@ -666,16 +652,6 @@ ALL_SOURCES = [
            custom_sync=SyncGNUWin32),
     Source('wabt', WABT_SRC_DIR,
            WASM_GIT_BASE + 'wabt.git'),
-    Source('spec', SPEC_SRC_DIR,
-           WASM_GIT_BASE + 'spec.git', os_filter=Filter(exclude=['windows'])),
-    Source('ocaml', OCAML_DIR,
-           OCAML_GIT_BASE + 'ocaml.git',
-           checkout='refs/tags/' + OCAML_VERSION,
-           os_filter=Filter(exclude=['windows'])),
-    Source('ocamlbuild', OCAMLBUILD_DIR,
-           OCAML_GIT_BASE + 'ocamlbuild.git',
-           checkout='refs/tags/' + OCAMLBUILD_VERSION,
-           os_filter=Filter(exclude=['windows'])),
     Source('binaryen', BINARYEN_SRC_DIR,
            WASM_GIT_BASE + 'binaryen.git'),
     Source('musl', MUSL_SRC_DIR,
@@ -936,44 +912,6 @@ def Wabt():
   # if options.run_tool_tests:
   #   proc.check_call(['ninja', 'run-tests'], cwd=WABT_OUT_DIR, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=WABT_OUT_DIR, env=cc_env)
-
-
-def OCaml():
-  buildbot.Step('OCaml')
-  # Build the ocaml compiler and runtime
-  makefile = os.path.join(OCAML_DIR, 'config', 'Makefile')
-  if not os.path.isfile(makefile):
-    configure = os.path.join(OCAML_DIR, 'configure')
-    cc_flag = ['-cc', CC, '-aspp', CC + ' -c']
-    if sys.platform == 'darwin':
-      cc_flag = []
-    proc.check_call(
-        [configure, '-prefix', OCAML_OUT_DIR, '--no-ocamldoc'] + cc_flag,
-        cwd=OCAML_DIR)
-  proc.check_call(['make', 'world.opt', '-j%s' % NPROC], cwd=OCAML_DIR)
-  proc.check_call(['make', 'install'], cwd=OCAML_DIR)
-  os.environ['PATH'] = OCAML_BIN_DIR + os.pathsep + os.environ['PATH']
-  # Build ocamlbuild
-  proc.check_call(
-      ['make', 'configure', 'OCAMLBUILD_PREFIX=' + OCAML_OUT_DIR],
-      cwd=OCAMLBUILD_DIR)
-  proc.check_call(['make', '-j%s' % NPROC], cwd=OCAMLBUILD_DIR)
-  proc.check_call(['make', 'install', 'CHECK_IF_PREINSTALLED=false'],
-                  cwd=OCAMLBUILD_DIR)
-  ocamlbuild = os.path.join(OCAML_BIN_DIR, 'ocamlbuild')
-  assert os.path.isfile(ocamlbuild), 'Expected installed %s' % ocamlbuild
-
-
-def Spec():
-  buildbot.Step('spec')
-  os.environ['PATH'] = OCAML_BIN_DIR + os.pathsep + os.environ['PATH']
-  # Spec builds in-tree. Always clobber.
-  proc.check_call(['make', 'clean'], cwd=ML_DIR)
-  proc.check_call(['make', 'opt'], cwd=ML_DIR)
-  if options.run_tool_tests:
-    proc.check_call(['make', 'test'], cwd=ML_DIR)
-  wasm = os.path.join(ML_DIR, 'wasm')
-  CopyBinaryToArchive(wasm)
 
 
 def Binaryen():
@@ -1417,8 +1355,6 @@ def AllBuilds():
       Build('v8', V8, os_filter=Filter(exclude=['mac'])),
       Build('jsvu', Jsvu, os_filter=Filter(exclude=['windows'])),
       Build('wabt', Wabt),
-      Build('ocaml', OCaml, os_filter=Filter(exclude=['windows'])),
-      Build('spec', Spec, os_filter=Filter(exclude=['windows'])),
       Build('binaryen', Binaryen),
       Build('fastcomp', Fastcomp),
       Build('emscripten', Emscripten),
@@ -1479,16 +1415,6 @@ def TestBare():
         extension='o',
         opt=opt)
 
-  for opt in BARE_TEST_OPT_FLAGS:
-    LinkLLVMTorture(
-        name='lld-nostdlib',
-        linker=Executable(os.path.join(INSTALL_BIN, 'wasm32-clang++')),
-        fails=None,
-        indir=GetTortureDir('o', opt),
-        outdir=GetTortureDir('lld-nostdlib', opt),
-        extension='o',
-        opt=opt, args=['-nostdlib', '-Wl,--allow-undefined'])
-
   # Execute
   common_attrs = ['bare']
   common_attrs += ['win'] if IsWindows() else ['posix']
@@ -1506,18 +1432,6 @@ def TestBare():
           extension='wasm',
           opt=opt,
           wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
-
-  # We don't have a build of the spec interpreter for Windows.
-  if not IsWindows():
-    for opt in BARE_TEST_OPT_FLAGS:
-      ExecuteLLVMTorture(
-          name='spec',
-          runner=Executable(os.path.join(INSTALL_BIN, 'wasm')),
-          indir=GetTortureDir('lld-nostdlib', opt),
-          fails=SPEC_KNOWN_TORTURE_FAILURES,
-          attributes=common_attrs + ['spec'],
-          extension='wasm',
-          opt=opt)
 
   if IsMac() and not buildbot.DidStepFailOrWarn('jsvu'):
     for opt in BARE_TEST_OPT_FLAGS:
@@ -1718,7 +1632,7 @@ def ParseArgs():
       help='Limit which torture tests are run by applying the given glob')
   parser.add_argument(
       '--no-tool-tests', dest='run_tool_tests', action='store_false',
-      help='Skip the testing of tools (such tools llvm, wabt, v8, spec)')
+      help='Skip the testing of tools (such tools llvm, wabt, v8)')
   parser.add_argument(
       '--git-status', dest='git_status', default=False, action='store_true',
       help='Show git status for each sync target. '
