@@ -28,6 +28,7 @@ DEFAULT_INSTALL_DIR = os.path.join(ROOT_DIR, 'install')
 
 dirs = {}
 
+
 def set_path(path_type, dir):
   global dirs
   if path_type in dirs:
