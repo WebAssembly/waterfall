@@ -39,6 +39,7 @@ import host_toolchains
 import link_assembly_files
 import proc
 import testing
+import work_dirs
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -75,7 +76,6 @@ CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
 LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out.gn', 'x64.release')
 JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
-WABT_OUT_DIR = os.path.join(WORK_DIR, 'wabt-out')
 BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
 FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
 MUSL_OUT_DIR = os.path.join(WORK_DIR, 'musl-out')
@@ -895,20 +895,22 @@ def Jsvu():
 
 def Wabt():
   buildbot.Step('WABT')
-  Mkdir(WABT_OUT_DIR)
-  cc_env = BuildEnv(WABT_OUT_DIR)
+  print work_dirs.GetBuild()
+  out_dir = os.path.join(work_dirs.GetBuild(), 'wabt')
+  Mkdir(out_dir)
+  cc_env = BuildEnv(out_dir)
 
   proc.check_call(CMakeCommandNative([
       WABT_SRC_DIR,
       '-DBUILD_TESTS=OFF'
-  ]), cwd=WABT_OUT_DIR, env=cc_env)
+  ]), cwd=out_dir, env=cc_env)
 
-  proc.check_call(['ninja'], cwd=WABT_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja'], cwd=out_dir, env=cc_env)
   # TODO(sbc): git submodules are not yet fetched so we can't yet endable
   # wabt tests.
   # if options.run_tool_tests:
-  #   proc.check_call(['ninja', 'run-tests'], cwd=WABT_OUT_DIR, env=cc_env)
-  proc.check_call(['ninja', 'install'], cwd=WABT_OUT_DIR, env=cc_env)
+  #   proc.check_call(['ninja', 'run-tests'], cwd=out_dir, env=cc_env)
+  proc.check_call(['ninja', 'install'], cwd=out_dir, env=cc_env)
 
 
 def Binaryen():
