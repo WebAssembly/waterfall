@@ -73,7 +73,6 @@ PREBUILT_CLANG_BIN = os.path.join(
 CC = os.path.join(PREBUILT_CLANG_BIN, 'clang')
 CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
 
-LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out.gn', 'x64.release')
 JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
 FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
@@ -199,8 +198,6 @@ os.environ['PATH'] = NODE_BIN_DIR + os.pathsep + os.environ['PATH']
 NODE_BIN = Executable(os.path.join(NODE_BIN_DIR, 'node'))
 NPM_BIN = Executable(os.path.join(NODE_BIN_DIR, 'npm'))
 
-JSVU_BIN = Executable(os.path.join(JSVU_DIR,
-                                   'node_modules', 'jsvu', 'cli.js'))
 
 D8_BIN = Executable(os.path.join(INSTALL_BIN, 'd8'))
 if IsMac():
@@ -783,8 +780,9 @@ def BuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
 
 def LLVM():
   buildbot.Step('LLVM')
-  Mkdir(LLVM_OUT_DIR)
-  cc_env = BuildEnv(LLVM_OUT_DIR, bin_subdir=True)
+  out_dir = os.path.join(work_dirs.GetBuild(), 'llvm-out')
+  Mkdir(out_dir)
+  cc_env = BuildEnv(out_dir, bin_subdir=True)
   build_dylib = 'ON' if not IsWindows() else 'OFF'
   command = CMakeCommandNative([
       LLVM_SRC_DIR,
@@ -804,10 +802,10 @@ def LLVM():
 
   jobs = host_toolchains.NinjaJobs()
 
-  proc.check_call(command, cwd=LLVM_OUT_DIR, env=cc_env)
-  proc.check_call(['ninja', '-v'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
-  proc.check_call(['ninja', 'install'] + jobs, cwd=LLVM_OUT_DIR, env=cc_env)
-  CopyLLVMTools(LLVM_OUT_DIR)
+  proc.check_call(command, cwd=out_dir, env=cc_env)
+  proc.check_call(['ninja', '-v'] + jobs, cwd=out_dir, env=cc_env)
+  proc.check_call(['ninja', 'install'] + jobs, cwd=out_dir, env=cc_env)
+  CopyLLVMTools(out_dir)
   install_bin = os.path.join(INSTALL_DIR, 'bin')
   for target in ('clang', 'clang++'):
     link = os.path.join(install_bin, 'wasm32-' + target)
@@ -831,7 +829,7 @@ def LLVM():
 
   try:
     buildbot.Step('LLVM regression tests')
-    RunWithUnixUtils(['ninja', 'check-all'], cwd=LLVM_OUT_DIR, env=cc_env)
+    RunWithUnixUtils(['ninja', 'check-all'], cwd=out_dir, env=cc_env)
   except proc.CalledProcessError:
     buildbot.FailUnless(lambda: IsWindows())
 
@@ -858,7 +856,8 @@ def V8():
 
 def Jsvu():
   buildbot.Step('jsvu')
-  Mkdir(JSVU_DIR)
+  jsvu_dir = os.path.join(work_dirs.GetBuild(), 'jsvu')
+  Mkdir(jsvu_dir)
 
   try:
     if IsWindows():
@@ -875,10 +874,12 @@ def Jsvu():
 
     # https://github.com/GoogleChromeLabs/jsvu#installation
     # ...except we install it locally instead of globally.
-    proc.check_call([NPM_BIN, 'install', 'jsvu'], cwd=JSVU_DIR)
+    proc.check_call([NPM_BIN, 'install', 'jsvu'], cwd=jsvu_dir)
 
+    jsvu_bin = Executable(os.path.join(
+        jsvu_dir, 'node_modules', 'jsvu', 'cli.js'))
     # https://github.com/GoogleChromeLabs/jsvu#integration-with-non-interactive-environments
-    proc.check_call([JSVU_BIN,
+    proc.check_call([jsvu_bin,
                      '--os=%s' % os_id,
                      '--engines=%s' % js_engines])
 
@@ -1062,7 +1063,7 @@ def CompilerRT():
       '-DCOMPILER_RT_ENABLE_IOS=OFF',
       '-DCOMPILER_RT_DEFAULT_TARGET_ONLY=On',
       '-DLLVM_CONFIG_PATH=' +
-      Executable(os.path.join(LLVM_OUT_DIR, 'bin', 'llvm-config')),
+      Executable(os.path.join(work_dirs.GetBuild(), 'llvm-out', 'bin', 'llvm-config')),
       '-DCOMPILER_RT_OS_DIR=.',
       '-DCMAKE_INSTALL_PREFIX=' +
       os.path.join(INSTALL_DIR, 'lib', 'clang', LLVM_VERSION)
