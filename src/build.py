@@ -76,7 +76,6 @@ CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
 LLVM_OUT_DIR = os.path.join(WORK_DIR, 'llvm-out')
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out.gn', 'x64.release')
 JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
-BINARYEN_OUT_DIR = os.path.join(WORK_DIR, 'binaryen-out')
 FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
 MUSL_OUT_DIR = os.path.join(WORK_DIR, 'musl-out')
 COMPILER_RT_OUT_DIR = os.path.join(WORK_DIR, 'compiler-rt-out')
@@ -895,8 +894,7 @@ def Jsvu():
 
 def Wabt():
   buildbot.Step('WABT')
-  print work_dirs.GetBuild()
-  out_dir = os.path.join(work_dirs.GetBuild(), 'wabt')
+  out_dir = os.path.join(work_dirs.GetBuild(), 'wabt-out')
   Mkdir(out_dir)
   cc_env = BuildEnv(out_dir)
 
@@ -915,15 +913,16 @@ def Wabt():
 
 def Binaryen():
   buildbot.Step('binaryen')
-  Mkdir(BINARYEN_OUT_DIR)
+  out_dir = os.path.join(work_dirs.GetBuid(), 'binaryen-out')
+  Mkdir(out_dir)
   # Currently it's a bad idea to do a non-asserts build of Binaryen
-  cc_env = BuildEnv(BINARYEN_OUT_DIR, bin_subdir=True, runtime='Debug')
+  cc_env = BuildEnv(out_dir, bin_subdir=True, runtime='Debug')
 
   proc.check_call(CMakeCommandNative([
       BINARYEN_SRC_DIR,
-  ]), cwd=BINARYEN_OUT_DIR, env=cc_env)
-  proc.check_call(['ninja', '-v'], cwd=BINARYEN_OUT_DIR, env=cc_env)
-  proc.check_call(['ninja', 'install'], cwd=BINARYEN_OUT_DIR, env=cc_env)
+  ]), cwd=out_dir, env=cc_env)
+  proc.check_call(['ninja', '-v'], cwd=out_dir, env=cc_env)
+  proc.check_call(['ninja', 'install'], cwd=out_dir, env=cc_env)
 
 
 def Fastcomp():
@@ -1585,6 +1584,16 @@ def ParseArgs():
       description='Wasm waterfall top-level CI script',
       formatter_class=argparse.RawDescriptionHelpFormatter,
       epilog=epilog)
+
+  parser.add_argument(
+      '--sync-dir', dest='sync_dir', help='Directory for syncing sources')
+  parser.add_argument(
+      '--build-dir', dest='build_dir', help='Directory for build output')
+  parser.add_argument(
+      '--test-dir', dest='test_dir', help='Directory for test output')
+  parser.add_argument(
+      '--install-dir', dest='install_dir', help='Directory for installed output')
+
   sync_grp = parser.add_mutually_exclusive_group()
   sync_grp.add_argument(
       '--no-sync', dest='sync', default=True, action='store_false',
@@ -1694,6 +1703,15 @@ def main():
     testing.single_threaded = True
   if options.torture_filter:
     compile_torture_tests.test_filter = options.torture_filter
+
+  if options.sync_dir:
+    work_dirs.SetSync(options.sync_dir)
+  if options.build_dir:
+    work_dirs.SetBuild(options.build_dir)
+  if options.test_dir:
+    work_dirs.SetBuild(options.test_dir)
+  if options.install_dir:
+    work_dirs.SetBuild(options.install_dir)
 
   sync_include = options.sync_include if options.sync else []
   sync_filter = Filter('sync', sync_include, options.sync_exclude)

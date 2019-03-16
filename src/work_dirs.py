@@ -18,27 +18,28 @@ import os
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-# Root of the waterfall git repo
-ROOT_DIR = os.path.dirname(SCRIPT_DIR)
+DEFAULT_WORK_DIR = os.path.join(os.path.dirname(SCRIPT_DIR), 'src', 'work')
 
-DEFAULT_SYNC_DIR = os.path.join(ROOT_DIR, 'sync')
-DEFAULT_BUILD_DIR = os.path.join(ROOT_DIR, 'build')
-DEFAULT_TEST_DIR = os.path.join(ROOT_DIR, 'test-out')
-DEFAULT_INSTALL_DIR = os.path.join(ROOT_DIR, 'install')
+DEFAULT_SYNC_DIR = os.path.join(DEFAULT_WORK_DIR)
+DEFAULT_BUILD_DIR = os.path.join(DEFAULT_WORK_DIR)
+DEFAULT_TEST_DIR = os.path.join(DEFAULT_WORK_DIR)
+DEFAULT_INSTALL_DIR = os.path.join(DEFAULT_WORK_DIR, 'wasm-install')
 
 dirs = {}
 
 
-def set_path(path_type, dir):
-  global dirs
-  if path_type in dirs:
-    raise Exception('Path %s set more than once' % path_type)
-  dirs[path_type] = dir
+def MakeGetterSetter(path_type, default):
+  def getter():
+    return dirs.get(path_type, default)
 
+  def setter(dir):
+    if path_type in dirs:
+      raise Exception('Path %s set more than once' % path_type)
+    dirs[path_type] = dir
 
-def GetBuild():
-  return dirs.get('build', DEFAULT_BUILD_DIR)
+  return getter, setter
 
-
-def SetBuild(dir):
-  set_path('build', dir)
+GetSync, SetSync = MakeGetterSetter('sync', DEFAULT_SYNC_DIR)
+GetBuild, SetBuild = MakeGetterSetter('build', DEFAULT_BUILD_DIR)
+GetTest, SetTest = MakeGetterSetter('test', DEFAULT_TEST_DIR)
+GetInstall, SetInstall = MakeGetterSetter('install', DEFAULT_INSTALL_DIR)
