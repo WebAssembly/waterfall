@@ -1063,7 +1063,8 @@ def CompilerRT():
       '-DCOMPILER_RT_ENABLE_IOS=OFF',
       '-DCOMPILER_RT_DEFAULT_TARGET_ONLY=On',
       '-DLLVM_CONFIG_PATH=' +
-      Executable(os.path.join(work_dirs.GetBuild(), 'llvm-out', 'bin', 'llvm-config')),
+      Executable(os.path.join(work_dirs.GetBuild(),
+                              'llvm-out', 'bin', 'llvm-config')),
       '-DCOMPILER_RT_OS_DIR=.',
       '-DCMAKE_INSTALL_PREFIX=' +
       os.path.join(INSTALL_DIR, 'lib', 'clang', LLVM_VERSION)
@@ -1592,8 +1593,8 @@ def ParseArgs():
       '--build-dir', dest='build_dir', help='Directory for build output')
   parser.add_argument(
       '--test-dir', dest='test_dir', help='Directory for test output')
-  parser.add_argument(
-      '--install-dir', dest='install_dir', help='Directory for installed output')
+  parser.add_argument('--install-dir',
+      dest='install_dir', help='Directory for installed output')
 
   sync_grp = parser.add_mutually_exclusive_group()
   sync_grp.add_argument(

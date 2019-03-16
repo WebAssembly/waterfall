@@ -39,6 +39,7 @@ def MakeGetterSetter(path_type, default):
 
   return getter, setter
 
+
 GetSync, SetSync = MakeGetterSetter('sync', DEFAULT_SYNC_DIR)
 GetBuild, SetBuild = MakeGetterSetter('build', DEFAULT_BUILD_DIR)
 GetTest, SetTest = MakeGetterSetter('test', DEFAULT_TEST_DIR)
