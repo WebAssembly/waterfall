@@ -75,13 +75,6 @@ CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
 
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out.gn', 'x64.release')
 JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
-FASTCOMP_OUT_DIR = os.path.join(WORK_DIR, 'fastcomp-out')
-MUSL_OUT_DIR = os.path.join(WORK_DIR, 'musl-out')
-COMPILER_RT_OUT_DIR = os.path.join(WORK_DIR, 'compiler-rt-out')
-LIBCXX_OUT_DIR = os.path.join(WORK_DIR, 'libcxx-out')
-LIBCXXABI_OUT_DIR = os.path.join(WORK_DIR, 'libcxxabi-out')
-ASM2WASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'asm2wasm-torture-out')
-EMWASM_TORTURE_OUT_DIR = os.path.join(WORK_DIR, 'emwasm-torture-out')
 EMSCRIPTEN_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-out')
 EMSCRIPTEN_ASMJS_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-asm2wasm-out')
 
@@ -928,10 +921,11 @@ def Binaryen():
 
 def Fastcomp():
   buildbot.Step('fastcomp')
-  Mkdir(FASTCOMP_OUT_DIR)
+  build_dir = os.path.join(work_dirs.GetBuild(), 'fastcomp-out')
+  Mkdir(build_dir)
   install_dir = os.path.join(INSTALL_DIR, 'fastcomp')
   build_dylib = 'ON' if not IsWindows() else 'OFF'
-  cc_env = BuildEnv(FASTCOMP_OUT_DIR, bin_subdir=True)
+  cc_env = BuildEnv(build_dir, bin_subdir=True)
   command = CMakeCommandNative([
       FASTCOMP_SRC_DIR,
       '-DLLVM_INCLUDE_EXAMPLES=OFF',
@@ -942,14 +936,14 @@ def Fastcomp():
       '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
       '-DLLVM_ENABLE_ASSERTIONS=ON'
   ])
-  proc.check_call(command, cwd=FASTCOMP_OUT_DIR, env=cc_env)
+  proc.check_call(command, cwd=build_dir, env=cc_env)
 
   jobs = host_toolchains.NinjaJobs()
-  proc.check_call(['ninja'] + jobs, cwd=FASTCOMP_OUT_DIR, env=cc_env)
-  proc.check_call(['ninja', 'install'], cwd=FASTCOMP_OUT_DIR, env=cc_env)
+  proc.check_call(['ninja'] + jobs, cwd=build_dir, env=cc_env)
+  proc.check_call(['ninja', 'install'], cwd=build_dir, env=cc_env)
   # Fastcomp has a different install location than the rest of the tools
   BuildEnv(install_dir, bin_subdir=True)
-  CopyLLVMTools(FASTCOMP_OUT_DIR, 'fastcomp')
+  CopyLLVMTools(build_dir, 'fastcomp')
 
 
 def Emscripten():
@@ -1046,13 +1040,14 @@ def CompilerRT():
   # have yet to make it actually work this way.
   buildbot.Step('compiler-rt')
 
+  build_dir = os.path.join(work_dirs.GetBuild(), 'compiler-rt-out')
   # TODO(sbc): Remove this.
   # The compiler-rt doesn't currently rebuild libraries when a new -DCMAKE_AR
   # value is specified.
-  if os.path.isdir(COMPILER_RT_OUT_DIR):
-    Remove(COMPILER_RT_OUT_DIR)
+  if os.path.isdir(build_dir):
+    Remove(build_dir)
 
-  Mkdir(COMPILER_RT_OUT_DIR)
+  Mkdir(build_dir)
   cc_env = BuildEnv(COMPILER_RT_SRC_DIR, bin_subdir=True)
   command = CMakeCommandWack([
       os.path.join(COMPILER_RT_SRC_DIR, 'lib', 'builtins'),
@@ -1070,16 +1065,17 @@ def CompilerRT():
       os.path.join(INSTALL_DIR, 'lib', 'clang', LLVM_VERSION)
   ])
 
-  proc.check_call(command, cwd=COMPILER_RT_OUT_DIR, env=cc_env)
-  proc.check_call(['ninja', '-v'], cwd=COMPILER_RT_OUT_DIR, env=cc_env)
-  proc.check_call(['ninja', 'install'], cwd=COMPILER_RT_OUT_DIR, env=cc_env)
+  proc.check_call(command, cwd=build_dir, env=cc_env)
+  proc.check_call(['ninja', '-v'], cwd=build_dir, env=cc_env)
+  proc.check_call(['ninja', 'install'], cwd=build_dir, env=cc_env)
 
 
 def LibCXX():
   buildbot.Step('libcxx')
-  if os.path.isdir(LIBCXX_OUT_DIR):
-    Remove(LIBCXX_OUT_DIR)
-  Mkdir(LIBCXX_OUT_DIR)
+  build_dir = os.path.join(work_dirs.GetBuild(), 'libcxx-out')
+  if os.path.isdir(build_dir):
+    Remove(build_dir)
+  Mkdir(build_dir)
   cc_env = BuildEnv(LIBCXX_SRC_DIR, bin_subdir=True)
   command = CMakeCommandWack([
       os.path.join(LIBCXX_SRC_DIR),
@@ -1093,16 +1089,17 @@ def LibCXX():
       '-DLLVM_PATH=' + LLVM_SRC_DIR,
   ])
 
-  proc.check_call(command, cwd=LIBCXX_OUT_DIR, env=cc_env)
-  proc.check_call(['ninja', '-v'], cwd=LIBCXX_OUT_DIR, env=cc_env)
-  proc.check_call(['ninja', 'install'], cwd=LIBCXX_OUT_DIR, env=cc_env)
+  proc.check_call(command, cwd=build_dir, env=cc_env)
+  proc.check_call(['ninja', '-v'], cwd=build_dir, env=cc_env)
+  proc.check_call(['ninja', 'install'], cwd=build_dir, env=cc_env)
 
 
 def LibCXXABI():
   buildbot.Step('libcxxabi')
-  if os.path.isdir(LIBCXXABI_OUT_DIR):
-    Remove(LIBCXXABI_OUT_DIR)
-  Mkdir(LIBCXXABI_OUT_DIR)
+  build_dir = os.path.join(work_dirs.GetBuild(), 'libcxxabi-out')
+  if os.path.isdir(build_dir):
+    Remove(build_dir)
+  Mkdir(build_dir)
   cc_env = BuildEnv(LIBCXXABI_SRC_DIR, bin_subdir=True)
   command = CMakeCommandWack([
       os.path.join(LIBCXXABI_SRC_DIR),
@@ -1119,30 +1116,31 @@ def LibCXXABI():
       '-DLLVM_PATH=' + LLVM_SRC_DIR,
   ])
 
-  proc.check_call(command, cwd=LIBCXXABI_OUT_DIR, env=cc_env)
-  proc.check_call(['ninja', '-v'], cwd=LIBCXXABI_OUT_DIR, env=cc_env)
-  proc.check_call(['ninja', 'install'], cwd=LIBCXXABI_OUT_DIR, env=cc_env)
+  proc.check_call(command, cwd=build_dir, env=cc_env)
+  proc.check_call(['ninja', '-v'], cwd=build_dir, env=cc_env)
+  proc.check_call(['ninja', 'install'], cwd=build_dir, env=cc_env)
   CopyLibraryToSysroot(os.path.join(SCRIPT_DIR, 'libc++abi.imports'))
 
 
 def Musl():
   buildbot.Step('musl')
-  Mkdir(MUSL_OUT_DIR)
+  build_dir = os.path.join(work_dirs.GetBuild(), 'musl-out')
+  Mkdir(build_dir)
   try:
-    cc_env = BuildEnv(MUSL_OUT_DIR, use_gnuwin32=True)
+    cc_env = BuildEnv(build_dir, use_gnuwin32=True)
     # Build musl directly to wasm object files in an ar library
     proc.check_call([
         os.path.join(MUSL_SRC_DIR, 'libc.py'),
         '--clang_dir', INSTALL_BIN,
         '--binaryen_dir', os.path.join(INSTALL_BIN),
         '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wat2wasm'),
-        '--out', os.path.join(MUSL_OUT_DIR, 'libc.a'),
+        '--out', os.path.join(build_dir, 'libc.a'),
         '--musl', MUSL_SRC_DIR, '--compile-to-wasm'], env=cc_env)
     AR = os.path.join(INSTALL_BIN, 'llvm-ar')
-    proc.check_call([AR, 'rc', os.path.join(MUSL_OUT_DIR, 'libm.a')])
-    CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'libc.a'))
-    CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'libm.a'))
-    CopyLibraryToSysroot(os.path.join(MUSL_OUT_DIR, 'crt1.o'))
+    proc.check_call([AR, 'rc', os.path.join(build_dir, 'libm.a')])
+    CopyLibraryToSysroot(os.path.join(build_dir, 'libc.a'))
+    CopyLibraryToSysroot(os.path.join(build_dir, 'libm.a'))
+    CopyLibraryToSysroot(os.path.join(build_dir, 'crt1.o'))
     CopyLibraryToSysroot(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32',
                                       'libc.imports'))
 
@@ -1155,7 +1153,7 @@ def Musl():
              os.path.join(INSTALL_SYSROOT, 'include', 'bits'))
     CopyTree(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32', 'bits'),
              os.path.join(INSTALL_SYSROOT, 'include', 'bits'))
-    CopyTree(os.path.join(MUSL_OUT_DIR, 'obj', 'include', 'bits'),
+    CopyTree(os.path.join(build_dir, 'obj', 'include', 'bits'),
              os.path.join(INSTALL_SYSROOT, 'include', 'bits'))
     # Strictly speaking the CMake toolchain file isn't part of musl, but does
     # go along with the headers and libs musl installs. Give it a special
@@ -1390,8 +1388,8 @@ class Test(object):
 
 def GetTortureDir(name, opt):
   dirs = {
-      'asm2wasm': os.path.join(ASM2WASM_TORTURE_OUT_DIR, opt),
-      'emwasm': os.path.join(EMWASM_TORTURE_OUT_DIR, opt),
+      'asm2wasm': os.path.join(work_dirs.GetTest(), 'asm2wasm-torture-out', opt),
+      'emwasm': os.path.join(work_dirs.GetTest(), 'emwasm-torture-out', opt),
   }
   if name in dirs:
     return dirs[name]
