@@ -780,9 +780,9 @@ def BuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
 
 def LLVM():
   buildbot.Step('LLVM')
-  out_dir = os.path.join(work_dirs.GetBuild(), 'llvm-out')
-  Mkdir(out_dir)
-  cc_env = BuildEnv(out_dir, bin_subdir=True)
+  build_dir = os.path.join(work_dirs.GetBuild(), 'llvm-out')
+  Mkdir(build_dir)
+  cc_env = BuildEnv(build_dir, bin_subdir=True)
   build_dylib = 'ON' if not IsWindows() else 'OFF'
   command = CMakeCommandNative([
       LLVM_SRC_DIR,
@@ -802,10 +802,10 @@ def LLVM():
 
   jobs = host_toolchains.NinjaJobs()
 
-  proc.check_call(command, cwd=out_dir, env=cc_env)
-  proc.check_call(['ninja', '-v'] + jobs, cwd=out_dir, env=cc_env)
-  proc.check_call(['ninja', 'install'] + jobs, cwd=out_dir, env=cc_env)
-  CopyLLVMTools(out_dir)
+  proc.check_call(command, cwd=build_dir, env=cc_env)
+  proc.check_call(['ninja', '-v'] + jobs, cwd=build_dir, env=cc_env)
+  proc.check_call(['ninja', 'install'] + jobs, cwd=build_dir, env=cc_env)
+  CopyLLVMTools(build_dir)
   install_bin = os.path.join(INSTALL_DIR, 'bin')
   for target in ('clang', 'clang++'):
     link = os.path.join(install_bin, 'wasm32-' + target)
@@ -829,7 +829,7 @@ def LLVM():
 
   try:
     buildbot.Step('LLVM regression tests')
-    RunWithUnixUtils(['ninja', 'check-all'], cwd=out_dir, env=cc_env)
+    RunWithUnixUtils(['ninja', 'check-all'], cwd=build_dir, env=cc_env)
   except proc.CalledProcessError:
     buildbot.FailUnless(lambda: IsWindows())
 
@@ -1593,8 +1593,9 @@ def ParseArgs():
       '--build-dir', dest='build_dir', help='Directory for build output')
   parser.add_argument(
       '--test-dir', dest='test_dir', help='Directory for test output')
-  parser.add_argument('--install-dir',
-      dest='install_dir', help='Directory for installed output')
+  parser.add_argument(
+      '--install-dir', dest='install_dir',
+      help='Directory for installed output')
 
   sync_grp = parser.add_mutually_exclusive_group()
   sync_grp.add_argument(
