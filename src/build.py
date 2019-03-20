@@ -75,19 +75,19 @@ CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
 
 V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out.gn', 'x64.release')
 JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
-EMSCRIPTEN_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-out')
-EMSCRIPTEN_ASMJS_TEST_OUT_DIR = os.path.join(WORK_DIR, 'emtest-asm2wasm-out')
 
-INSTALL_DIR = os.path.join(WORK_DIR, 'wasm-install')
-INSTALL_BIN = os.path.join(INSTALL_DIR, 'bin')
-INSTALL_LIB = os.path.join(INSTALL_DIR, 'lib')
-INSTALL_SYSROOT = os.path.join(INSTALL_DIR, 'sysroot')
+
+def GetInstallDir(*args):
+  args = [] if args is None else list(args)
+  path = ['wasm-install'] + path
+  return os.path.join(work_dirs.GetInstall(), *path)
+
 
 # This file has a special path to avoid warnings about the system being unknown
-CMAKE_TOOLCHAIN_FILE = os.path.join(INSTALL_DIR, 'Wack.cmake')
+CMAKE_TOOLCHAIN_FILE = 'Wack.cmake'
 
-EMSCRIPTEN_CONFIG_ASMJS = os.path.join(INSTALL_DIR, 'emscripten_config')
-EMSCRIPTEN_CONFIG_WASM = os.path.join(INSTALL_DIR, 'emscripten_config_vanilla')
+EMSCRIPTEN_CONFIG_ASMJS = 'emscripten_config'
+EMSCRIPTEN_CONFIG_WASM = 'emscripten_config_vanilla'
 
 # Avoid flakes: use cached repositories to avoid relying on external network.
 GITHUB_REMOTE = 'github'
@@ -192,7 +192,7 @@ NODE_BIN = Executable(os.path.join(NODE_BIN_DIR, 'node'))
 NPM_BIN = Executable(os.path.join(NODE_BIN_DIR, 'npm'))
 
 
-D8_BIN = Executable(os.path.join(INSTALL_BIN, 'd8'))
+D8_BIN = Executable(os.path.join(GetInstallDir('bin'), 'd8'))
 if IsMac():
   D8_BIN = os.path.join(JSVU_OUT_DIR, 'v8')
 
@@ -261,7 +261,7 @@ GCC_CLONE_DEPTH = 1000
 
 def CopyBinaryToArchive(binary, prefix=''):
   """All binaries are archived in the same tar file."""
-  install_bin = os.path.join(INSTALL_DIR, prefix, 'bin')
+  install_bin = GetInstallDir(prefix, 'bin')
   print 'Copying binary %s to archive %s' % (binary, install_bin)
   Mkdir(install_bin)
   shutil.copy2(binary, install_bin)
@@ -269,7 +269,7 @@ def CopyBinaryToArchive(binary, prefix=''):
 
 def CopyLibraryToArchive(library, prefix=''):
   """All libraries are archived in the same tar file."""
-  install_lib = os.path.join(INSTALL_DIR, prefix, 'lib')
+  install_lib = GetInstallDir(prefix, 'lib')
   print 'Copying library %s to archive %s' % (library, install_lib)
   Mkdir(install_lib)
   shutil.copy2(library, install_lib)
@@ -277,7 +277,7 @@ def CopyLibraryToArchive(library, prefix=''):
 
 def CopyLibraryToSysroot(library):
   """All libraries are archived in the same tar file."""
-  install_lib = os.path.join(INSTALL_SYSROOT, 'lib')
+  install_lib = GetInstallDir('sysroot', 'lib')
   print 'Copying library %s to archive %s' % (library, install_lib)
   Mkdir(install_lib)
   shutil.copy2(library, install_lib)
@@ -723,7 +723,7 @@ def CMakeCommandBase():
 
 def CMakeCommandNative(args):
   command = CMakeCommandBase()
-  command.append('-DCMAKE_INSTALL_PREFIX=%s' % INSTALL_DIR)
+  command.append('-DCMAKE_INSTALL_PREFIX=%s' % GetInstallDir())
   command.extend(OverrideCMakeCompiler())
   command.extend(host_toolchains.CMakeLauncherFlags())
   command.extend(args)
@@ -732,14 +732,15 @@ def CMakeCommandNative(args):
 
 def CMakeCommandWack(args):
   command = CMakeCommandBase()
-  command.append('-DCMAKE_TOOLCHAIN_FILE=%s' % CMAKE_TOOLCHAIN_FILE)
+  command.append('-DCMAKE_TOOLCHAIN_FILE=%s' %
+                 GetInstallDir(CMAKE_TOOLCHAIN_FILE))
   command.extend(args)
   return command
 
 
 def CopyLLVMTools(build_dir, prefix=''):
   # The following isn't useful for now, and takes up space.
-  Remove(os.path.join(INSTALL_DIR, prefix, 'bin', 'clang-check'))
+  Remove(GetInstallDir(prefix, 'bin', 'clang-check'))
   # The following are useful, LLVM_INSTALL_TOOLCHAIN_ONLY did away with them.
   extra_bins = map(Executable,
                    ['FileCheck', 'lli', 'llc', 'llvm-as', 'llvm-dis',
@@ -799,7 +800,7 @@ def LLVM():
   proc.check_call(['ninja', '-v'] + jobs, cwd=build_dir, env=cc_env)
   proc.check_call(['ninja', 'install'] + jobs, cwd=build_dir, env=cc_env)
   CopyLLVMTools(build_dir)
-  install_bin = os.path.join(INSTALL_DIR, 'bin')
+  install_bin = GetInstallDir('bin')
   for target in ('clang', 'clang++'):
     link = os.path.join(install_bin, 'wasm32-' + target)
     if not IsWindows():
@@ -923,7 +924,7 @@ def Fastcomp():
   buildbot.Step('fastcomp')
   build_dir = os.path.join(work_dirs.GetBuild(), 'fastcomp-out')
   Mkdir(build_dir)
-  install_dir = os.path.join(INSTALL_DIR, 'fastcomp')
+  install_dir = GetInstallDir('fastcomp')
   build_dylib = 'ON' if not IsWindows() else 'OFF'
   cc_env = BuildEnv(build_dir, bin_subdir=True)
   command = CMakeCommandNative([
@@ -951,7 +952,7 @@ def Emscripten():
   # Remove cached library builds (e.g. libc, libc++) to force them to be
   # rebuilt in the step below.
   Remove(os.path.expanduser(os.path.join('~', '.emscripten_cache')))
-  emscripten_dir = os.path.join(INSTALL_DIR, 'emscripten')
+  emscripten_dir = GetInstallDir('emscripten')
   Remove(emscripten_dir)
   print 'Copying directory %s to %s' % (EMSCRIPTEN_SRC_DIR, emscripten_dir)
   shutil.copytree(EMSCRIPTEN_SRC_DIR,
@@ -976,14 +977,14 @@ def Emscripten():
   def WriteEmscriptenConfig(infile, outfile):
     with open(infile) as config:
       text = config.read().replace('{{WASM_INSTALL}}',
-                                   WindowsFSEscape(INSTALL_DIR))
+                                   WindowsFSEscape(GetInstallDir()))
       text = text.replace('{{PREBUILT_NODE}}', WindowsFSEscape(NODE_BIN))
       text = text.replace('{{PREBUILT_JAVA}}', WindowsFSEscape(JAVA_BIN))
     with open(outfile, 'w') as config:
       config.write(text)
 
-  configs = [('asm2wasm', EMSCRIPTEN_CONFIG_ASMJS),
-             ('emwasm', EMSCRIPTEN_CONFIG_WASM)]
+  configs = [('asm2wasm', GetInstallDir(EMSCRIPTEN_CONFIG_ASMJS)),
+             ('emwasm', GetInstallDir(EMSCRIPTEN_CONFIG_WASM))]
 
   for config_name, config in configs:
     buildbot.Step('emscripten (%s)' % config_name)
@@ -1028,10 +1029,10 @@ def Emscripten():
       del os.environ['EM_CONFIG']
 
   wrapper = os.path.join(SCRIPT_DIR, 'emcc_wrapper.sh')
-  shutil.copy2(wrapper, os.path.join(INSTALL_BIN, 'emcc'))
-  shutil.copy2(wrapper, os.path.join(INSTALL_BIN, 'em++'))
-  shutil.copy2(wrapper, os.path.join(INSTALL_BIN, 'emconfigure'))
-  shutil.copy2(wrapper, os.path.join(INSTALL_BIN, 'emmake'))
+  shutil.copy2(wrapper, GetInstallDir('bin', 'emcc'))
+  shutil.copy2(wrapper, GetInstallDir('bin', 'em++'))
+  shutil.copy2(wrapper, GetInstallDir('bin', 'emconfigure'))
+  shutil.copy2(wrapper, GetInstallDir('bin', 'emmake'))
 
 
 def CompilerRT():
@@ -1062,7 +1063,7 @@ def CompilerRT():
                               'llvm-out', 'bin', 'llvm-config')),
       '-DCOMPILER_RT_OS_DIR=.',
       '-DCMAKE_INSTALL_PREFIX=' +
-      os.path.join(INSTALL_DIR, 'lib', 'clang', LLVM_VERSION)
+      GetInstallDir('lib', 'clang', LLVM_VERSION)
   ])
 
   proc.check_call(command, cwd=build_dir, env=cc_env)
@@ -1112,7 +1113,7 @@ def LibCXXABI():
       '-DLLVM_COMPILER_CHECKED=ON',
       '-DLIBCXXABI_LIBCXX_PATH=' + LIBCXX_SRC_DIR,
       '-DLIBCXXABI_LIBCXX_INCLUDES=' +
-      os.path.join(INSTALL_SYSROOT, 'include', 'c++', 'v1'),
+      GetInstallDir('sysroot', 'include', 'c++', 'v1'),
       '-DLLVM_PATH=' + LLVM_SRC_DIR,
   ])
 
@@ -1128,15 +1129,16 @@ def Musl():
   Mkdir(build_dir)
   try:
     cc_env = BuildEnv(build_dir, use_gnuwin32=True)
+    install_bin = GetInstallDir('bin')
     # Build musl directly to wasm object files in an ar library
     proc.check_call([
         os.path.join(MUSL_SRC_DIR, 'libc.py'),
-        '--clang_dir', INSTALL_BIN,
-        '--binaryen_dir', os.path.join(INSTALL_BIN),
-        '--sexpr_wasm', os.path.join(INSTALL_BIN, 'wat2wasm'),
+        '--clang_dir', install_bin,
+        '--binaryen_dir', os.path.join(install_bin),
+        '--sexpr_wasm', os.path.join(install_bin, 'wat2wasm'),
         '--out', os.path.join(build_dir, 'libc.a'),
         '--musl', MUSL_SRC_DIR, '--compile-to-wasm'], env=cc_env)
-    AR = os.path.join(INSTALL_BIN, 'llvm-ar')
+    AR = os.path.join(install_bin, 'llvm-ar')
     proc.check_call([AR, 'rc', os.path.join(build_dir, 'libm.a')])
     CopyLibraryToSysroot(os.path.join(build_dir, 'libc.a'))
     CopyLibraryToSysroot(os.path.join(build_dir, 'libm.a'))
@@ -1148,21 +1150,21 @@ def Musl():
     CopyLibraryToArchive(wasm_js)
 
     CopyTree(os.path.join(MUSL_SRC_DIR, 'include'),
-             os.path.join(INSTALL_SYSROOT, 'include'))
+             GetInstallDir('sysroot', 'include'))
     CopyTree(os.path.join(MUSL_SRC_DIR, 'arch', 'generic', 'bits'),
-             os.path.join(INSTALL_SYSROOT, 'include', 'bits'))
+             GetInstallDir('sysroot', 'include', 'bits'))
     CopyTree(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32', 'bits'),
-             os.path.join(INSTALL_SYSROOT, 'include', 'bits'))
+             GetInstallDir('sysroot', 'include', 'bits'))
     CopyTree(os.path.join(build_dir, 'obj', 'include', 'bits'),
-             os.path.join(INSTALL_SYSROOT, 'include', 'bits'))
+             GetInstallDir('sysroot', 'include', 'bits'))
     # Strictly speaking the CMake toolchain file isn't part of musl, but does
     # go along with the headers and libs musl installs. Give it a special
     # path to avoid warnings about the system being unknown.
-    shutil.copy2(os.path.join(SCRIPT_DIR, 'Wack.cmake'),
-                 CMAKE_TOOLCHAIN_FILE)
-    Remove(os.path.join(INSTALL_DIR, 'cmake'))
+    shutil.copy2(os.path.join(SCRIPT_DIR, CMAKE_TOOLCHAIN_FILE),
+                 GetInstallDir(CMAKE_TOOLCHAIN_FILE))
+    Remove(GetInstallDir('cmake'))
     shutil.copytree(os.path.join(SCRIPT_DIR, 'cmake'),
-                    os.path.join(INSTALL_DIR, 'cmake'))
+                    GetInstallDir('cmake'))
 
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
@@ -1176,7 +1178,7 @@ def ArchiveBinaries():
   # TODO(sergiyb): Restore printing list of binaries on Linux and Mac once it
   # works. See https://crbug.com/916775 and https://crbug.com/940663
   UploadArchive(
-      'binaries', Archive(INSTALL_DIR, print_content=IsWindows()))
+      'binaries', Archive(GetInstallDir(), print_content=IsWindows()))
 
 
 def DebianPackage():
@@ -1209,13 +1211,14 @@ def DebianPackage():
 def CompileLLVMTorture(outdir, opt):
   name = 'Compile LLVM Torture (%s)' % opt
   buildbot.Step(name)
-  cc = Executable(os.path.join(INSTALL_BIN, 'wasm32-clang'))
-  cxx = Executable(os.path.join(INSTALL_BIN, 'wasm32-clang++'))
+  install_bin = GetInstallDir('bin')
+  cc = Executable(os.path.join(install_bin, 'wasm32-clang'))
+  cxx = Executable(os.path.join(install_bin, 'wasm32-clang++'))
   Remove(outdir)
   Mkdir(outdir)
   unexpected_result_count = compile_torture_tests.run(
       cc=cc, cxx=cxx, testsuite=GCC_TEST_DIR,
-      sysroot_dir=INSTALL_SYSROOT,
+      sysroot_dir=GetInstallDir('sysroot'),
       fails=LLVM_KNOWN_TORTURE_FAILURES,
       exclusions=LLVM_TORTURE_EXCLUSIONS,
       out=outdir,
@@ -1229,13 +1232,13 @@ def CompileLLVMTorture(outdir, opt):
 def CompileLLVMTortureEmscripten(name, em_config, outdir, fails, opt):
   buildbot.Step('Compile LLVM Torture (%s, %s)' % (name, opt))
   os.environ['EM_CONFIG'] = em_config
-  cc = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'emcc'), '.bat')
-  cxx = Executable(os.path.join(INSTALL_DIR, 'emscripten', 'em++'), '.bat')
+  cc = Executable(GetInstallDir('emscripten', 'emcc'), '.bat')
+  cxx = Executable(GetInstallDir('emscripten', 'em++'), '.bat')
   Remove(outdir)
   Mkdir(outdir)
   unexpected_result_count = compile_torture_tests.run(
       cc=cc, cxx=cxx, testsuite=GCC_TEST_DIR,
-      sysroot_dir=INSTALL_SYSROOT,
+      sysroot_dir=GetInstallDir('sysroot'),
       fails=fails,
       exclusions=LLVM_TORTURE_EXCLUSIONS,
       out=outdir,
@@ -1291,7 +1294,7 @@ def ExecuteLLVMTorture(name, runner, indir, fails, attributes, extension, opt,
 
 
 def ValidateLLVMTorture(indir, ext, opt):
-  validate = Executable(os.path.join(INSTALL_BIN, 'wasm-validate'))
+  validate = Executable(os.path.join(GetInstallDir('bin'), 'wasm-validate'))
   ExecuteLLVMTorture('validate', validate, indir, None, [], ext, opt)
 
 
@@ -1317,7 +1320,7 @@ def Summary(repos):
   info = {'repositories': repos}
   info['build'] = buildbot.BuildNumber()
   info['scheduler'] = buildbot.Scheduler()
-  info_file = os.path.join(INSTALL_DIR, 'buildinfo.json')
+  info_file = GetInstallDir('buildinfo.json')
 
   if buildbot.IsBot():
     info_json = json.dumps(info, indent=2)
@@ -1388,7 +1391,8 @@ class Test(object):
 
 def GetTortureDir(name, opt):
   dirs = {
-      'asm2wasm': os.path.join(work_dirs.GetTest(), 'asm2wasm-torture-out', opt),
+      'asm2wasm': os.path.join(
+          work_dirs.GetTest(), 'asm2wasm-torture-out', opt),
       'emwasm': os.path.join(work_dirs.GetTest(), 'emwasm-torture-out', opt),
   }
   if name in dirs:
@@ -1406,7 +1410,7 @@ def TestBare():
   for opt in BARE_TEST_OPT_FLAGS:
     LinkLLVMTorture(
         name='lld',
-        linker=Executable(os.path.join(INSTALL_BIN, 'wasm32-clang++')),
+        linker=Executable(GetInstallDir('bin', 'wasm32-clang++')),
         fails=LLD_KNOWN_TORTURE_FAILURES,
         indir=GetTortureDir('o', opt),
         outdir=GetTortureDir('lld', opt),
@@ -1429,7 +1433,7 @@ def TestBare():
           attributes=common_attrs + ['d8', 'lld', opt],
           extension='wasm',
           opt=opt,
-          wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
+          wasmjs=os.path.join(GetInstallDir('lib'), 'wasm.js'))
 
   if IsMac() and not buildbot.DidStepFailOrWarn('jsvu'):
     for opt in BARE_TEST_OPT_FLAGS:
@@ -1442,14 +1446,14 @@ def TestBare():
           extension='wasm',
           opt=opt,
           warn_only=True,
-          wasmjs=os.path.join(INSTALL_LIB, 'wasm.js'))
+          wasmjs=os.path.join(GetInstallDir('lib'), 'wasm.js'))
 
 
 def TestAsm():
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
     CompileLLVMTortureEmscripten(
         'asm2wasm',
-        EMSCRIPTEN_CONFIG_ASMJS,
+        GetInstallDir(EMSCRIPTEN_CONFIG_ASMJS),
         GetTortureDir('asm2wasm', opt),
         ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES,
         opt)
@@ -1474,7 +1478,7 @@ def TestEmwasm():
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
     CompileLLVMTortureEmscripten(
         'emwasm',
-        EMSCRIPTEN_CONFIG_WASM,
+        GetInstallDir(EMSCRIPTEN_CONFIG_WASM),
         GetTortureDir('emwasm', opt),
         EMWASM_KNOWN_TORTURE_COMPILE_FAILURES,
         opt)
@@ -1499,7 +1503,7 @@ def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
   Mkdir(outdir)
   try:
     proc.check_call(
-        [os.path.join(INSTALL_DIR, 'emscripten', 'tests', 'runner.py'),
+        [GetInstallDir('emscripten', 'tests', 'runner.py'),
          '--em-config', config] + tests,
         cwd=outdir)
   except proc.CalledProcessError:
@@ -1516,8 +1520,8 @@ def TestEmtest():
     ExecuteEmscriptenTestSuite(
         'emwasm',
         ['wasm2', 'other'],
-        EMSCRIPTEN_CONFIG_WASM,
-        EMSCRIPTEN_TEST_OUT_DIR)
+        GetInstallDir(EMSCRIPTEN_CONFIG_WASM),
+        os.path.join(work_dirs.GetTest(), 'emtest-out'))
 
   finally:
     if IsMac():
@@ -1531,14 +1535,14 @@ def TestEmtestAsm2Wasm():
   ExecuteEmscriptenTestSuite(
       'asm2wasm',
       ['wasm2'],
-      EMSCRIPTEN_CONFIG_ASMJS,
-      EMSCRIPTEN_ASMJS_TEST_OUT_DIR)
+      GetInstallDir(EMSCRIPTEN_CONFIG_ASMJS),
+      os.path.join(work_dirs.GetTest(), 'emtest-asm2wasm-out'))
 
 
 def TestWasmSimd():
   buildbot.Step('Execute emscripten wasm simd')
   script = os.path.join(SCRIPT_DIR, 'test_wasm_simd.py')
-  clang = Executable(os.path.join(INSTALL_BIN, 'wasm32-clang'))
+  clang = Executable(os.path.join(GetInstallDir('bin'), 'wasm32-clang'))
   include = os.path.join(EMSCRIPTEN_SRC_DIR, 'system', 'include')
   try:
     proc.check_call([script, clang, include])
@@ -1662,10 +1666,10 @@ def run(sync_filter, build_filter, test_filter):
   SyncRepos(sync_filter, options.sync_lkgr)
   repos = GetRepoInfo() if buildbot.IsBot() else {}
   if build_filter.All():
-    Remove(INSTALL_DIR)
-    Mkdir(INSTALL_DIR)
-    Mkdir(INSTALL_BIN)
-    Mkdir(INSTALL_LIB)
+    Remove(GetInstallDir())
+    Mkdir(GetInstallDir())
+    Mkdir(GetInstallDir('bin'))
+    Mkdir(GetInstallDir('lib'))
 
   # Add prebuilt cmake to PATH so any subprocesses use a consistent cmake.
   os.environ['PATH'] = (os.path.join(PREBUILT_CMAKE_DIR, CMakeBinDir()) +
@@ -1673,7 +1677,7 @@ def run(sync_filter, build_filter, test_filter):
 
   # TODO(dschuff): Figure out how to make these statically linked?
   if IsWindows():
-    host_toolchains.CopyDlls(INSTALL_BIN, 'Debug')
+    host_toolchains.CopyDlls(GetInstallDir('bin'), 'Debug')
 
   try:
     BuildRepos(build_filter)
@@ -1710,9 +1714,9 @@ def main():
   if options.build_dir:
     work_dirs.SetBuild(options.build_dir)
   if options.test_dir:
-    work_dirs.SetBuild(options.test_dir)
+    work_dirs.SetTest(options.test_dir)
   if options.install_dir:
-    work_dirs.SetBuild(options.install_dir)
+    work_dirs.SetInstall(options.install_dir)
 
   sync_include = options.sync_include if options.sync else []
   sync_filter = Filter('sync', sync_include, options.sync_exclude)
