@@ -78,7 +78,6 @@ JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
 
 
 def GetInstallDir(*args):
-  #args = [] if args is None else list(args)
   return os.path.join(work_dirs.GetInstall(), *args)
 
 
