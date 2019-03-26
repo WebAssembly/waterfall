@@ -1,6 +1,6 @@
 *~
 *.pyc
-work/
+src/work
 debian/wasm-toolchain.substvars
 debian/wasm-toolchain
 debian/wasm-toolchain.postinst.debhelper
