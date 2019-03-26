@@ -78,9 +78,8 @@ JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
 
 
 def GetInstallDir(*args):
-  args = [] if args is None else list(args)
-  path = ['wasm-install'] + path
-  return os.path.join(work_dirs.GetInstall(), *path)
+  #args = [] if args is None else list(args)
+  return os.path.join(work_dirs.GetInstall(), *args)
 
 
 # This file has a special path to avoid warnings about the system being unknown
@@ -908,7 +907,7 @@ def Wabt():
 
 def Binaryen():
   buildbot.Step('binaryen')
-  out_dir = os.path.join(work_dirs.GetBuid(), 'binaryen-out')
+  out_dir = os.path.join(work_dirs.GetBuild(), 'binaryen-out')
   Mkdir(out_dir)
   # Currently it's a bad idea to do a non-asserts build of Binaryen
   cc_env = BuildEnv(out_dir, bin_subdir=True, runtime='Debug')
