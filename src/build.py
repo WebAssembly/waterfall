@@ -61,7 +61,7 @@ def GetPrebuilt(*args):
 
 
 def GetPrebuiltClang(binary):
-  return GetPrebuilt('chromium-clang','third_party', 'llvm-build',
+  return GetPrebuilt('chromium-clang', 'third_party', 'llvm-build',
                      'Release+Asserts', 'bin', binary)
 
 
@@ -613,47 +613,47 @@ def NoSync(*args):
 
 def AllSources():
   return [
-    Source('waterfall', SCRIPT_DIR, None, custom_sync=NoSync),
-    Source('llvm', GetSrcDir('llvm-project'),
-           LLVM_GIT_BASE + 'llvm-project.git'),
-    Source('llvm-test-suite', GetSrcDir('llvm-test-suite'),
-           LLVM_MIRROR_BASE + 'test-suite.git'),
-    Source('emscripten', GetSrcDir('emscripten'),
-           EMSCRIPTEN_GIT_BASE + 'emscripten.git',
-           checkout=RemoteBranch('incoming')),
-    Source('fastcomp', GetSrcDir('emscripten-fastcomp'),
-           EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp.git',
-           checkout=RemoteBranch('incoming')),
-    Source('fastcomp-clang',
-           GetSrcDir('emscripten-fastcomp', 'tools', 'clang'),
-           EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp-clang.git',
-           checkout=RemoteBranch('incoming')),
-    Source('gcc', GetSrcDir('gcc'),
-           GIT_MIRROR_BASE + 'chromiumos/third_party/gcc.git',
-           checkout=GCC_REVISION, depth=GCC_CLONE_DEPTH),
-    Source('v8', GetSrcDir('v8', 'v8'),
-           GIT_MIRROR_BASE + 'v8/v8.git',
-           custom_sync=ChromiumFetchSync),
-    Source('host-toolchain', GetPrebuilt('chromium-clang'),
-           GIT_MIRROR_BASE + 'chromium/src/tools/clang.git',
-           custom_sync=SyncToolchain),
-    Source('cr-buildtools', os.path.join(WORK_DIR, 'build'),
-           GIT_MIRROR_BASE + 'chromium/src/build.git'),
-    Source('cmake', '', '',  # The source and git args are ignored.
-           custom_sync=SyncPrebuiltCMake),
-    Source('nodejs', '', '',  # The source and git args are ignored.
-           custom_sync=SyncPrebuiltNodeJS),
-    Source('gnuwin32', '', '',  # The source and git args are ignored.
-           custom_sync=SyncGNUWin32),
-    Source('wabt', GetSrcDir('wabt'),
-           WASM_GIT_BASE + 'wabt.git'),
-    Source('binaryen', GetSrcDir('binaryen'),
-           WASM_GIT_BASE + 'binaryen.git'),
-    Source('musl', GetSrcDir('musl'),
-           MUSL_GIT_BASE + 'musl.git',
-           checkout=RemoteBranch('wasm-prototype-1')),
-    Source('java', '', '',  # The source and git args are ignored.
-           custom_sync=SyncPrebuiltJava)
+      Source('waterfall', SCRIPT_DIR, None, custom_sync=NoSync),
+      Source('llvm', GetSrcDir('llvm-project'),
+             LLVM_GIT_BASE + 'llvm-project.git'),
+      Source('llvm-test-suite', GetSrcDir('llvm-test-suite'),
+             LLVM_MIRROR_BASE + 'test-suite.git'),
+      Source('emscripten', GetSrcDir('emscripten'),
+             EMSCRIPTEN_GIT_BASE + 'emscripten.git',
+             checkout=RemoteBranch('incoming')),
+      Source('fastcomp', GetSrcDir('emscripten-fastcomp'),
+             EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp.git',
+             checkout=RemoteBranch('incoming')),
+      Source('fastcomp-clang',
+             GetSrcDir('emscripten-fastcomp', 'tools', 'clang'),
+             EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp-clang.git',
+             checkout=RemoteBranch('incoming')),
+      Source('gcc', GetSrcDir('gcc'),
+             GIT_MIRROR_BASE + 'chromiumos/third_party/gcc.git',
+             checkout=GCC_REVISION, depth=GCC_CLONE_DEPTH),
+      Source('v8', GetSrcDir('v8', 'v8'),
+             GIT_MIRROR_BASE + 'v8/v8.git',
+             custom_sync=ChromiumFetchSync),
+      Source('host-toolchain', GetPrebuilt('chromium-clang'),
+             GIT_MIRROR_BASE + 'chromium/src/tools/clang.git',
+             custom_sync=SyncToolchain),
+      Source('cr-buildtools', os.path.join(WORK_DIR, 'build'),
+             GIT_MIRROR_BASE + 'chromium/src/build.git'),
+      Source('cmake', '', '',  # The source and git args are ignored.
+             custom_sync=SyncPrebuiltCMake),
+      Source('nodejs', '', '',  # The source and git args are ignored.
+             custom_sync=SyncPrebuiltNodeJS),
+      Source('gnuwin32', '', '',  # The source and git args are ignored.
+             custom_sync=SyncGNUWin32),
+      Source('wabt', GetSrcDir('wabt'),
+             WASM_GIT_BASE + 'wabt.git'),
+      Source('binaryen', GetSrcDir('binaryen'),
+             WASM_GIT_BASE + 'binaryen.git'),
+      Source('musl', GetSrcDir('musl'),
+             MUSL_GIT_BASE + 'musl.git',
+             checkout=RemoteBranch('wasm-prototype-1')),
+      Source('java', '', '',  # The source and git args are ignored.
+             custom_sync=SyncPrebuiltJava)
   ]
 
 
@@ -876,7 +876,8 @@ def Jsvu():
 
     # https://github.com/GoogleChromeLabs/jsvu#installation
     # ...except we install it locally instead of globally.
-    proc.check_call([os.path.join(NodeBinDir(), 'npm'), 'install', 'jsvu'], cwd=jsvu_dir)
+    proc.check_call([os.path.join(NodeBinDir(), 'npm'), 'install', 'jsvu'],
+                    cwd=jsvu_dir)
 
     jsvu_bin = Executable(os.path.join(
         jsvu_dir, 'node_modules', 'jsvu', 'cli.js'))
