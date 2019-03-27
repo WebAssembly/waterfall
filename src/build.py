@@ -44,41 +44,37 @@ import work_dirs
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 WORK_DIR = os.path.join(SCRIPT_DIR, 'work')
-
-LLVM_PROJECT_SRC_DIR = os.path.join(WORK_DIR, 'llvm-project')
-LLVM_SRC_DIR = os.path.join(LLVM_PROJECT_SRC_DIR, 'llvm')
-COMPILER_RT_SRC_DIR = os.path.join(LLVM_PROJECT_SRC_DIR, 'compiler-rt')
-LIBCXX_SRC_DIR = os.path.join(LLVM_PROJECT_SRC_DIR, 'libcxx')
-LIBCXXABI_SRC_DIR = os.path.join(LLVM_PROJECT_SRC_DIR, 'libcxxabi')
-LLVM_TEST_SUITE_SRC_DIR = os.path.join(WORK_DIR, 'llvm-test-suite')
-
-EMSCRIPTEN_SRC_DIR = os.path.join(WORK_DIR, 'emscripten')
-FASTCOMP_SRC_DIR = os.path.join(WORK_DIR, 'emscripten-fastcomp')
-
-GCC_SRC_DIR = os.path.join(WORK_DIR, 'gcc')
-GCC_TEST_DIR = os.path.join(GCC_SRC_DIR, 'gcc', 'testsuite')
-
 JSVU_DIR = os.path.join(WORK_DIR, 'jsvu')
-
-V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
-WABT_SRC_DIR = os.path.join(WORK_DIR, 'wabt')
-
-BINARYEN_SRC_DIR = os.path.join(WORK_DIR, 'binaryen')
-MUSL_SRC_DIR = os.path.join(WORK_DIR, 'musl')
-
-PREBUILT_CLANG = os.path.join(WORK_DIR, 'chromium-clang')
-PREBUILT_CLANG_TOOLS_CLANG = os.path.join(PREBUILT_CLANG, 'tools', 'clang')
-PREBUILT_CLANG_BIN = os.path.join(
-    PREBUILT_CLANG, 'third_party', 'llvm-build', 'Release+Asserts', 'bin')
-CC = os.path.join(PREBUILT_CLANG_BIN, 'clang')
-CXX = os.path.join(PREBUILT_CLANG_BIN, 'clang++')
-
-V8_OUT_DIR = os.path.join(V8_SRC_DIR, 'out.gn', 'x64.release')
 JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
+
+
+def GccTestDir():
+  return GetSrcDir('gcc', 'gcc', 'testsuite')
+
+
+def GetBuildDir(*args):
+  return os.path.join(work_dirs.GetBuild(), *args)
+
+
+def GetPrebuilt(*args):
+  return GetBuildDir(*args)
+
+
+def GetPrebuiltClang(binary):
+  return GetPrebuilt('chromium-clang','third_party', 'llvm-build',
+                     'Release+Asserts', 'bin', binary)
+
+
+def GetSrcDir(*args):
+  return os.path.join(work_dirs.GetSync(), *args)
 
 
 def GetInstallDir(*args):
   return os.path.join(work_dirs.GetInstall(), *args)
+
+
+def GetLLVMSrcDir(*args):
+  return GetSrcDir('llvm-project', *args)
 
 
 # This file has a special path to avoid warnings about the system being unknown
@@ -163,13 +159,6 @@ def CMakeArch():
   return 'x64' if IsWindows() else 'x86_64'
 
 
-def CMakeBinDir():
-  if IsMac():
-    return os.path.join('CMake.app', 'Contents', 'bin')
-  else:
-    return 'bin'
-
-
 # Use prebuilt Node.js because the buildbots don't have node preinstalled
 NODE_VERSION = '8.12.0'
 NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
@@ -178,16 +167,34 @@ PREBUILT_CMAKE_VERSION = '3.7.2'
 PREBUILT_CMAKE_BASE_NAME = 'cmake-%s-%s-%s' % (PREBUILT_CMAKE_VERSION,
                                                CMakePlatformName(),
                                                CMakeArch())
-PREBUILT_CMAKE_DIR = os.path.join(WORK_DIR, PREBUILT_CMAKE_BASE_NAME)
-PREBUILT_CMAKE_BIN = os.path.join(PREBUILT_CMAKE_DIR, CMakeBinDir(), 'cmake')
 
-NODE_DIR = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName())
-NODE_BIN_DIR = NODE_DIR if IsWindows() else os.path.join(NODE_DIR, 'bin')
+
+def PrebuiltCMakeDir(*args):
+  return GetBuildDir(PREBUILT_CMAKE_BASE_NAME, *args)
+
+
+def PrebuiltCMakeBin():
+  if IsMac():
+    bin_dir = os.path.join('CMake.app', 'Contents', 'bin')
+  else:
+    bin_dir = 'bin'
+  return PrebuiltCMakeDir(bin_dir, 'cmake')
+
+
+def NodeBinDir():
+  node_subdir = NODE_BASE_NAME + NodePlatformName()
+  if IsWindows:
+    return GetBuildDir(node_subdir)
+  return GetBuildDir(node_subdir, 'bin')
+
+
+def NodeBin():
+  return Executable(os.path.join(NodeBinDir(), 'node'))
+
+
 # `npm` uses whatever `node` is in `PATH`. To make sure it uses the
 # Node.js version we want, we prepend `NODE_BIN_DIR` to `PATH`.
-os.environ['PATH'] = NODE_BIN_DIR + os.pathsep + os.environ['PATH']
-NODE_BIN = Executable(os.path.join(NODE_BIN_DIR, 'node'))
-NPM_BIN = Executable(os.path.join(NODE_BIN_DIR, 'npm'))
+os.environ['PATH'] = NodeBinDir() + os.pathsep + os.environ['PATH']
 
 
 D8_BIN = Executable(os.path.join(GetInstallDir('bin'), 'd8'))
@@ -218,8 +225,6 @@ JAVA_BIN = Executable(os.path.join(JAVA_DIR, JavaBinDir(), 'java'))
 
 # Known failures.
 IT_IS_KNOWN = 'known_gcc_test_failures.txt'
-LLVM_KNOWN_TORTURE_FAILURES = [os.path.join(LLVM_SRC_DIR, 'lib', 'Target',
-                                            'WebAssembly', IT_IS_KNOWN)]
 ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
     SCRIPT_DIR, 'test', 'asm2wasm_compile_' + IT_IS_KNOWN)]
 EMWASM_KNOWN_TORTURE_COMPILE_FAILURES = [os.path.join(
@@ -519,8 +524,10 @@ def SyncToolchain(name, src_dir, git_repo):
     host_toolchains.SyncWinToolchain()
   else:
     host_toolchains.SyncPrebuiltClang(name, src_dir, git_repo)
-    assert os.path.isfile(CC), 'Expect clang at %s' % CC
-    assert os.path.isfile(CXX), 'Expect clang++ at %s' % CXX
+    cc = GetPrebuiltClang('clang')
+    cxx = GetPrebuiltClang('clang++')
+    assert os.path.isfile(cc), 'Expect clang at %s' % cc
+    assert os.path.isfile(cxx), 'Expect clang++ at %s' % cxx
 
 
 def SyncArchive(out_dir, name, url):
@@ -571,7 +578,7 @@ def SyncArchive(out_dir, name, url):
 def SyncPrebuiltCMake(name, src_dir, git_repo):
   extension = '.zip' if IsWindows() else '.tar.gz'
   url = WASM_STORAGE_BASE + PREBUILT_CMAKE_BASE_NAME + extension
-  SyncArchive(PREBUILT_CMAKE_DIR, 'cmake', url)
+  SyncArchive(PrebuiltCMakeDir(), 'cmake', url)
 
 
 def SyncPrebuiltNodeJS(name, src_dir, git_repo):
@@ -604,29 +611,30 @@ def NoSync(*args):
   pass
 
 
-ALL_SOURCES = [
+def AllSources():
+  return [
     Source('waterfall', SCRIPT_DIR, None, custom_sync=NoSync),
-    Source('llvm', LLVM_PROJECT_SRC_DIR,
+    Source('llvm', GetSrcDir('llvm-project'),
            LLVM_GIT_BASE + 'llvm-project.git'),
-    Source('llvm-test-suite', LLVM_TEST_SUITE_SRC_DIR,
+    Source('llvm-test-suite', GetSrcDir('llvm-test-suite'),
            LLVM_MIRROR_BASE + 'test-suite.git'),
-    Source('emscripten', EMSCRIPTEN_SRC_DIR,
+    Source('emscripten', GetSrcDir('emscripten'),
            EMSCRIPTEN_GIT_BASE + 'emscripten.git',
            checkout=RemoteBranch('incoming')),
-    Source('fastcomp', FASTCOMP_SRC_DIR,
+    Source('fastcomp', GetSrcDir('emscripten-fastcomp'),
            EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp.git',
            checkout=RemoteBranch('incoming')),
     Source('fastcomp-clang',
-           os.path.join(FASTCOMP_SRC_DIR, 'tools', 'clang'),
+           GetSrcDir('emscripten-fastcomp', 'tools', 'clang'),
            EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp-clang.git',
            checkout=RemoteBranch('incoming')),
-    Source('gcc', GCC_SRC_DIR,
+    Source('gcc', GetSrcDir('gcc'),
            GIT_MIRROR_BASE + 'chromiumos/third_party/gcc.git',
            checkout=GCC_REVISION, depth=GCC_CLONE_DEPTH),
-    Source('v8', V8_SRC_DIR,
+    Source('v8', GetSrcDir('v8', 'v8'),
            GIT_MIRROR_BASE + 'v8/v8.git',
            custom_sync=ChromiumFetchSync),
-    Source('host-toolchain', PREBUILT_CLANG,
+    Source('host-toolchain', GetPrebuilt('chromium-clang'),
            GIT_MIRROR_BASE + 'chromium/src/tools/clang.git',
            custom_sync=SyncToolchain),
     Source('cr-buildtools', os.path.join(WORK_DIR, 'build'),
@@ -637,16 +645,16 @@ ALL_SOURCES = [
            custom_sync=SyncPrebuiltNodeJS),
     Source('gnuwin32', '', '',  # The source and git args are ignored.
            custom_sync=SyncGNUWin32),
-    Source('wabt', WABT_SRC_DIR,
+    Source('wabt', GetSrcDir('wabt'),
            WASM_GIT_BASE + 'wabt.git'),
-    Source('binaryen', BINARYEN_SRC_DIR,
+    Source('binaryen', GetSrcDir('binaryen'),
            WASM_GIT_BASE + 'binaryen.git'),
-    Source('musl', MUSL_SRC_DIR,
+    Source('musl', GetSrcDir('musl'),
            MUSL_GIT_BASE + 'musl.git',
            checkout=RemoteBranch('wasm-prototype-1')),
     Source('java', '', '',  # The source and git args are ignored.
            custom_sync=SyncPrebuiltJava)
-]
+  ]
 
 
 def Clobber():
@@ -688,7 +696,7 @@ def SyncRepos(filter, sync_lkgr=False):
     for k, v in lkgr['repositories'].iteritems():
       good_hashes[k] = v.get('hash') if v else None
 
-  for repo in filter.Apply(ALL_SOURCES):
+  for repo in filter.Apply(AllSources()):
     repo.Sync(good_hashes)
 
 
@@ -696,7 +704,7 @@ def GetRepoInfo():
   """Collect a readable form of all repo information here, preventing the
   summary from getting out of sync with the actual list of repos."""
   info = {}
-  for r in ALL_SOURCES:
+  for r in AllSources():
     info[r.name] = r.CurrentGitInfo()
   return info
 
@@ -706,12 +714,12 @@ def GetRepoInfo():
 def OverrideCMakeCompiler():
   if IsWindows():
     return []
-  return ['-DCMAKE_C_COMPILER=' + CC,
-          '-DCMAKE_CXX_COMPILER=' + CXX]
+  return ['-DCMAKE_C_COMPILER=' + GetPrebuiltClang('clang'),
+          '-DCMAKE_CXX_COMPILER=' + GetPrebuiltClang('clang++')]
 
 
 def CMakeCommandBase():
-  command = [PREBUILT_CMAKE_BIN, '-G', 'Ninja']
+  command = [PrebuiltCMakeBin(), '-G', 'Ninja']
   # Python's location could change, so always update CMake's cache
   command.append('-DPYTHON_EXECUTABLE=%s' % sys.executable)
   command.append('-DCMAKE_EXPORT_COMPILE_COMMANDS=ON')
@@ -777,7 +785,7 @@ def LLVM():
   cc_env = BuildEnv(build_dir, bin_subdir=True)
   build_dylib = 'ON' if not IsWindows() else 'OFF'
   command = CMakeCommandNative([
-      LLVM_SRC_DIR,
+      GetLLVMSrcDir('llvm'),
       '-DLLVM_INCLUDE_EXAMPLES=OFF',
       '-DCOMPILER_RT_BUILD_XRAY=OFF',
       '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
@@ -828,22 +836,24 @@ def LLVM():
 
 def V8():
   buildbot.Step('V8')
-  proc.check_call([os.path.join(V8_SRC_DIR, 'tools', 'dev', 'v8gen.py'),
+  src_dir = GetSrcDir('v8', 'v8')
+  out_dir = os.path.join(src_dir, 'out.gn', 'x64.release')
+  proc.check_call([os.path.join(src_dir, 'tools', 'dev', 'v8gen.py'),
                    '-vv', 'x64.release'],
-                  cwd=V8_SRC_DIR)
+                  cwd=src_dir)
   jobs = host_toolchains.NinjaJobs()
-  proc.check_call(['ninja', '-v', '-C', V8_OUT_DIR, 'd8', 'unittests'] + jobs,
-                  cwd=V8_SRC_DIR)
+  proc.check_call(['ninja', '-v', '-C', out_dir, 'd8', 'unittests'] + jobs,
+                  cwd=src_Dir)
   if options.run_tool_tests:
     proc.check_call(['tools/run-tests.py', 'unittests', '--no-presubmit',
-                     '--outdir', V8_OUT_DIR],
-                    cwd=V8_SRC_DIR)
+                     '--outdir', out_dir],
+                    cwd=src_dir)
   # Copy the V8 blobs as well as the ICU data file for timezone data.
   # icudtl.dat is the little-endian version, which goes with x64.
   to_archive = [Executable('d8'), 'natives_blob.bin', 'snapshot_blob.bin',
                 'icudtl.dat']
   for a in to_archive:
-    CopyBinaryToArchive(os.path.join(V8_OUT_DIR, a))
+    CopyBinaryToArchive(os.path.join(out_dir, a))
 
 
 def Jsvu():
@@ -866,7 +876,7 @@ def Jsvu():
 
     # https://github.com/GoogleChromeLabs/jsvu#installation
     # ...except we install it locally instead of globally.
-    proc.check_call([NPM_BIN, 'install', 'jsvu'], cwd=jsvu_dir)
+    proc.check_call([os.path.join(NodeBinDir(), 'npm'), 'install', 'jsvu'], cwd=jsvu_dir)
 
     jsvu_bin = Executable(os.path.join(
         jsvu_dir, 'node_modules', 'jsvu', 'cli.js'))
@@ -892,7 +902,7 @@ def Wabt():
   cc_env = BuildEnv(out_dir)
 
   proc.check_call(CMakeCommandNative([
-      WABT_SRC_DIR,
+      GetSrcDir('wabt'),
       '-DBUILD_TESTS=OFF'
   ]), cwd=out_dir, env=cc_env)
 
@@ -912,7 +922,7 @@ def Binaryen():
   cc_env = BuildEnv(out_dir, bin_subdir=True, runtime='Debug')
 
   proc.check_call(CMakeCommandNative([
-      BINARYEN_SRC_DIR,
+      GetSrcDir('binaryen'),
   ]), cwd=out_dir, env=cc_env)
   proc.check_call(['ninja', '-v'], cwd=out_dir, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=out_dir, env=cc_env)
@@ -926,7 +936,7 @@ def Fastcomp():
   build_dylib = 'ON' if not IsWindows() else 'OFF'
   cc_env = BuildEnv(build_dir, bin_subdir=True)
   command = CMakeCommandNative([
-      FASTCOMP_SRC_DIR,
+      GetSrcDir('emscripten-fastcomp'),
       '-DLLVM_INCLUDE_EXAMPLES=OFF',
       '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
       '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
@@ -976,7 +986,7 @@ def Emscripten():
     with open(infile) as config:
       text = config.read().replace('{{WASM_INSTALL}}',
                                    WindowsFSEscape(GetInstallDir()))
-      text = text.replace('{{PREBUILT_NODE}}', WindowsFSEscape(NODE_BIN))
+      text = text.replace('{{PREBUILT_NODE}}', WindowsFSEscape(NodeBin()))
       text = text.replace('{{PREBUILT_JAVA}}', WindowsFSEscape(JAVA_BIN))
     with open(outfile, 'w') as config:
       config.write(text)
@@ -1047,9 +1057,10 @@ def CompilerRT():
     Remove(build_dir)
 
   Mkdir(build_dir)
-  cc_env = BuildEnv(COMPILER_RT_SRC_DIR, bin_subdir=True)
+  src_dir = GetLLVMSrcDir('compiler-rt')
+  cc_env = BuildEnv(src_dir, bin_subdir=True)
   command = CMakeCommandWack([
-      os.path.join(COMPILER_RT_SRC_DIR, 'lib', 'builtins'),
+      os.path.join(src_dir, 'lib', 'builtins'),
       '-DCMAKE_C_COMPILER_WORKS=ON',
       '-DCOMPILER_RT_BAREMETAL_BUILD=On',
       '-DCOMPILER_RT_BUILD_XRAY=OFF',
@@ -1075,17 +1086,18 @@ def LibCXX():
   if os.path.isdir(build_dir):
     Remove(build_dir)
   Mkdir(build_dir)
-  cc_env = BuildEnv(LIBCXX_SRC_DIR, bin_subdir=True)
+  src_dir = GetLLVMSrcDir('libcxx')
+  cc_env = BuildEnv(src_dir, bin_subdir=True)
   command = CMakeCommandWack([
-      os.path.join(LIBCXX_SRC_DIR),
+      src_dir,
       '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
       '-DLIBCXX_ENABLE_THREADS=OFF',
       '-DLIBCXX_ENABLE_SHARED=OFF',
       '-DLIBCXX_HAS_MUSL_LIBC=ON',
       '-DLIBCXX_CXX_ABI=libcxxabi',
       '-DLIBCXX_CXX_ABI_INCLUDE_PATHS=' +
-      os.path.join(LIBCXXABI_SRC_DIR, 'include'),
-      '-DLLVM_PATH=' + LLVM_SRC_DIR,
+      GetLLVMSrcDir('libcxxabi', 'include'),
+      '-DLLVM_PATH=' + GetLLVMSrcDir('llvm'),
   ])
 
   proc.check_call(command, cwd=build_dir, env=cc_env)
@@ -1099,9 +1111,10 @@ def LibCXXABI():
   if os.path.isdir(build_dir):
     Remove(build_dir)
   Mkdir(build_dir)
-  cc_env = BuildEnv(LIBCXXABI_SRC_DIR, bin_subdir=True)
+  src_dir = GetLLVMSrcDir('libcxxabi')
+  cc_env = BuildEnv(src_dir, bin_subdir=True)
   command = CMakeCommandWack([
-      os.path.join(LIBCXXABI_SRC_DIR),
+      src_dir,
       '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
       '-DLIBCXXABI_ENABLE_SHARED=OFF',
       '-DLIBCXXABI_ENABLE_THREADS=OFF',
@@ -1109,10 +1122,10 @@ def LibCXXABI():
       # This checks for working <atomic> header, which in turn errors
       # out on systems with threads disabled
       '-DLLVM_COMPILER_CHECKED=ON',
-      '-DLIBCXXABI_LIBCXX_PATH=' + LIBCXX_SRC_DIR,
+      '-DLIBCXXABI_LIBCXX_PATH=' + GetLLVMSrcDir('libcxx'),
       '-DLIBCXXABI_LIBCXX_INCLUDES=' +
       GetInstallDir('sysroot', 'include', 'c++', 'v1'),
-      '-DLLVM_PATH=' + LLVM_SRC_DIR,
+      '-DLLVM_PATH=' + GetLLVMSrcDir('llvm'),
   ])
 
   proc.check_call(command, cwd=build_dir, env=cc_env)
@@ -1128,30 +1141,31 @@ def Musl():
   try:
     cc_env = BuildEnv(build_dir, use_gnuwin32=True)
     install_bin = GetInstallDir('bin')
+    src_dir = GetSrcDir('musl')
     # Build musl directly to wasm object files in an ar library
     proc.check_call([
-        os.path.join(MUSL_SRC_DIR, 'libc.py'),
+        os.path.join(src_dir, 'libc.py'),
         '--clang_dir', install_bin,
         '--binaryen_dir', os.path.join(install_bin),
         '--sexpr_wasm', os.path.join(install_bin, 'wat2wasm'),
         '--out', os.path.join(build_dir, 'libc.a'),
-        '--musl', MUSL_SRC_DIR, '--compile-to-wasm'], env=cc_env)
+        '--musl', src_dir, '--compile-to-wasm'], env=cc_env)
     AR = os.path.join(install_bin, 'llvm-ar')
     proc.check_call([AR, 'rc', os.path.join(build_dir, 'libm.a')])
     CopyLibraryToSysroot(os.path.join(build_dir, 'libc.a'))
     CopyLibraryToSysroot(os.path.join(build_dir, 'libm.a'))
     CopyLibraryToSysroot(os.path.join(build_dir, 'crt1.o'))
-    CopyLibraryToSysroot(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32',
+    CopyLibraryToSysroot(os.path.join(src_dir, 'arch', 'wasm32',
                                       'libc.imports'))
 
-    wasm_js = os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32', 'wasm.js')
+    wasm_js = os.path.join(src_dir, 'arch', 'wasm32', 'wasm.js')
     CopyLibraryToArchive(wasm_js)
 
-    CopyTree(os.path.join(MUSL_SRC_DIR, 'include'),
+    CopyTree(os.path.join(src_dir, 'include'),
              GetInstallDir('sysroot', 'include'))
-    CopyTree(os.path.join(MUSL_SRC_DIR, 'arch', 'generic', 'bits'),
+    CopyTree(os.path.join(src_dir, 'arch', 'generic', 'bits'),
              GetInstallDir('sysroot', 'include', 'bits'))
-    CopyTree(os.path.join(MUSL_SRC_DIR, 'arch', 'wasm32', 'bits'),
+    CopyTree(os.path.join(src_dir, 'arch', 'wasm32', 'bits'),
              GetInstallDir('sysroot', 'include', 'bits'))
     CopyTree(os.path.join(build_dir, 'obj', 'include', 'bits'),
              GetInstallDir('sysroot', 'include', 'bits'))
@@ -1172,7 +1186,7 @@ def Musl():
 def ArchiveBinaries():
   buildbot.Step('Archive binaries')
   # All relevant binaries were copied to the LLVM directory.
-  UploadArchive('torture-c', Archive(GCC_TEST_DIR))
+  UploadArchive('torture-c', Archive(GccTestDir()))
   # TODO(sergiyb): Restore printing list of binaries on Linux and Mac once it
   # works. See https://crbug.com/916775 and https://crbug.com/940663
   UploadArchive(
@@ -1215,9 +1229,10 @@ def CompileLLVMTorture(outdir, opt):
   Remove(outdir)
   Mkdir(outdir)
   unexpected_result_count = compile_torture_tests.run(
-      cc=cc, cxx=cxx, testsuite=GCC_TEST_DIR,
+      cc=cc, cxx=cxx, testsuite=GccTestDir(),
       sysroot_dir=GetInstallDir('sysroot'),
-      fails=LLVM_KNOWN_TORTURE_FAILURES,
+      fails=[GetLLVMSrcDir('llvm', 'lib', 'Target',
+                           'WebAssembly', IT_IS_KNOWN)],
       exclusions=LLVM_TORTURE_EXCLUSIONS,
       out=outdir,
       config='clang',
@@ -1235,7 +1250,7 @@ def CompileLLVMTortureEmscripten(name, em_config, outdir, fails, opt):
   Remove(outdir)
   Mkdir(outdir)
   unexpected_result_count = compile_torture_tests.run(
-      cc=cc, cxx=cxx, testsuite=GCC_TEST_DIR,
+      cc=cc, cxx=cxx, testsuite=GccTestDir(),
       sysroot_dir=GetInstallDir('sysroot'),
       fails=fails,
       exclusions=LLVM_TORTURE_EXCLUSIONS,
@@ -1566,7 +1581,7 @@ def ParseArgs():
     return arg.split(',')
 
   epilog = '\n\n'.join([
-      TextWrapNameList('sync targets:\n', ALL_SOURCES),
+      TextWrapNameList('sync targets:\n', AllSources()),
       TextWrapNameList('build targets:\n', AllBuilds()),
       TextWrapNameList('test targets:\n', ALL_TESTS),
   ])
@@ -1643,7 +1658,7 @@ def ParseArgs():
 
 def run(sync_filter, build_filter, test_filter):
   if options.git_status:
-    for s in ALL_SOURCES:
+    for s in AllSources():
       s.PrintGitStatus()
     return 0
 
@@ -1659,7 +1674,7 @@ def run(sync_filter, build_filter, test_filter):
     Mkdir(GetInstallDir('lib'))
 
   # Add prebuilt cmake to PATH so any subprocesses use a consistent cmake.
-  os.environ['PATH'] = (os.path.join(PREBUILT_CMAKE_DIR, CMakeBinDir()) +
+  os.environ['PATH'] = (os.path.dirname(PrebuiltCMakeBin()) +
                         os.pathsep + os.environ['PATH'])
 
   # TODO(dschuff): Figure out how to make these statically linked?
