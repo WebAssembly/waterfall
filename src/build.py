@@ -183,7 +183,7 @@ def PrebuiltCMakeBin():
 
 def NodeBinDir():
   node_subdir = NODE_BASE_NAME + NodePlatformName()
-  if IsWindows:
+  if IsWindows():
     return GetBuildDir(node_subdir)
   return GetBuildDir(node_subdir, 'bin')
 
@@ -193,7 +193,7 @@ def NodeBin():
 
 
 # `npm` uses whatever `node` is in `PATH`. To make sure it uses the
-# Node.js version we want, we prepend `NODE_BIN_DIR` to `PATH`.
+# Node.js version we want, we prepend the node bin dir to `PATH`.
 os.environ['PATH'] = NodeBinDir() + os.pathsep + os.environ['PATH']
 
 
@@ -962,11 +962,11 @@ def Emscripten():
   # rebuilt in the step below.
   Remove(os.path.expanduser(os.path.join('~', '.emscripten_cache')))
   src_dir = GetSrcDir('emscripten')
-  install_dir = GetInstallDir('emscripten')
-  Remove(emscripten_dir)
-  print 'Copying directory %s to %s' % (src_dir, install_dir)
+  em_install_dir = GetInstallDir('emscripten')
+  Remove(em_install_dir)
+  print 'Copying directory %s to %s' % (src_dir, em_install_dir)
   shutil.copytree(src_dir,
-                  install_dir,
+                  em_install_dir,
                   symlinks=True,
                   # Ignore the big git blob so it doesn't get archived.
                   ignore=shutil.ignore_patterns('.git'))
@@ -1029,7 +1029,7 @@ def Emscripten():
       # This depends on binaryen already being built and installed into the
       # archive/install dir.
       proc.check_call([
-          sys.executable, os.path.join(emscripten_dir, 'embuilder.py'),
+          sys.executable, os.path.join(em_install_dir, 'embuilder.py'),
           'build', 'SYSTEM'])
 
     except proc.CalledProcessError:
