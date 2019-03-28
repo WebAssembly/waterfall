@@ -1117,10 +1117,8 @@ def LibCXXABI():
   command = CMakeCommandWack([
       src_dir,
       '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
-      '-DCMAKE_C_FLAGS=-fno-PIC',
       '-DLIBCXXABI_ENABLE_SHARED=OFF',
       '-DLIBCXXABI_ENABLE_THREADS=OFF',
-      '-DLLVM_ENABLE_PIC=OFF',
       # HandleLLVMOptions.cmake include CheckCompilerVersion.cmake.
       # This checks for working <atomic> header, which in turn errors
       # out on systems with threads disabled
