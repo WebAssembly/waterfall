@@ -1117,8 +1117,10 @@ def LibCXXABI():
   command = CMakeCommandWack([
       src_dir,
       '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
+      '-DCMAKE_C_FLAGS=-fno-PIC',
       '-DLIBCXXABI_ENABLE_SHARED=OFF',
       '-DLIBCXXABI_ENABLE_THREADS=OFF',
+      '-DLLVM_ENABLE_PIC=OFF',
       # HandleLLVMOptions.cmake include CheckCompilerVersion.cmake.
       # This checks for working <atomic> header, which in turn errors
       # out on systems with threads disabled
@@ -1434,7 +1436,6 @@ def TestBare():
   # Execute
   common_attrs = ['bare']
   common_attrs += ['win'] if IsWindows() else ['posix']
-  d8_bin = D8Bin()
 
   # Avoid d8 execution on windows because of flakiness,
   # https://bugs.chromium.org/p/v8/issues/detail?id=8211
@@ -1442,7 +1443,7 @@ def TestBare():
     for opt in BARE_TEST_OPT_FLAGS:
       ExecuteLLVMTorture(
           name='d8',
-          runner=d8_bin,
+          runner=D8Bin(),
           indir=GetTortureDir('lld', opt),
           fails=RUN_KNOWN_TORTURE_FAILURES,
           attributes=common_attrs + ['d8', 'lld', opt],
@@ -1465,7 +1466,6 @@ def TestBare():
 
 
 def TestAsm():
-  d8_bin = D8Bin()
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
     CompileLLVMTortureEmscripten(
         'asm2wasm',
@@ -1480,7 +1480,7 @@ def TestAsm():
     for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
       ExecuteLLVMTorture(
           name='asm2wasm',
-          runner=d8_bin,
+          runner=D8Bin(),
           indir=GetTortureDir('asm2wasm', opt),
           fails=RUN_KNOWN_TORTURE_FAILURES,
           attributes=['asm2wasm', 'd8'],
@@ -1505,7 +1505,7 @@ def TestEmwasm():
     for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
       ExecuteLLVMTorture(
           name='emwasm',
-          runner=d8_bin,
+          runner=D8Bin(),
           indir=GetTortureDir('emwasm', opt),
           fails=RUN_KNOWN_TORTURE_FAILURES,
           attributes=['emwasm', 'lld', 'd8'],
