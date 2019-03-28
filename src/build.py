@@ -115,7 +115,6 @@ def GetLLVMSrcDir(*args):
   return GetSrcDir('llvm-project', *args)
 
 
-
 def IsWindows():
   return sys.platform == 'win32'
 
@@ -195,7 +194,6 @@ def BuilderPlatformName():
   return {'linux2': 'linux',
           'darwin': 'mac',
           'win32': 'windows'}[sys.platform]
-
 
 
 def D8Bin():
@@ -1467,6 +1465,7 @@ def TestBare():
 
 
 def TestAsm():
+  d8_bin = D8Bin()
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
     CompileLLVMTortureEmscripten(
         'asm2wasm',
