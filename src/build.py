@@ -843,7 +843,7 @@ def V8():
                   cwd=src_dir)
   jobs = host_toolchains.NinjaJobs()
   proc.check_call(['ninja', '-v', '-C', out_dir, 'd8', 'unittests'] + jobs,
-                  cwd=src_Dir)
+                  cwd=src_dir)
   if options.run_tool_tests:
     proc.check_call(['tools/run-tests.py', 'unittests', '--no-presubmit',
                      '--outdir', out_dir],
@@ -961,11 +961,12 @@ def Emscripten():
   # Remove cached library builds (e.g. libc, libc++) to force them to be
   # rebuilt in the step below.
   Remove(os.path.expanduser(os.path.join('~', '.emscripten_cache')))
-  emscripten_dir = GetInstallDir('emscripten')
+  src_dir = GetSrcDir('emscripten')
+  install_dir = GetInstallDir('emscripten')
   Remove(emscripten_dir)
-  print 'Copying directory %s to %s' % (EMSCRIPTEN_SRC_DIR, emscripten_dir)
-  shutil.copytree(EMSCRIPTEN_SRC_DIR,
-                  emscripten_dir,
+  print 'Copying directory %s to %s' % (src_dir, install_dir)
+  shutil.copytree(src_dir,
+                  install_dir,
                   symlinks=True,
                   # Ignore the big git blob so it doesn't get archived.
                   ignore=shutil.ignore_patterns('.git'))
@@ -976,7 +977,7 @@ def Emscripten():
   Mkdir(optimizer_out_dir)
   cc_env = BuildEnv(optimizer_out_dir)
   command = CMakeCommandNative([
-      os.path.join(EMSCRIPTEN_SRC_DIR, 'tools', 'optimizer')
+      os.path.join(src_dir, 'tools', 'optimizer')
   ])
   proc.check_call(command, cwd=optimizer_out_dir, env=cc_env)
   proc.check_call(['ninja'] + host_toolchains.NinjaJobs(),
@@ -1546,7 +1547,7 @@ def TestWasmSimd():
   buildbot.Step('Execute emscripten wasm simd')
   script = os.path.join(SCRIPT_DIR, 'test_wasm_simd.py')
   clang = Executable(os.path.join(GetInstallDir('bin'), 'wasm32-clang'))
-  include = os.path.join(EMSCRIPTEN_SRC_DIR, 'system', 'include')
+  include = GetSrcDir('emscripten', 'system', 'include')
   try:
     proc.check_call([script, clang, include])
   except proc.CalledProcessError:
