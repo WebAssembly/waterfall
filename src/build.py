@@ -116,7 +116,7 @@ LLVM_VERSION = '9.0.0'
 # Update this number each time you want to create a clobber build.  If the
 # clobber_version.txt file in WORK_DIR doesn't match we remove the entire
 # WORK_DIR.  This works like a simpler version of chromium's landmine feature.
-CLOBBER_BUILD_TAG = 6
+CLOBBER_BUILD_TAG = 7
 
 options = None
 
@@ -1545,8 +1545,9 @@ ALL_TESTS = [
     Test('emwasm', TestEmwasm, Filter(exclude=['mac'])),
     # These tests do have interesting differences on OSes (especially the
     # 'other' tests) and eventually should run everywhere.
-    Test('emtest', TestEmtest, Filter(exclude=['windows'])),
-    Test('emtest-asm', TestEmtestAsm2Wasm, Filter(exclude=['windows'])),
+    # TODO(sbc): Re-enable these once we have debugged the bot issues
+    # Test('emtest', TestEmtest, Filter(exclude=['windows'])),
+    # Test('emtest-asm', TestEmtestAsm2Wasm, Filter(exclude=['windows'])),
     Test('wasm-simd', TestWasmSimd),
 ]
 
