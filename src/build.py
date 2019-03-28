@@ -46,36 +46,6 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 WORK_DIR = os.path.join(SCRIPT_DIR, 'work')
 JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
 
-
-def GccTestDir():
-  return GetSrcDir('gcc', 'gcc', 'testsuite')
-
-
-def GetBuildDir(*args):
-  return os.path.join(work_dirs.GetBuild(), *args)
-
-
-def GetPrebuilt(*args):
-  return GetBuildDir(*args)
-
-
-def GetPrebuiltClang(binary):
-  return GetPrebuilt('chromium-clang', 'third_party', 'llvm-build',
-                     'Release+Asserts', 'bin', binary)
-
-
-def GetSrcDir(*args):
-  return os.path.join(work_dirs.GetSync(), *args)
-
-
-def GetInstallDir(*args):
-  return os.path.join(work_dirs.GetInstall(), *args)
-
-
-def GetLLVMSrcDir(*args):
-  return GetSrcDir('llvm-project', *args)
-
-
 # This file has a special path to avoid warnings about the system being unknown
 CMAKE_TOOLCHAIN_FILE = 'Wack.cmake'
 
@@ -116,6 +86,36 @@ CLOBBER_BUILD_TAG = 6
 options = None
 
 
+def GccTestDir():
+  return GetSrcDir('gcc', 'gcc', 'testsuite')
+
+
+def GetBuildDir(*args):
+  return os.path.join(work_dirs.GetBuild(), *args)
+
+
+def GetPrebuilt(*args):
+  return GetBuildDir(*args)
+
+
+def GetPrebuiltClang(binary):
+  return GetPrebuilt('chromium-clang', 'third_party', 'llvm-build',
+                     'Release+Asserts', 'bin', binary)
+
+
+def GetSrcDir(*args):
+  return os.path.join(work_dirs.GetSync(), *args)
+
+
+def GetInstallDir(*args):
+  return os.path.join(work_dirs.GetInstall(), *args)
+
+
+def GetLLVMSrcDir(*args):
+  return GetSrcDir('llvm-project', *args)
+
+
+
 def IsWindows():
   return sys.platform == 'win32'
 
@@ -136,10 +136,31 @@ def WindowsFSEscape(path):
   return os.path.normpath(path).replace('\\', '/')
 
 
+# Use prebuilt Node.js because the buildbots don't have node preinstalled
+NODE_VERSION = '8.12.0'
+NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
+
+
 def NodePlatformName():
   return {'darwin': 'darwin-x64',
           'linux2': 'linux-x64',
           'win32': 'win-x64'}[sys.platform]
+
+
+def NodeBinDir():
+  node_subdir = NODE_BASE_NAME + NodePlatformName()
+  if IsWindows():
+    return GetBuildDir(node_subdir)
+  return GetBuildDir(node_subdir, 'bin')
+
+
+def NodeBin():
+  return Executable(os.path.join(NodeBinDir(), 'node'))
+
+
+# `npm` uses whatever `node` is in `PATH`. To make sure it uses the
+# Node.js version we want, we prepend the node bin dir to `PATH`.
+os.environ['PATH'] = NodeBinDir() + os.pathsep + os.environ['PATH']
 
 
 def CMakePlatformName():
@@ -148,19 +169,9 @@ def CMakePlatformName():
           'win32': 'win64'}[sys.platform]
 
 
-def BuilderPlatformName():
-  return {'linux2': 'linux',
-          'darwin': 'mac',
-          'win32': 'windows'}[sys.platform]
-
-
 def CMakeArch():
   return 'x64' if IsWindows() else 'x86_64'
 
-
-# Use prebuilt Node.js because the buildbots don't have node preinstalled
-NODE_VERSION = '8.12.0'
-NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
 
 PREBUILT_CMAKE_VERSION = '3.7.2'
 PREBUILT_CMAKE_BASE_NAME = 'cmake-%s-%s-%s' % (PREBUILT_CMAKE_VERSION,
@@ -180,25 +191,18 @@ def PrebuiltCMakeBin():
   return PrebuiltCMakeDir(bin_dir, 'cmake')
 
 
-def NodeBinDir():
-  node_subdir = NODE_BASE_NAME + NodePlatformName()
-  if IsWindows():
-    return GetBuildDir(node_subdir)
-  return GetBuildDir(node_subdir, 'bin')
+def BuilderPlatformName():
+  return {'linux2': 'linux',
+          'darwin': 'mac',
+          'win32': 'windows'}[sys.platform]
 
 
-def NodeBin():
-  return Executable(os.path.join(NodeBinDir(), 'node'))
 
+def D8Bin():
+  if IsMac():
+    return os.path.join(JSVU_OUT_DIR, 'v8')
+  return Executable(GetInstallDir('bin', 'd8'))
 
-# `npm` uses whatever `node` is in `PATH`. To make sure it uses the
-# Node.js version we want, we prepend the node bin dir to `PATH`.
-os.environ['PATH'] = NodeBinDir() + os.pathsep + os.environ['PATH']
-
-
-D8_BIN = Executable(os.path.join(GetInstallDir('bin'), 'd8'))
-if IsMac():
-  D8_BIN = os.path.join(JSVU_OUT_DIR, 'v8')
 
 # Java installed in the buildbots are too old while emscripten uses closure
 # compiler that requires Java SE 8.0 (version 52) or above
@@ -1432,6 +1436,7 @@ def TestBare():
   # Execute
   common_attrs = ['bare']
   common_attrs += ['win'] if IsWindows() else ['posix']
+  d8_bin = D8Bin()
 
   # Avoid d8 execution on windows because of flakiness,
   # https://bugs.chromium.org/p/v8/issues/detail?id=8211
@@ -1439,7 +1444,7 @@ def TestBare():
     for opt in BARE_TEST_OPT_FLAGS:
       ExecuteLLVMTorture(
           name='d8',
-          runner=D8_BIN,
+          runner=d8_bin,
           indir=GetTortureDir('lld', opt),
           fails=RUN_KNOWN_TORTURE_FAILURES,
           attributes=common_attrs + ['d8', 'lld', opt],
@@ -1476,7 +1481,7 @@ def TestAsm():
     for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
       ExecuteLLVMTorture(
           name='asm2wasm',
-          runner=D8_BIN,
+          runner=d8_bin,
           indir=GetTortureDir('asm2wasm', opt),
           fails=RUN_KNOWN_TORTURE_FAILURES,
           attributes=['asm2wasm', 'd8'],
@@ -1501,7 +1506,7 @@ def TestEmwasm():
     for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
       ExecuteLLVMTorture(
           name='emwasm',
-          runner=D8_BIN,
+          runner=d8_bin,
           indir=GetTortureDir('emwasm', opt),
           fails=RUN_KNOWN_TORTURE_FAILURES,
           attributes=['emwasm', 'lld', 'd8'],
