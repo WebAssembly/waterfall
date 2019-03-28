@@ -12,6 +12,8 @@ TMP     = $(CURDIR)/debian/$(PACKAGE)
 PREFIX  = /opt/wasm
 DESTDIR = $(TMP)$(PREFIX)
 
+override_dh_update_autotools_config:
+
 override_dh_auto_install:
 	mkdir -p debian/wasm-toolchain/opt/wasm
 	cp -ar src/work/wasm-install/* $(DESTDIR)
