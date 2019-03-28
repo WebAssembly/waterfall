@@ -44,7 +44,6 @@ import work_dirs
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 WORK_DIR = os.path.join(SCRIPT_DIR, 'work')
-JSVU_DIR = os.path.join(WORK_DIR, 'jsvu')
 JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
 
 
@@ -207,20 +206,18 @@ JAVA_VERSION = '9.0.1'
 
 
 def JavaDir():
-  outdir = 'jre-' + JAVA_VERSION
+  outdir = GetBuildDir('jre-' + JAVA_VERSION)
   if IsMac():
     outdir += '.jre'
   return outdir
 
 
-def JavaBinDir():
+def JavaBin():
   if IsMac():
-    return os.path.join('Contents', 'Home', 'bin')
-  return 'bin'
-
-
-JAVA_DIR = os.path.join(WORK_DIR, JavaDir())
-JAVA_BIN = Executable(os.path.join(JAVA_DIR, JavaBinDir(), 'java'))
+    bin_dir = os.path.join('Contents', 'Home', 'bin')
+  else:
+    bin_dir = 'bin'
+  return Executable(os.path.join(JavaDir(), bin_dir, 'java'))
 
 
 # Known failures.
@@ -585,7 +582,7 @@ def SyncPrebuiltNodeJS(name, src_dir, git_repo):
   extension = {'darwin': 'tar.gz',
                'linux2': 'tar.xz',
                'win32': 'zip'}[sys.platform]
-  out_dir = os.path.join(WORK_DIR, NODE_BASE_NAME + NodePlatformName())
+  out_dir = GetBuildDir(NODE_BASE_NAME + NodePlatformName())
   tarball = NODE_BASE_NAME + NodePlatformName() + '.' + extension
   node_url = WASM_STORAGE_BASE + tarball
   return SyncArchive(out_dir, name, node_url)
@@ -604,7 +601,7 @@ def SyncPrebuiltJava(name, src_dir, git_repo):
               'win32': 'windows'}[sys.platform]
   tarball = 'jre-' + JAVA_VERSION + '_' + platform + '-x64_bin.tar.gz'
   java_url = WASM_STORAGE_BASE + tarball
-  SyncArchive(JAVA_DIR, name, java_url)
+  SyncArchive(JavaDir(), name, java_url)
 
 
 def NoSync(*args):
@@ -989,7 +986,7 @@ def Emscripten():
       text = config.read().replace('{{WASM_INSTALL}}',
                                    WindowsFSEscape(GetInstallDir()))
       text = text.replace('{{PREBUILT_NODE}}', WindowsFSEscape(NodeBin()))
-      text = text.replace('{{PREBUILT_JAVA}}', WindowsFSEscape(JAVA_BIN))
+      text = text.replace('{{PREBUILT_JAVA}}', WindowsFSEscape(JavaBin()))
     with open(outfile, 'w') as config:
       config.write(text)
 
