@@ -1561,9 +1561,8 @@ ALL_TESTS = [
     Test('emwasm', TestEmwasm, Filter(exclude=['mac'])),
     # These tests do have interesting differences on OSes (especially the
     # 'other' tests) and eventually should run everywhere.
-    # TODO(sbc): Re-enable these once we have debugged the bot issues
-    # Test('emtest', TestEmtest, Filter(exclude=['windows'])),
-    # Test('emtest-asm', TestEmtestAsm2Wasm, Filter(exclude=['windows'])),
+    Test('emtest', TestEmtest, Filter(exclude=['windows'])),
+    Test('emtest-asm', TestEmtestAsm2Wasm, Filter(exclude=['windows'])),
     Test('wasm-simd', TestWasmSimd),
 ]
 
