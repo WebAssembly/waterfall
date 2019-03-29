@@ -1119,10 +1119,6 @@ def LibCXXABI():
       '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
       '-DLIBCXXABI_ENABLE_SHARED=OFF',
       '-DLIBCXXABI_ENABLE_THREADS=OFF',
-      # HandleLLVMOptions.cmake include CheckCompilerVersion.cmake.
-      # This checks for working <atomic> header, which in turn errors
-      # out on systems with threads disabled
-      '-DLLVM_COMPILER_CHECKED=ON',
       '-DLIBCXXABI_LIBCXX_PATH=' + GetLLVMSrcDir('libcxx'),
       '-DLIBCXXABI_LIBCXX_INCLUDES=' +
       GetInstallDir('sysroot', 'include', 'c++', 'v1'),
