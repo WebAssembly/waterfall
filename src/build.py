@@ -1117,6 +1117,7 @@ def LibCXXABI():
   command = CMakeCommandWack([
       src_dir,
       '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
+      '-DLIBCXXABI_ENABLE_PIC=OFF',
       '-DLIBCXXABI_ENABLE_SHARED=OFF',
       '-DLIBCXXABI_ENABLE_THREADS=OFF',
       '-DLIBCXXABI_LIBCXX_PATH=' + GetLLVMSrcDir('libcxx'),
