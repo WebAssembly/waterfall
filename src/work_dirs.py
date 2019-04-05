@@ -44,3 +44,6 @@ GetSync, SetSync = MakeGetterSetter('sync', DEFAULT_SYNC_DIR)
 GetBuild, SetBuild = MakeGetterSetter('build', DEFAULT_BUILD_DIR)
 GetTest, SetTest = MakeGetterSetter('test', DEFAULT_TEST_DIR)
 GetInstall, SetInstall = MakeGetterSetter('install', DEFAULT_INSTALL_DIR)
+
+def GetAll():
+  return [GetSync(), GetBuild(), GetTest(), GetInstall()]
