@@ -598,7 +598,7 @@ def SyncGNUWin32(name, src_dir, git_repo):
   if not IsWindows():
     return
   url = WASM_STORAGE_BASE + GNUWIN32_ZIP
-  return SyncArchive(GetSyncDir('gnuwin32'), name, url)
+  return SyncArchive(GetSrcDir('gnuwin32'), name, url)
 
 
 def SyncPrebuiltJava(name, src_dir, git_repo):
@@ -639,7 +639,7 @@ def AllSources():
       Source('host-toolchain', GetPrebuilt('chromium-clang'),
              GIT_MIRROR_BASE + 'chromium/src/tools/clang.git',
              custom_sync=SyncToolchain),
-      Source('cr-buildtools', GetSyncDir('build'),
+      Source('cr-buildtools', GetSrcDir('build'),
              GIT_MIRROR_BASE + 'chromium/src/build.git'),
       Source('cmake', '', '',  # The source and git args are ignored.
              custom_sync=SyncPrebuiltCMake),
@@ -772,8 +772,7 @@ def BuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
     return None
   cc_env = host_toolchains.SetUpVSEnv(build_dir)
   if use_gnuwin32:
-    cc_env['PATH'] = cc_env['PATH'] + os.pathsep + GetSyncDir(
-        'gnuwin32', 'bin')
+    cc_env['PATH'] = cc_env['PATH'] + os.pathsep + GetSrcDir('gnuwin32', 'bin')
   bin_dir = build_dir if not bin_subdir else os.path.join(build_dir, 'bin')
   Mkdir(bin_dir)
   assert runtime in ['Release', 'Debug']
