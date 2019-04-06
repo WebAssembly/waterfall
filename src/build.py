@@ -43,7 +43,6 @@ import work_dirs
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-WORK_DIR = os.path.join(SCRIPT_DIR, 'work')
 JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
 
 # This file has a special path to avoid warnings about the system being unknown
@@ -69,7 +68,6 @@ WATERFALL_REMOTE = '_waterfall'
 
 WASM_STORAGE_BASE = 'https://wasm.storage.googleapis.com/'
 
-GNUWIN32_DIR = os.path.join(WORK_DIR, 'gnuwin32')
 GNUWIN32_ZIP = 'gnuwin32.zip'
 
 # This version is the current LLVM version in development. This needs to be
@@ -79,8 +77,8 @@ GNUWIN32_ZIP = 'gnuwin32.zip'
 LLVM_VERSION = '9.0.0'
 
 # Update this number each time you want to create a clobber build.  If the
-# clobber_version.txt file in WORK_DIR doesn't match we remove the entire
-# WORK_DIR.  This works like a simpler version of chromium's landmine feature.
+# clobber_version.txt file in the build dir doesn't match we remove ALL work
+# dirs.  This works like a simpler version of chromium's landmine feature.
 CLOBBER_BUILD_TAG = 8
 
 options = None
@@ -95,7 +93,7 @@ def GetBuildDir(*args):
 
 
 def GetPrebuilt(*args):
-  return GetBuildDir(*args)
+  return GetSrcDir(*args)
 
 
 def GetPrebuiltClang(binary):
@@ -109,6 +107,10 @@ def GetSrcDir(*args):
 
 def GetInstallDir(*args):
   return os.path.join(work_dirs.GetInstall(), *args)
+
+
+def GetTestDir(*args):
+  return os.path.join(work_dirs.GetTest(), *args)
 
 
 def GetLLVMSrcDir(*args):
@@ -179,7 +181,7 @@ PREBUILT_CMAKE_BASE_NAME = 'cmake-%s-%s-%s' % (PREBUILT_CMAKE_VERSION,
 
 
 def PrebuiltCMakeDir(*args):
-  return GetBuildDir(PREBUILT_CMAKE_BASE_NAME, *args)
+  return GetSrcDir(PREBUILT_CMAKE_BASE_NAME, *args)
 
 
 def PrebuiltCMakeBin():
@@ -532,7 +534,7 @@ def SyncToolchain(name, src_dir, git_repo):
 def SyncArchive(out_dir, name, url):
   """Download and extract an archive (zip, tar.gz or tar.xz) file from a URL.
 
-  The extraction happens in WORK_DIR and the convention for our archives is
+  The extraction happens in the sync dir and the convention for our archives is
   that they contain a top-level directory containing all the files; this
   is expected to be 'out_dir', so if 'out_dir' already exists then download
   will be skipped.
@@ -548,6 +550,7 @@ def SyncArchive(out_dir, name, url):
         return
     print '%s directory exists but is not up-to-date' % name
   print 'Downloading %s from %s' % (name, url)
+  work_dir = work_dirs.GetSync()
 
   try:
     f = urllib2.urlopen(url)
@@ -561,11 +564,11 @@ def SyncArchive(out_dir, name, url):
       ext = os.path.splitext(url)[-1]
       if ext == '.zip':
         with zipfile.ZipFile(t, 'r') as zip:
-          zip.extractall(path=WORK_DIR)
+          zip.extractall(path=work_dir)
       elif ext == '.xz':
-        proc.check_call(['tar', '-xvf', t.name], cwd=WORK_DIR)
+        proc.check_call(['tar', '-xvf', t.name], cwd=work_dir)
       else:
-        tarfile.open(fileobj=t).extractall(path=WORK_DIR)
+        tarfile.open(fileobj=t).extractall(path=work_dir)
   except urllib2.URLError as e:
     print 'Error downloading %s: %s' % (url, e)
     raise
@@ -595,7 +598,7 @@ def SyncGNUWin32(name, src_dir, git_repo):
   if not IsWindows():
     return
   url = WASM_STORAGE_BASE + GNUWIN32_ZIP
-  return SyncArchive(GNUWIN32_DIR, name, url)
+  return SyncArchive(GetSrcDir('gnuwin32'), name, url)
 
 
 def SyncPrebuiltJava(name, src_dir, git_repo):
@@ -636,7 +639,7 @@ def AllSources():
       Source('host-toolchain', GetPrebuilt('chromium-clang'),
              GIT_MIRROR_BASE + 'chromium/src/tools/clang.git',
              custom_sync=SyncToolchain),
-      Source('cr-buildtools', os.path.join(WORK_DIR, 'build'),
+      Source('cr-buildtools', GetSrcDir('build'),
              GIT_MIRROR_BASE + 'chromium/src/build.git'),
       Source('cmake', '', '',  # The source and git args are ignored.
              custom_sync=SyncPrebuiltCMake),
@@ -662,7 +665,7 @@ def Clobber():
     return
 
   clobber = buildbot.ShouldClobber()
-  clobber_file = os.path.join(WORK_DIR, "clobber_version.txt")
+  clobber_file = GetBuildDir('clobber_version.txt')
   if not clobber:
     if not os.path.exists(clobber_file):
       clobber = True
@@ -675,8 +678,9 @@ def Clobber():
     return
 
   buildbot.Step('Clobbering work dir')
-  Remove(WORK_DIR)
-  Mkdir(WORK_DIR)
+  for work_dir in work_dirs.GetAll():
+    Remove(work_dir)
+    Mkdir(work_dir)
   with open(clobber_file, 'w') as f:
     f.write('%s\n' % CLOBBER_BUILD_TAG)
 
@@ -688,7 +692,7 @@ def SyncRepos(filter, sync_lkgr=False):
 
   good_hashes = None
   if sync_lkgr:
-    lkgr_file = os.path.join(WORK_DIR, 'lkgr.json')
+    lkgr_file = GetBuildDir('lkgr.json')
     cloud.Download('%s/lkgr.json' % BuilderPlatformName(), lkgr_file)
     lkgr = json.loads(open(lkgr_file).read())
     good_hashes = {}
@@ -768,8 +772,7 @@ def BuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
     return None
   cc_env = host_toolchains.SetUpVSEnv(build_dir)
   if use_gnuwin32:
-    cc_env['PATH'] = cc_env['PATH'] + os.pathsep + os.path.join(GNUWIN32_DIR,
-                                                                'bin')
+    cc_env['PATH'] = cc_env['PATH'] + os.pathsep + GetSrcDir('gnuwin32', 'bin')
   bin_dir = build_dir if not bin_subdir else os.path.join(build_dir, 'bin')
   Mkdir(bin_dir)
   assert runtime in ['Release', 'Debug']
@@ -972,7 +975,7 @@ def Emscripten():
 
   # Manually build the native asm.js optimizer (the cmake build in embuilder
   # doesn't work on the waterfall)
-  optimizer_out_dir = os.path.join(WORK_DIR, 'em-optimizer-out')
+  optimizer_out_dir = GetBuildDir('em-optimizer-out')
   Mkdir(optimizer_out_dir)
   cc_env = BuildEnv(optimizer_out_dir)
   command = CMakeCommandNative([
@@ -1402,13 +1405,12 @@ class Test(object):
 
 def GetTortureDir(name, opt):
   dirs = {
-      'asm2wasm': os.path.join(
-          work_dirs.GetTest(), 'asm2wasm-torture-out', opt),
-      'emwasm': os.path.join(work_dirs.GetTest(), 'emwasm-torture-out', opt),
+      'asm2wasm': GetTestDir('asm2wasm-torture-out', opt),
+      'emwasm': GetTestDir('emwasm-torture-out', opt),
   }
   if name in dirs:
     return dirs[name]
-  return os.path.join(WORK_DIR, 'torture-' + name, opt)
+  return GetTestDir('torture-' + name, opt)
 
 
 def TestBare():
@@ -1662,7 +1664,8 @@ def run(sync_filter, build_filter, test_filter):
 
   Clobber()
   Chdir(SCRIPT_DIR)
-  Mkdir(WORK_DIR)
+  for work_dir in work_dirs.GetAll():
+    Mkdir(work_dir)
   SyncRepos(sync_filter, options.sync_lkgr)
   repos = GetRepoInfo() if buildbot.IsBot() else {}
   if build_filter.All():
