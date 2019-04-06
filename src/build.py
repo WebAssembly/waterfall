@@ -93,7 +93,7 @@ def GetBuildDir(*args):
 
 
 def GetPrebuilt(*args):
-  return GetBuildDir(*args)
+  return GetSrcDir(*args)
 
 
 def GetPrebuiltClang(binary):
@@ -181,7 +181,7 @@ PREBUILT_CMAKE_BASE_NAME = 'cmake-%s-%s-%s' % (PREBUILT_CMAKE_VERSION,
 
 
 def PrebuiltCMakeDir(*args):
-  return GetBuildDir(PREBUILT_CMAKE_BASE_NAME, *args)
+  return GetSrcDir(PREBUILT_CMAKE_BASE_NAME, *args)
 
 
 def PrebuiltCMakeBin():
