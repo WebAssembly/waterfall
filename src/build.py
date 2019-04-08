@@ -138,7 +138,7 @@ def WindowsFSEscape(path):
 
 
 # Use prebuilt Node.js because the buildbots don't have node preinstalled
-NODE_VERSION = '8.12.0'
+NODE_VERSION = '10.15.3'
 NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
 
 
@@ -584,7 +584,7 @@ def SyncPrebuiltCMake(name, src_dir, git_repo):
 
 
 def SyncPrebuiltNodeJS(name, src_dir, git_repo):
-  extension = {'darwin': 'tar.gz',
+  extension = {'darwin': 'tar.xz',
                'linux2': 'tar.xz',
                'win32': 'zip'}[sys.platform]
   out_dir = GetBuildDir(NODE_BASE_NAME + NodePlatformName())
