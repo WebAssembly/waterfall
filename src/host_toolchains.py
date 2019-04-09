@@ -20,7 +20,6 @@ import json
 import os
 import shutil
 
-import file_util
 import proc
 
 WORK_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'work')
