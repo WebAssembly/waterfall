@@ -524,7 +524,7 @@ def SyncToolchain(name, src_dir, git_repo):
   if IsWindows():
     host_toolchains.SyncWinToolchain()
   else:
-    host_toolchains.SyncPrebuiltClang(name, src_dir, git_repo)
+    host_toolchains.SyncPrebuiltClang(name, src_dir)
     cc = GetPrebuiltClang('clang')
     cxx = GetPrebuiltClang('clang++')
     assert os.path.isfile(cc), 'Expect clang at %s' % cc
@@ -636,8 +636,9 @@ def AllSources():
       Source('v8', GetSrcDir('v8', 'v8'),
              GIT_MIRROR_BASE + 'v8/v8.git',
              custom_sync=ChromiumFetchSync),
-      Source('host-toolchain', GetPrebuilt('chromium-clang'),
-             GIT_MIRROR_BASE + 'chromium/src/tools/clang.git',
+      Source('tools-clang', GetSrcDir('chromium-clang', 'tools', 'clang'),
+             GIT_MIRROR_BASE + 'chromium/src/tools/clang.git'),
+      Source('host-toolchain', GetSrcDir('chromium-clang'), '',
              custom_sync=SyncToolchain),
       Source('cr-buildtools', GetSrcDir('build'),
              GIT_MIRROR_BASE + 'chromium/src/build.git'),

@@ -20,7 +20,6 @@ import json
 import os
 import shutil
 
-import file_util
 import proc
 
 WORK_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'work')
@@ -32,18 +31,10 @@ VS_TOOLCHAIN = os.path.join(V8_SRC_DIR, 'build', 'vs_toolchain.py')
 WIN_TOOLCHAIN_JSON = os.path.join(V8_SRC_DIR, 'build', 'win_toolchain.json')
 
 
-def SyncPrebuiltClang(name, src_dir, git_repo):
+def SyncPrebuiltClang(name, src_dir):
   """Update the prebuilt clang toolchain used by chromium bots"""
   tools_clang = os.path.join(src_dir, 'tools', 'clang')
-  if os.path.isdir(tools_clang):
-    print 'Prebuilt Chromium Clang directory already exists'
-  else:
-    print 'Cloning Prebuilt Chromium Clang directory'
-    file_util.Mkdir(src_dir)
-    file_util.Mkdir(os.path.join(src_dir, 'tools'))
-    proc.check_call(['git', 'clone', git_repo, tools_clang])
-  proc.check_call(['git', 'fetch'], cwd=tools_clang)
-  proc.check_call(['git', 'checkout', 'origin/master'], cwd=tools_clang)
+  assert os.path.isdir(tools_clang)
   proc.check_call(
       [os.path.join(tools_clang, 'scripts', 'update.py')])
   return ('chromium-clang', tools_clang)
