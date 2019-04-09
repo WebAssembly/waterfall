@@ -97,7 +97,11 @@ def GetPrebuilt(*args):
 
 
 def GetPrebuiltClang(binary):
-  return GetPrebuilt('chromium-clang', 'third_party', 'llvm-build',
+  # For now use the src dir instead of the build dir, because the update script
+  # is managed by gclient.
+  # TODO: copy clang into the build dir so it gets persisted, or figure out how
+  # other bots do it.
+  return GetSrcDir('chromium-clang', 'third_party', 'llvm-build',
                      'Release+Asserts', 'bin', binary)
 
 
