@@ -102,7 +102,7 @@ def GetPrebuiltClang(binary):
   # TODO: copy clang into the build dir so it gets persisted, or figure out how
   # other bots do it.
   return GetSrcDir('chromium-clang', 'third_party', 'llvm-build',
-                     'Release+Asserts', 'bin', binary)
+                   'Release+Asserts', 'bin', binary)
 
 
 def GetSrcDir(*args):
