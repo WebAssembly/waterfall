@@ -93,12 +93,16 @@ def GetBuildDir(*args):
 
 
 def GetPrebuilt(*args):
-  return GetSrcDir(*args)
+  return GetBuildDir(*args)
 
 
 def GetPrebuiltClang(binary):
-  return GetPrebuilt('chromium-clang', 'third_party', 'llvm-build',
-                     'Release+Asserts', 'bin', binary)
+  # For now use the src dir instead of the build dir, because the update script
+  # is managed by gclient.
+  # TODO: copy clang into the build dir so it gets persisted, or figure out how
+  # other bots do it.
+  return GetSrcDir('chromium-clang', 'third_party', 'llvm-build',
+                   'Release+Asserts', 'bin', binary)
 
 
 def GetSrcDir(*args):
@@ -181,7 +185,7 @@ PREBUILT_CMAKE_BASE_NAME = 'cmake-%s-%s-%s' % (PREBUILT_CMAKE_VERSION,
 
 
 def PrebuiltCMakeDir(*args):
-  return GetSrcDir(PREBUILT_CMAKE_BASE_NAME, *args)
+  return GetBuildDir(PREBUILT_CMAKE_BASE_NAME, *args)
 
 
 def PrebuiltCMakeBin():
@@ -550,7 +554,7 @@ def SyncArchive(out_dir, name, url):
         return
     print '%s directory exists but is not up-to-date' % name
   print 'Downloading %s from %s' % (name, url)
-  work_dir = work_dirs.GetSync()
+  work_dir = work_dirs.GetBuild()
 
   try:
     f = urllib2.urlopen(url)
@@ -598,7 +602,7 @@ def SyncGNUWin32(name, src_dir, git_repo):
   if not IsWindows():
     return
   url = WASM_STORAGE_BASE + GNUWIN32_ZIP
-  return SyncArchive(GetSrcDir('gnuwin32'), name, url)
+  return SyncArchive(GetBuildDir('gnuwin32'), name, url)
 
 
 def SyncPrebuiltJava(name, src_dir, git_repo):
