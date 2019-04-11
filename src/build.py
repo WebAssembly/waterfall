@@ -93,16 +93,12 @@ def GetBuildDir(*args):
 
 
 def GetPrebuilt(*args):
-  return GetBuildDir(*args)
+  return os.path.join(work_dirs.GetPrebuilt(), *args)
 
 
 def GetPrebuiltClang(binary):
-  # For now use the src dir instead of the build dir, because the update script
-  # is managed by gclient.
-  # TODO: copy clang into the build dir so it gets persisted, or figure out how
-  # other bots do it.
-  return GetSrcDir('chromium-clang', 'third_party', 'llvm-build',
-                   'Release+Asserts', 'bin', binary)
+  return GetPrebuilt('third_party', 'llvm-build',
+                     'Release+Asserts', 'bin', binary)
 
 
 def GetSrcDir(*args):
@@ -185,7 +181,7 @@ PREBUILT_CMAKE_BASE_NAME = 'cmake-%s-%s-%s' % (PREBUILT_CMAKE_VERSION,
 
 
 def PrebuiltCMakeDir(*args):
-  return GetBuildDir(PREBUILT_CMAKE_BASE_NAME, *args)
+  return GetPrebuilt(PREBUILT_CMAKE_BASE_NAME, *args)
 
 
 def PrebuiltCMakeBin():
@@ -214,7 +210,7 @@ JAVA_VERSION = '9.0.1'
 
 
 def JavaDir():
-  outdir = GetBuildDir('jre-' + JAVA_VERSION)
+  outdir = GetPrebuilt('jre-' + JAVA_VERSION)
   if IsMac():
     outdir += '.jre'
   return outdir
@@ -538,12 +534,11 @@ def SyncToolchain(name, src_dir, git_repo):
 def SyncArchive(out_dir, name, url):
   """Download and extract an archive (zip, tar.gz or tar.xz) file from a URL.
 
-  The extraction happens in the sync dir and the convention for our archives is
-  that they contain a top-level directory containing all the files; this
+  The extraction happens in the prebuilt dir and our convention is that
+  archives contain a top-level directory containing all the files; this
   is expected to be 'out_dir', so if 'out_dir' already exists then download
   will be skipped.
   """
-
   stamp_file = os.path.join(out_dir, 'stamp.txt')
   if os.path.isdir(out_dir):
     if os.path.isfile(stamp_file):
@@ -554,7 +549,7 @@ def SyncArchive(out_dir, name, url):
         return
     print '%s directory exists but is not up-to-date' % name
   print 'Downloading %s from %s' % (name, url)
-  work_dir = work_dirs.GetBuild()
+  work_dir = os.path.dirname(out_dir)
 
   try:
     f = urllib2.urlopen(url)
@@ -591,7 +586,7 @@ def SyncPrebuiltNodeJS(name, src_dir, git_repo):
   extension = {'darwin': 'tar.xz',
                'linux2': 'tar.xz',
                'win32': 'zip'}[sys.platform]
-  out_dir = GetBuildDir(NODE_BASE_NAME + NodePlatformName())
+  out_dir = GetPrebuilt(NODE_BASE_NAME + NodePlatformName())
   tarball = NODE_BASE_NAME + NodePlatformName() + '.' + extension
   node_url = WASM_STORAGE_BASE + tarball
   return SyncArchive(out_dir, name, node_url)
@@ -602,7 +597,7 @@ def SyncGNUWin32(name, src_dir, git_repo):
   if not IsWindows():
     return
   url = WASM_STORAGE_BASE + GNUWIN32_ZIP
-  return SyncArchive(GetBuildDir('gnuwin32'), name, url)
+  return SyncArchive(GetPrebuilt('gnuwin32'), name, url)
 
 
 def SyncPrebuiltJava(name, src_dir, git_repo):
@@ -640,9 +635,9 @@ def AllSources():
       Source('v8', GetSrcDir('v8', 'v8'),
              GIT_MIRROR_BASE + 'v8/v8.git',
              custom_sync=ChromiumFetchSync),
-      Source('tools-clang', GetSrcDir('chromium-clang', 'tools', 'clang'),
+      Source('tools-clang', GetPrebuilt('tools', 'clang'),
              GIT_MIRROR_BASE + 'chromium/src/tools/clang.git'),
-      Source('host-toolchain', GetSrcDir('chromium-clang'), '',
+      Source('host-toolchain', GetPrebuilt(), '',
              custom_sync=SyncToolchain),
       Source('cr-buildtools', GetSrcDir('build'),
              GIT_MIRROR_BASE + 'chromium/src/build.git'),
@@ -1601,6 +1596,9 @@ def ParseArgs():
   parser.add_argument(
       '--build-dir', dest='build_dir', help='Directory for build output')
   parser.add_argument(
+      '--prebuilt-dir', dest='prebuilt_dir',
+      help='Directory for prebuilt output')
+  parser.add_argument(
       '--test-dir', dest='test_dir', help='Directory for test output')
   parser.add_argument(
       '--install-dir', dest='install_dir',
@@ -1725,6 +1723,8 @@ def main():
     work_dirs.SetTest(options.test_dir)
   if options.install_dir:
     work_dirs.SetInstall(options.install_dir)
+  if options.prebuilt_dir:
+    work_dirs.SetPrebuilt(options.prebuilt_dir)
 
   sync_include = options.sync_include if options.sync else []
   sync_filter = Filter('sync', sync_include, options.sync_exclude)
