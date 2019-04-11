@@ -37,7 +37,6 @@ def SyncPrebuiltClang(name, src_dir):
   assert os.path.isdir(tools_clang)
   proc.check_call(
       [os.path.join(tools_clang, 'scripts', 'update.py')])
-  return ('chromium-clang', tools_clang)
 
 
 def SyncWinToolchain():
