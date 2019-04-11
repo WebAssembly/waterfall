@@ -22,6 +22,7 @@ DEFAULT_WORK_DIR = os.path.join(os.path.dirname(SCRIPT_DIR), 'src', 'work')
 
 DEFAULT_SYNC_DIR = os.path.join(DEFAULT_WORK_DIR)
 DEFAULT_BUILD_DIR = os.path.join(DEFAULT_WORK_DIR)
+DEFAULT_PREBUILT_DIR = os.path.join(DEFAULT_WORK_DIR)
 DEFAULT_TEST_DIR = os.path.join(DEFAULT_WORK_DIR)
 DEFAULT_INSTALL_DIR = os.path.join(DEFAULT_WORK_DIR, 'wasm-install')
 
@@ -42,6 +43,7 @@ def MakeGetterSetter(path_type, default):
 
 GetSync, SetSync = MakeGetterSetter('sync', DEFAULT_SYNC_DIR)
 GetBuild, SetBuild = MakeGetterSetter('build', DEFAULT_BUILD_DIR)
+GetPrebuilt, SetPrebuilt = MakeGetterSetter('prebuilt', DEFAULT_PREBUILT_DIR)
 GetTest, SetTest = MakeGetterSetter('test', DEFAULT_TEST_DIR)
 GetInstall, SetInstall = MakeGetterSetter('install', DEFAULT_INSTALL_DIR)
 
