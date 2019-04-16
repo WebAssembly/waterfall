@@ -626,7 +626,7 @@ def AllSources():
              EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp.git',
              checkout=RemoteBranch('incoming')),
       Source('fastcomp-clang',
-             GetSrcDir('emscripten-fastcomp', 'tools', 'clang'),
+             GetSrcDir('emscripten-fastcomp-clang'),
              EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp-clang.git',
              checkout=RemoteBranch('incoming')),
       Source('gcc', GetSrcDir('gcc'),
@@ -946,7 +946,9 @@ def Fastcomp():
       '-DCMAKE_INSTALL_PREFIX=%s' % install_dir,
       '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
       '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
-      '-DLLVM_ENABLE_ASSERTIONS=ON'
+      '-DLLVM_ENABLE_ASSERTIONS=ON',
+      ('-DLLVM_EXTERNAL_CLANG_SOURCE_DIR=%s' %
+       GetSrcDir('emscripten-fastcomp-clang'))
   ])
   proc.check_call(command, cwd=build_dir, env=cc_env)
 
