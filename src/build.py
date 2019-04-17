@@ -1550,17 +1550,6 @@ def TestEmtestAsm2Wasm():
       os.path.join(work_dirs.GetTest(), 'emtest-asm2wasm-out'))
 
 
-def TestWasmSimd():
-  buildbot.Step('Execute emscripten wasm simd')
-  script = os.path.join(SCRIPT_DIR, 'test_wasm_simd.py')
-  clang = Executable(os.path.join(GetInstallDir('bin'), 'wasm32-clang'))
-  include = GetSrcDir('emscripten', 'system', 'include')
-  try:
-    proc.check_call([script, clang, include])
-  except proc.CalledProcessError:
-    buildbot.Warn()
-
-
 ALL_TESTS = [
     Test('bare', TestBare),
     # The windows/mac exclusions here are just to reduce the test matrix, since
@@ -1571,7 +1560,6 @@ ALL_TESTS = [
     # 'other' tests) and eventually should run everywhere.
     Test('emtest', TestEmtest, Filter(exclude=['windows'])),
     Test('emtest-asm', TestEmtestAsm2Wasm, Filter(exclude=['windows'])),
-    Test('wasm-simd', TestWasmSimd),
 ]
 
 
