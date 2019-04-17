@@ -57,7 +57,7 @@ def execute(infile, outfile, extras):
       'jsc-asm2wasm': [runner, '--useWebAssembly=1', infile],
       'wasm': [runner, infile],
       'node': [runner] + wasmjs + [infile] + extra_files,
-      'wasm-validate': [runner, infile],
+      'wasm-validate': [runner, '--enable-bulk-memory', infile],
   }
   return commands[config]
 
