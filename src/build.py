@@ -1309,7 +1309,9 @@ def ExecuteLLVMTorture(name, runner, indir, fails, attributes, extension, opt,
 
 def ValidateLLVMTorture(indir, ext, opt):
   validate = Executable(os.path.join(GetInstallDir('bin'), 'wasm-validate'))
-  ExecuteLLVMTorture('validate', validate, indir, None, [], ext, opt)
+  # Object files contain a DataCount section, so enable bulk memory
+  ExecuteLLVMTorture('validate', validate, indir, None,
+                     ['--enable-bulk-memory'], ext, opt)
 
 
 class Build(object):
