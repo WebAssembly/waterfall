@@ -29,11 +29,13 @@ import sys
 from subprocess import * # flake8: noqa
 
 
-def Which(filename, cwd, is_executable=True):
+def Which(filename, cwd=None, is_executable=True):
   if os.path.isabs(filename):
     return filename
 
-  to_search = [cwd] + os.environ.get('PATH', '').split(os.pathsep)
+  to_search = os.environ.get('PATH', '').split(os.pathsep)
+  if cwd:
+    to_search.insert(0, cwd)
   exe_suffixes = ['']
   if sys.platform == 'win32' and is_executable:
     exe_suffixes = ['.exe', '.bat'] + exe_suffixes

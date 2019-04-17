@@ -1,4 +1,4 @@
-# WACK (WebAssembly Clang Kit) is an experimental WebAssembly standalone
+# WASI (WebAssembly System Interface) is an experimental WebAssembly standalone
 # toolchain.
 
 # This is arbitrary, AFAIK, for now.
@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.4.0)
 
 set(CMAKE_SYSTEM_VERSION 1)
 set(CMAKE_SYSTEM_PROCESSOR wasm32)
-set(triple wasm32-unknown-unknown-wasm)
+set(triple wasm32-unknown-wasi)
 
 # Make HandleLLVMOptions.cmake happy.
 # TODO(sbc): We should probably fix llvm or libcxxabi instead.

@@ -36,7 +36,7 @@ def link(infile, outfile, extras):
   install_root = os.path.dirname(os.path.dirname(linker))
   sysroot_dir = os.path.join(install_root, 'sysroot')
   command = [linker, '--sysroot=%s' % sysroot_dir, '-Wl,-zstack-size=1048576',
-             '-Wl,--entry=main', '-o', outfile, infile]
+             '-o', outfile, infile, '-lwasi-emulated-mman']
   return command + extras['args']
 
 

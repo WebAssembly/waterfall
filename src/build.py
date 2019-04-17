@@ -46,7 +46,7 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
 
 # This file has a special path to avoid warnings about the system being unknown
-CMAKE_TOOLCHAIN_FILE = 'Wack.cmake'
+CMAKE_TOOLCHAIN_FILE = 'Wasi.cmake'
 
 EMSCRIPTEN_CONFIG_ASMJS = 'emscripten_config'
 EMSCRIPTEN_CONFIG_WASM = 'emscripten_config_vanilla'
@@ -57,7 +57,7 @@ GITHUB_SSH = 'git@github.com:'
 GIT_MIRROR_BASE = 'https://chromium.googlesource.com/'
 LLVM_MIRROR_BASE = 'https://llvm.googlesource.com/'
 GITHUB_MIRROR_BASE = GIT_MIRROR_BASE + 'external/github.com/'
-WASM_GIT_BASE = GITHUB_MIRROR_BASE + 'WebAssembly/'
+WASM_GIT_BASE = 'https://github.com/WebAssembly/'
 EMSCRIPTEN_GIT_BASE = 'https://github.com/emscripten-core/'
 LLVM_GIT_BASE = 'https://github.com/llvm/'
 MUSL_GIT_BASE = 'https://github.com/jfbastien/'
@@ -281,7 +281,7 @@ def CopyLibraryToArchive(library, prefix=''):
 
 def CopyLibraryToSysroot(library):
   """All libraries are archived in the same tar file."""
-  install_lib = GetInstallDir('sysroot', 'lib')
+  install_lib = GetInstallDir('sysroot', 'lib', 'wasm32-wasi')
   print 'Copying library %s to archive %s' % (library, install_lib)
   Mkdir(install_lib)
   shutil.copy2(library, install_lib)
@@ -651,9 +651,8 @@ def AllSources():
              WASM_GIT_BASE + 'wabt.git'),
       Source('binaryen', GetSrcDir('binaryen'),
              WASM_GIT_BASE + 'binaryen.git'),
-      Source('musl', GetSrcDir('musl'),
-             MUSL_GIT_BASE + 'musl.git',
-             checkout=RemoteBranch('wasm-prototype-1')),
+      Source('wasi-sysroot', GetSrcDir('wasi-sysroot'),
+             'https://github.com/CraneStation/wasi-sysroot.git'),
       Source('java', '', '',  # The source and git args are ignored.
              custom_sync=SyncPrebuiltJava)
   ]
@@ -739,7 +738,7 @@ def CMakeCommandNative(args):
   return command
 
 
-def CMakeCommandWack(args):
+def CMakeCommandWasi(args):
   command = CMakeCommandBase()
   command.append('-DCMAKE_TOOLCHAIN_FILE=%s' %
                  GetInstallDir(CMAKE_TOOLCHAIN_FILE))
@@ -810,15 +809,17 @@ def LLVM():
   CopyLLVMTools(build_dir)
   install_bin = GetInstallDir('bin')
   for target in ('clang', 'clang++'):
-    link = os.path.join(install_bin, 'wasm32-' + target)
-    if not IsWindows():
-      if not os.path.islink(Executable(link)):
-        os.symlink(Executable(target), Executable(link))
-    else:
-      # Windows has no symlinks (at least not from python). Also clang won't
-      # work as a native compiler anyway, so just install it as wasm32-clang
-      shutil.copy2(Executable(os.path.join(install_bin, target)),
-                   Executable(link))
+    for link in 'wasm32-', 'wasm32-wasi-':
+      link = os.path.join(install_bin, link + target)
+      if not IsWindows():
+        if not os.path.islink(Executable(link)):
+          os.symlink(Executable(target), Executable(link))
+      else:
+        # Windows has no symlinks (at least not from python). Also clang won't
+        # work as a native compiler anyway, so just install it as
+        # wasm32-wasi-clang
+        shutil.copy2(Executable(os.path.join(install_bin, target)),
+                     Executable(link))
 
   if not options.run_tool_tests:
     return
@@ -1065,7 +1066,7 @@ def CompilerRT():
   Mkdir(build_dir)
   src_dir = GetLLVMSrcDir('compiler-rt')
   cc_env = BuildEnv(src_dir, bin_subdir=True)
-  command = CMakeCommandWack([
+  command = CMakeCommandWasi([
       os.path.join(src_dir, 'lib', 'builtins'),
       '-DCMAKE_C_COMPILER_WORKS=ON',
       '-DCOMPILER_RT_BAREMETAL_BUILD=On',
@@ -1076,7 +1077,6 @@ def CompilerRT():
       '-DLLVM_CONFIG_PATH=' +
       Executable(os.path.join(work_dirs.GetBuild(),
                               'llvm-out', 'bin', 'llvm-config')),
-      '-DCOMPILER_RT_OS_DIR=.',
       '-DCMAKE_INSTALL_PREFIX=' +
       GetInstallDir('lib', 'clang', LLVM_VERSION)
   ])
@@ -1094,13 +1094,15 @@ def LibCXX():
   Mkdir(build_dir)
   src_dir = GetLLVMSrcDir('libcxx')
   cc_env = BuildEnv(src_dir, bin_subdir=True)
-  command = CMakeCommandWack([
+  command = CMakeCommandWasi([
       src_dir,
       '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
       '-DLIBCXX_ENABLE_THREADS=OFF',
       '-DLIBCXX_ENABLE_SHARED=OFF',
+      '-DLIBCXX_ENABLE_FILESYSTEM=OFF',
       '-DLIBCXX_HAS_MUSL_LIBC=ON',
       '-DLIBCXX_CXX_ABI=libcxxabi',
+      '-DLIBCXX_LIBDIR_SUFFIX=/wasm32-wasi',
       '-DLIBCXX_CXX_ABI_INCLUDE_PATHS=' +
       GetLLVMSrcDir('libcxxabi', 'include'),
       '-DLLVM_PATH=' + GetLLVMSrcDir('llvm'),
@@ -1119,12 +1121,13 @@ def LibCXXABI():
   Mkdir(build_dir)
   src_dir = GetLLVMSrcDir('libcxxabi')
   cc_env = BuildEnv(src_dir, bin_subdir=True)
-  command = CMakeCommandWack([
+  command = CMakeCommandWasi([
       src_dir,
       '-DCMAKE_EXE_LINKER_FLAGS=-nostdlib++',
       '-DLIBCXXABI_ENABLE_PIC=OFF',
       '-DLIBCXXABI_ENABLE_SHARED=OFF',
       '-DLIBCXXABI_ENABLE_THREADS=OFF',
+      '-DLIBCXXABI_LIBDIR_SUFFIX=/wasm32-wasi',
       '-DLIBCXXABI_LIBCXX_PATH=' + GetLLVMSrcDir('libcxx'),
       '-DLIBCXXABI_LIBCXX_INCLUDES=' +
       GetInstallDir('sysroot', 'include', 'c++', 'v1'),
@@ -1137,53 +1140,34 @@ def LibCXXABI():
   CopyLibraryToSysroot(os.path.join(SCRIPT_DIR, 'libc++abi.imports'))
 
 
-def Musl():
-  buildbot.Step('musl')
-  build_dir = os.path.join(work_dirs.GetBuild(), 'musl-out')
-  Mkdir(build_dir)
+def Wasi():
+  buildbot.Step('Wasi')
+  build_dir = os.path.join(work_dirs.GetBuild(), 'wasi-sysroot-out')
+  if os.path.isdir(build_dir):
+    Remove(build_dir)
+  cc_env = BuildEnv(build_dir, use_gnuwin32=True)
+  src_dir = GetSrcDir('wasi-sysroot')
   try:
-    cc_env = BuildEnv(build_dir, use_gnuwin32=True)
-    install_bin = GetInstallDir('bin')
-    src_dir = GetSrcDir('musl')
-    # Build musl directly to wasm object files in an ar library
-    proc.check_call([
-        os.path.join(src_dir, 'libc.py'),
-        '--clang_dir', install_bin,
-        '--binaryen_dir', os.path.join(install_bin),
-        '--sexpr_wasm', os.path.join(install_bin, 'wat2wasm'),
-        '--out', os.path.join(build_dir, 'libc.a'),
-        '--musl', src_dir, '--compile-to-wasm'], env=cc_env)
-    AR = os.path.join(install_bin, 'llvm-ar')
-    proc.check_call([AR, 'rc', os.path.join(build_dir, 'libm.a')])
-    CopyLibraryToSysroot(os.path.join(build_dir, 'libc.a'))
-    CopyLibraryToSysroot(os.path.join(build_dir, 'libm.a'))
-    CopyLibraryToSysroot(os.path.join(build_dir, 'crt1.o'))
-    CopyLibraryToSysroot(os.path.join(src_dir, 'arch', 'wasm32',
-                                      'libc.imports'))
-
-    wasm_js = os.path.join(src_dir, 'arch', 'wasm32', 'wasm.js')
-    CopyLibraryToArchive(wasm_js)
-
-    CopyTree(os.path.join(src_dir, 'include'),
-             GetInstallDir('sysroot', 'include'))
-    CopyTree(os.path.join(src_dir, 'arch', 'generic', 'bits'),
-             GetInstallDir('sysroot', 'include', 'bits'))
-    CopyTree(os.path.join(src_dir, 'arch', 'wasm32', 'bits'),
-             GetInstallDir('sysroot', 'include', 'bits'))
-    CopyTree(os.path.join(build_dir, 'obj', 'include', 'bits'),
-             GetInstallDir('sysroot', 'include', 'bits'))
-    # Strictly speaking the CMake toolchain file isn't part of musl, but does
-    # go along with the headers and libs musl installs. Give it a special
-    # path to avoid warnings about the system being unknown.
-    shutil.copy2(os.path.join(SCRIPT_DIR, CMAKE_TOOLCHAIN_FILE),
-                 GetInstallDir(CMAKE_TOOLCHAIN_FILE))
-    Remove(GetInstallDir('cmake'))
-    shutil.copytree(os.path.join(SCRIPT_DIR, 'cmake'),
-                    GetInstallDir('cmake'))
-
+    proc.check_call([proc.Which('make'),
+                     '-j%s' % NPROC,
+                     'SYSROOT=' + build_dir,
+                     'WASM_CC=' + GetInstallDir('bin', 'clang')],
+                    env=cc_env,
+                    cwd=src_dir)
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
     buildbot.Fail()
+  CopyTree(build_dir, GetInstallDir('sysroot'))
+
+  # We add the cmake toolchain file and out JS polyfill script to make using
+  # the wasi toolchain easier.
+  shutil.copy2(os.path.join(SCRIPT_DIR, CMAKE_TOOLCHAIN_FILE),
+               GetInstallDir(CMAKE_TOOLCHAIN_FILE))
+  Remove(GetInstallDir('cmake'))
+  shutil.copytree(os.path.join(SCRIPT_DIR, 'cmake'),
+                  GetInstallDir('cmake'))
+
+  shutil.copy2(os.path.join(SCRIPT_DIR, 'wasi.js'), GetInstallDir())
 
 
 def ArchiveBinaries():
@@ -1227,8 +1211,8 @@ def CompileLLVMTorture(outdir, opt):
   name = 'Compile LLVM Torture (%s)' % opt
   buildbot.Step(name)
   install_bin = GetInstallDir('bin')
-  cc = Executable(os.path.join(install_bin, 'wasm32-clang'))
-  cxx = Executable(os.path.join(install_bin, 'wasm32-clang++'))
+  cc = Executable(os.path.join(install_bin, 'wasm32-wasi-clang'))
+  cxx = Executable(os.path.join(install_bin, 'wasm32-wasi-clang++'))
   Remove(outdir)
   Mkdir(outdir)
   unexpected_result_count = compile_torture_tests.run(
@@ -1383,7 +1367,7 @@ def AllBuilds():
       Build('fastcomp', Fastcomp),
       Build('emscripten', Emscripten),
       # Target libs
-      Build('musl', Musl),
+      Build('wasi', Wasi),
       Build('compiler-rt', CompilerRT),
       Build('libcxx', LibCXX),
       Build('libcxxabi', LibCXXABI),
@@ -1432,7 +1416,7 @@ def TestBare():
   for opt in BARE_TEST_OPT_FLAGS:
     LinkLLVMTorture(
         name='lld',
-        linker=Executable(GetInstallDir('bin', 'wasm32-clang++')),
+        linker=Executable(GetInstallDir('bin', 'wasm32-wasi-clang++')),
         fails=LLD_KNOWN_TORTURE_FAILURES,
         indir=GetTortureDir('o', opt),
         outdir=GetTortureDir('lld', opt),
@@ -1455,7 +1439,7 @@ def TestBare():
           attributes=common_attrs + ['d8', 'lld', opt],
           extension='wasm',
           opt=opt,
-          wasmjs=os.path.join(GetInstallDir('lib'), 'wasm.js'))
+          wasmjs=os.path.join(SCRIPT_DIR, 'wasi.js'))
 
   if IsMac() and not buildbot.DidStepFailOrWarn('jsvu'):
     for opt in BARE_TEST_OPT_FLAGS:
@@ -1468,7 +1452,7 @@ def TestBare():
           extension='wasm',
           opt=opt,
           warn_only=True,
-          wasmjs=os.path.join(GetInstallDir('lib'), 'wasm.js'))
+          wasmjs=os.path.join(SCRIPT_DIR, 'wasi.js'))
 
 
 def TestAsm():
