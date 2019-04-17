@@ -1427,7 +1427,6 @@ def TestBare():
   for opt in BARE_TEST_OPT_FLAGS:
     CompileLLVMTorture(GetTortureDir('o', opt), opt)
     ValidateLLVMTorture(GetTortureDir('o', opt), 'o', opt)
-  return
 
   # Link/Assemble
   for opt in BARE_TEST_OPT_FLAGS:
