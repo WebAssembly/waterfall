@@ -273,7 +273,6 @@ init__array12.C.o.wasm
 init__array5.C.o.wasm
 init__copy3.C.o.wasm
 init__ctor1.C.o.wasm
-init__init-ref2.C.o.wasm
 init__new36.C.o.wasm
 init__placement2.C.o.wasm
 init__ref19.C.o.wasm
