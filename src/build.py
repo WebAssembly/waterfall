@@ -632,7 +632,7 @@ def AllSources():
       Source('gcc', GetSrcDir('gcc'),
              GIT_MIRROR_BASE + 'chromiumos/third_party/gcc.git',
              checkout=GCC_REVISION, depth=GCC_CLONE_DEPTH),
-      Source('v8', GetSrcDir('v8', 'v8'),
+      Source('v8', work_dirs.GetV8(),
              GIT_MIRROR_BASE + 'v8/v8.git',
              custom_sync=ChromiumFetchSync),
       Source('tools-clang', GetPrebuilt('tools', 'clang'),
@@ -839,7 +839,7 @@ def LLVM():
 
 def V8():
   buildbot.Step('V8')
-  src_dir = GetSrcDir('v8', 'v8')
+  src_dir = work_dirs.GetV8()
   out_dir = os.path.join(src_dir, 'out.gn', 'x64.release')
   proc.check_call([os.path.join(src_dir, 'tools', 'dev', 'v8gen.py'),
                    '-vv', 'x64.release'],
