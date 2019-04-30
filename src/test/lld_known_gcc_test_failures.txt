@@ -1,15 +1,23 @@
 # Expected failures from using lld to link on clang-generated .o files generated
-# from the GCC torture tests, and linked with the musl libc.a
+# from the GCC torture tests, and linked with libraries from wasi-sysroot.
 
-# undefined symbol: __builtin_va_arg_pack
-# This builtin is not supported by clang
-va-arg-pack-1.c.o
+# These builtins are not supported by clang
+va-arg-pack-1.c.o # __builtin_va_arg_pack
+pr39228.c.o # __builtin_isinff
+0071018-1.c.o # __builtin_malloc
+20071018-1.c.o # __builtin_malloc
+20071120-1.c.o # __builtin_malloc
+pr36765.c.o # __builtin_malloc
+pr43008.c.o # __builtin_malloc
+pr47237.c.o # __builtin_apply
 
 # Same behviour with x86 clang
 medce-1.c.o O0 # undefined symbol: link_error
 
 asan__interception-test-1.C.o  # Undefined symbol: __interceptor_strtol
 tree-ssa__pr20458.C.o  # Undefined symbol: std::locale::locale
+20101011-1.c.o # Undefined symbol: signal
+pr58419.c.o # Undefined symbol: getpid
 
 # These tests compile but need to actually create threads to run correctly.
 tls__thread_local3.C.o
@@ -18,10 +26,6 @@ tls__thread_local4.C.o
 tls__thread_local4g.C.o
 tls__thread_local5.C.o
 tls__thread_local5g.C.o
-
-# Conflicting signatures for `abort()` import that our AddMissingPrototypes
-# pass is unable to handle.
-921110-1.c.o
 
 # Untriaged
 warn__pr33738.C.o

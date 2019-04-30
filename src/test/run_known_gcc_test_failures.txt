@@ -169,10 +169,7 @@ vprintf-chk-1.c.js O3
 ### Failures for lld-linked binaries
 
 # printf or other libc feature missing
-920501-8.c.o.wasm
 pr56982.c.o.wasm
-struct-ret-1.c.o.wasm
-930513-1.c.o.wasm
 pr39228.c.o.wasm
 pr47237.c.o.wasm
 
@@ -206,28 +203,20 @@ cleanup-5.C.o.wasm
 # signature mismatches
 tc1__dr20.C.o.wasm # printf
 
+# invalid main() signautre
+20091229-1.c.o.wasm
+pr61375.c.o.wasm
+switch-1.c.o.wasm
+
 # Untriaged lld failures
 torture__pr48695.C.o.wasm O2
 
 20031003-1.c.o.wasm O0
 pr23135.c.o.wasm O0
-abi__covariant3.C.o.wasm O0
-expr__cast4.C.o.wasm O0
-inherit__thunk7.C.o.wasm O0
-init__array33.C.o.wasm O0
-init__attrib1.C.o.wasm O0
-ipa__pr60640-3.C.o.wasm O0
-ipa__pr60640-4.C.o.wasm O0
-rtti__dyncast2.C.o.wasm O0
-template__arg6.C.o.wasm O0
-template__ctor2.C.o.wasm O0
-tree-ssa__pr28003.C.o.wasm O0
 ubsan__return-1.C.o.wasm O0
 
 abi__bitfield1.C.o.wasm
 abi__vbase13.C.o.wasm
-asan__deep-stack-uaf-1.C.o.wasm
-asan__symbolize-callback-1.C.o.wasm
 eh__alias1.C.o.wasm
 eh__cond1.C.o.wasm
 eh__cond4.C.o.wasm
@@ -285,13 +274,9 @@ opt__eh3.C.o.wasm
 opt__eh4.C.o.wasm
 opt__pr23299.C.o.wasm
 opt__pr23478.C.o.wasm
-opt__pr36449.C.o.wasm
-opt__static5.C.o.wasm
 other__copy2.C.o.wasm
 rtti__dyncast3.C.o.wasm
 rtti__typeid10.C.o.wasm
-rtti__typeid4.C.o.wasm
-template__friend10.C.o.wasm
 template__pretty1.C.o.wasm
 torture__pr49115.C.o.wasm
 torture__pr60750.C.o.wasm
