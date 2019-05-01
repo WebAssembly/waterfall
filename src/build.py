@@ -559,7 +559,7 @@ def SyncArchive(out_dir, name, url):
       t.write(f.read())
       t.flush()
       t.seek(0)
-      print 'Extracting...'
+      print 'Extracting into %s' % work_dir
       ext = os.path.splitext(url)[-1]
       if ext == '.zip':
         with zipfile.ZipFile(t, 'r') as zip:
