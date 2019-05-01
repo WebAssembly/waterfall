@@ -36,7 +36,7 @@ def MakeGetterSetter(path_type, default):
   def setter(dir):
     if path_type in dirs:
       raise Exception('Path %s set more than once' % path_type)
-    dirs[path_type] = dir
+    dirs[path_type] = os.path.abspath(dir)
 
   return getter, setter
 
