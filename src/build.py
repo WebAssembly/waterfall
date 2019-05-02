@@ -1148,7 +1148,7 @@ def Wasi():
   cc_env = BuildEnv(build_dir, use_gnuwin32=True)
   src_dir = GetSrcDir('wasi-sysroot')
   try:
-    proc.check_call([proc.Which('make'), 'finish',
+    proc.check_call([proc.Which('make'), 'startup_files', 'finish',
                      '-j%s' % NPROC,
                      'SYSROOT=' + build_dir,
                      'WASM_CC=' + GetInstallDir('bin', 'clang')],
