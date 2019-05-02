@@ -1704,7 +1704,7 @@ def main():
   if options.build_dir:
     work_dirs.SetBuild(options.build_dir)
   if options.v8_dir:
-    work_dirs.SetBuild(options.v8_dir)
+    work_dirs.SetV8(options.v8_dir)
   if options.test_dir:
     work_dirs.SetTest(options.test_dir)
   if options.install_dir:
