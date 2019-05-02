@@ -1580,6 +1580,9 @@ def ParseArgs():
       '--prebuilt-dir', dest='prebuilt_dir',
       help='Directory for prebuilt output')
   parser.add_argument(
+      '--v8-dir', dest='v8_dir',
+      help='Directory for V8 checkout/build')
+  parser.add_argument(
       '--test-dir', dest='test_dir', help='Directory for test output')
   parser.add_argument(
       '--install-dir', dest='install_dir',
@@ -1700,6 +1703,8 @@ def main():
     work_dirs.SetSync(options.sync_dir)
   if options.build_dir:
     work_dirs.SetBuild(options.build_dir)
+  if options.v8_dir:
+    work_dirs.SetBuild(options.v8_dir)
   if options.test_dir:
     work_dirs.SetTest(options.test_dir)
   if options.install_dir:
