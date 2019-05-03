@@ -632,7 +632,7 @@ def AllSources():
       Source('gcc', GetSrcDir('gcc'),
              GIT_MIRROR_BASE + 'chromiumos/third_party/gcc.git',
              checkout=GCC_REVISION, depth=GCC_CLONE_DEPTH),
-      Source('v8', GetSrcDir('v8', 'v8'),
+      Source('v8', work_dirs.GetV8(),
              GIT_MIRROR_BASE + 'v8/v8.git',
              custom_sync=ChromiumFetchSync),
       Source('tools-clang', GetPrebuilt('tools', 'clang'),
@@ -839,7 +839,7 @@ def LLVM():
 
 def V8():
   buildbot.Step('V8')
-  src_dir = GetSrcDir('v8', 'v8')
+  src_dir = work_dirs.GetV8()
   out_dir = os.path.join(src_dir, 'out.gn', 'x64.release')
   proc.check_call([os.path.join(src_dir, 'tools', 'dev', 'v8gen.py'),
                    '-vv', 'x64.release'],
@@ -1580,6 +1580,9 @@ def ParseArgs():
       '--prebuilt-dir', dest='prebuilt_dir',
       help='Directory for prebuilt output')
   parser.add_argument(
+      '--v8-dir', dest='v8_dir',
+      help='Directory for V8 checkout/build')
+  parser.add_argument(
       '--test-dir', dest='test_dir', help='Directory for test output')
   parser.add_argument(
       '--install-dir', dest='install_dir',
@@ -1700,6 +1703,8 @@ def main():
     work_dirs.SetSync(options.sync_dir)
   if options.build_dir:
     work_dirs.SetBuild(options.build_dir)
+  if options.v8_dir:
+    work_dirs.SetV8(options.v8_dir)
   if options.test_dir:
     work_dirs.SetTest(options.test_dir)
   if options.install_dir:
