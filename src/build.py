@@ -151,8 +151,8 @@ def NodePlatformName():
 def NodeBinDir():
   node_subdir = NODE_BASE_NAME + NodePlatformName()
   if IsWindows():
-    return GetBuildDir(node_subdir)
-  return GetBuildDir(node_subdir, 'bin')
+    return GetPrebuilt(node_subdir)
+  return GetPrebuilt(node_subdir, 'bin')
 
 
 def NodeBin():
