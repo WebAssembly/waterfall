@@ -1173,7 +1173,6 @@ def Wasi():
 def ArchiveBinaries():
   buildbot.Step('Archive binaries')
   # All relevant binaries were copied to the LLVM directory.
-  UploadArchive('torture-c', Archive(GccTestDir()))
   # TODO(sergiyb): Restore printing list of binaries on Linux and Mac once it
   # works. See https://crbug.com/916775 and https://crbug.com/940663
   UploadArchive(
@@ -1224,7 +1223,6 @@ def CompileLLVMTorture(outdir, opt):
       out=outdir,
       config='clang',
       opt=opt)
-  UploadArchive('torture-o-%s' % opt, Archive(outdir))
   if 0 != unexpected_result_count:
     buildbot.Fail()
 
@@ -1245,7 +1243,6 @@ def CompileLLVMTortureEmscripten(name, em_config, outdir, fails, opt):
       config='emscripten',
       opt=opt)
 
-  UploadArchive('torture-%s-%s' % (name, opt), Archive(outdir))
   if 0 != unexpected_result_count:
     buildbot.Fail()
 
@@ -1260,7 +1257,6 @@ def LinkLLVMTorture(name, linker, fails, indir, outdir, extension,
   unexpected_result_count = link_assembly_files.run(
       linker=linker, files=input_pattern, fails=fails, attributes=[opt],
       out=outdir, args=args)
-  UploadArchive('torture-%s-%s' % (name, opt), Archive(outdir))
   if 0 != unexpected_result_count:
     buildbot.Fail()
 
