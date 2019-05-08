@@ -17,9 +17,9 @@ export EMCC_SKIP_SANITY_CHECK=1
 
 # Use fastcomp backend unless EMCC_WASM_BACKEND is set to 1.
 if [[ $EMCC_WASM_BACKEND == 1 ]]; then
-  export EM_CONFIG="${WASM_ROOT}/emscripten_config_vanilla"
+  export EM_CONFIG="${WASM_ROOT}/emscripten_config_upstream"
 else
-  export EM_CONFIG="${WASM_ROOT}/emscripten_config"
+  export EM_CONFIG="${WASM_ROOT}/emscripten_config_fastcomp"
 fi
 
 exec "${WASM_ROOT}/emscripten/$(basename $0)" "$@"
