@@ -1363,7 +1363,7 @@ def AllBuilds():
       Build('fastcomp', Fastcomp),
       Build('emscripten', Emscripten),
       # Target libs
-      Build('wasi', Wasi),
+      Build('wasi-sysroot', Wasi),
       Build('compiler-rt', CompilerRT),
       Build('libcxx', LibCXX),
       Build('libcxxabi', LibCXXABI),
