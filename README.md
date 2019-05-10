@@ -38,7 +38,9 @@ We should keep process to a minimum, try things out, see what works.
 # How do I run it?
 
 1. Get the sources: `$ git clone https://github.com/WebAssembly/waterfall.git`
-2. Run build.py `python src/build.py`
+2. Install `depot_tools`. Follow [the instructions](https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_setting_up)
+3. Install `pkg-config` if you don't have it installed already, e.g. `# apt install pkg-config`
+4. Run build.py `python src/build.py`
 
 Build.py has 3 types of actions:
 * downloading/updating sources for tools and engines (sync)
