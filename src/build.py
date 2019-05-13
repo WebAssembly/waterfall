@@ -1156,8 +1156,9 @@ def Wasi():
                           env=cc_env,
                           cwd=src_dir)
     # TODO(https://bugs.chromium.org/p/chromium/issues/detail?id=940663):
-    # Cepturing stdout/stderr is workaround for some kind infrasturcture failure
-    # on LUCI where the make subprocess fails with `write error: stdout`.
+    # Cepturing stdout/stderr is workaround for some kind infrasturcture
+    # failure on LUCI where the make subprocess fails with:
+    # `write error: stdout`.
     print(o)
   except proc.CalledProcessError as e:
     print(e.output)
