@@ -1159,7 +1159,8 @@ def Wasi():
     # Cepturing stdout/stderr is workaround for some kind infrasturcture
     # failure on LUCI where the make subprocess fails with:
     # `write error: stdout`.
-    print >> sys.stderr, o
+    for l in o.splitlines():
+      print >> sys.stderr, l
   except proc.CalledProcessError as e:
     print >> sys.stderr, e.output
     # Note the failure but allow the build to continue.
