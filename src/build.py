@@ -1162,7 +1162,8 @@ def Wasi():
     for l in o.splitlines():
       print >> sys.stderr, l[:100]
   except proc.CalledProcessError as e:
-    print >> sys.stderr, e.output
+    for l in e.output.splitlines():
+      print >> sys.stderr, l[:100]
     # Note the failure but allow the build to continue.
     buildbot.Fail()
   CopyTree(build_dir, GetInstallDir('sysroot'))
