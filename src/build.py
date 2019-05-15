@@ -635,8 +635,6 @@ def AllSources():
       Source('v8', work_dirs.GetV8(),
              GIT_MIRROR_BASE + 'v8/v8.git',
              custom_sync=ChromiumFetchSync),
-      Source('tools-clang', GetPrebuilt('tools', 'clang'),
-             GIT_MIRROR_BASE + 'chromium/src/tools/clang.git'),
       Source('host-toolchain', work_dirs.GetV8(), '',
              custom_sync=SyncToolchain),
       Source('cmake', '', '',  # The source and git args are ignored.
