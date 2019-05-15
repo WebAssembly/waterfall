@@ -97,8 +97,8 @@ def GetPrebuilt(*args):
 
 
 def GetPrebuiltClang(binary):
-  return GetPrebuilt('third_party', 'llvm-build',
-                     'Release+Asserts', 'bin', binary)
+  return os.path.join(work_dirs.GetV8(), 'third_party', 'llvm-build',
+                      'Release+Asserts', 'bin', binary)
 
 
 def GetSrcDir(*args):
@@ -637,10 +637,8 @@ def AllSources():
              custom_sync=ChromiumFetchSync),
       Source('tools-clang', GetPrebuilt('tools', 'clang'),
              GIT_MIRROR_BASE + 'chromium/src/tools/clang.git'),
-      Source('host-toolchain', GetPrebuilt(), '',
+      Source('host-toolchain', work_dirs.GetV8(), '',
              custom_sync=SyncToolchain),
-      Source('cr-buildtools', GetSrcDir('build'),
-             GIT_MIRROR_BASE + 'chromium/src/build.git'),
       Source('cmake', '', '',  # The source and git args are ignored.
              custom_sync=SyncPrebuiltCMake),
       Source('nodejs', '', '',  # The source and git args are ignored.
