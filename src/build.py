@@ -1160,7 +1160,7 @@ def Wasi():
     # failure on LUCI where the make subprocess fails with:
     # `write error: stdout`.
     for l in o.splitlines():
-      print >> sys.stderr, l
+      print >> sys.stderr, l[:100]
   except proc.CalledProcessError as e:
     print >> sys.stderr, e.output
     # Note the failure but allow the build to continue.
