@@ -710,7 +710,7 @@ def GetRepoInfo():
 # Build rules
 
 def OverrideCMakeCompiler():
-  if IsWindows() or not options.force_host_clang:
+  if IsWindows():
     return []
   return ['-DCMAKE_C_COMPILER=' + GetPrebuiltClang('clang'),
           '-DCMAKE_CXX_COMPILER=' + GetPrebuiltClang('clang++')]
@@ -1714,6 +1714,8 @@ def main():
     work_dirs.SetInstall(options.install_dir)
   if options.prebuilt_dir:
     work_dirs.SetPrebuilt(options.prebuilt_dir)
+  if not options.host_clang:
+    host_toolchains.SetForceHostClang(False)
 
   sync_include = options.sync_include if options.sync else []
   sync_filter = Filter('sync', sync_include, options.sync_exclude)
