@@ -1639,6 +1639,9 @@ def ParseArgs():
       '--git-status', dest='git_status', default=False, action='store_true',
       help='Show git status for each sync target. '
            "Doesn't sync, build, or test")
+  parser.add_argument(
+    '--no-host-clang', dest='host_clang', action='store_false',
+    help="Don't force chrome clang as the host compiler")
 
   return parser.parse_args()
 
@@ -1711,6 +1714,8 @@ def main():
     work_dirs.SetInstall(options.install_dir)
   if options.prebuilt_dir:
     work_dirs.SetPrebuilt(options.prebuilt_dir)
+  if options.no_host_clang:
+    host_toolchains.SetForceHostClang(False)
 
   sync_include = options.sync_include if options.sync else []
   sync_filter = Filter('sync', sync_include, options.sync_exclude)
