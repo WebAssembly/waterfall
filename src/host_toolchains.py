@@ -21,14 +21,23 @@ import os
 import shutil
 
 import proc
+import work_dirs
 
-WORK_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'work')
-CR_BUILD_DIR = os.path.join(WORK_DIR, 'build')
-SETUP_TOOLCHAIN = os.path.join(CR_BUILD_DIR, 'toolchain', 'win',
-                               'setup_toolchain.py')
-V8_SRC_DIR = os.path.join(WORK_DIR, 'v8', 'v8')
-VS_TOOLCHAIN = os.path.join(V8_SRC_DIR, 'build', 'vs_toolchain.py')
-WIN_TOOLCHAIN_JSON = os.path.join(V8_SRC_DIR, 'build', 'win_toolchain.json')
+
+force_host_clang = True
+
+
+def SetupToolchain():
+  return os.path.join(work_dirs.GetV8(), 'build', 'toolchain', 'win',
+                      'setup_toolchain.py')
+
+
+def VSToolchainPy():
+  return os.path.join(work_dirs.GetV8(), 'build', 'vs_toolchain.py')
+
+
+def WinToolchainJson():
+  return os.path.join(work_dirs.GetV8(), 'build', 'win_toolchain.json')
 
 
 def SyncPrebuiltClang(name, src_dir):
@@ -41,7 +50,7 @@ def SyncPrebuiltClang(name, src_dir):
 
 def SyncWinToolchain():
   """Update the VS toolchain used by Chromium bots"""
-  proc.check_call([VS_TOOLCHAIN, 'update'])
+  proc.check_call([VSToolchainPy(), 'update'])
 
 
 def GetVSEnv(dir):
@@ -63,8 +72,8 @@ def GetVSEnv(dir):
 
 def GetRuntimeDir():
   # Get the chromium-packaged toolchain directory info in a JSON file
-  proc.check_call([VS_TOOLCHAIN, 'get_toolchain_dir'])
-  with open(WIN_TOOLCHAIN_JSON) as f:
+  proc.check_call([VSToolchainPy(), 'get_toolchain_dir'])
+  with open(WinToolchainJson()) as f:
     paths = json.load(f)
   # Extract the 64-bit runtime path
   return [path for path in paths['runtime_dirs'] if path.endswith('64')][0]
@@ -74,14 +83,14 @@ def SetUpVSEnv(outdir):
   """Set up the VS build environment used by Chromium bots"""
 
   # Get the chromium-packaged toolchain directory info in a JSON file
-  proc.check_call([VS_TOOLCHAIN, 'get_toolchain_dir'])
-  with open(WIN_TOOLCHAIN_JSON) as f:
+  proc.check_call([VSToolchainPy(), 'get_toolchain_dir'])
+  with open(WinToolchainJson()) as f:
     paths = json.load(f)
 
   # Write path information (usable by a non-chromium build) into an environment
   # block
   runtime_dirs = os.pathsep.join(paths['runtime_dirs'])
-  proc.check_call([SETUP_TOOLCHAIN,
+  proc.check_call([SetupToolchain(),
                    'foo', paths['win_sdk'], runtime_dirs,
                    'win', 'x64', 'environment.x64'],
                   cwd=outdir)
@@ -90,7 +99,7 @@ def SetUpVSEnv(outdir):
 
 def CopyDlls(dir, configuration):
   """Copy MSVS Runtime dlls into a build directory"""
-  proc.check_call([VS_TOOLCHAIN, 'copy_dlls', dir, configuration, 'x64'])
+  proc.check_call([VSToolchainPy(), 'copy_dlls', dir, configuration, 'x64'])
   # LLD needs also concrt140.dll, which the Chromium copy_dlls doesn't include.
   for dll in glob.glob(os.path.join(GetRuntimeDir(), 'concrt140*.dll')):
     print 'Copying %s to %s' % (dll, dir)
@@ -111,9 +120,11 @@ def CMakeLauncherFlags():
     compiler_launcher = os.path.join(GomaDir(), 'gomacc')
   else:
     try:
-      compiler_launcher = proc.Which('ccache', WORK_DIR)
-      flags.extend(['-DCMAKE_%s_FLAGS=-Qunused-arguments' %
-                    c for c in ['C', 'CXX']])
+      compiler_launcher = proc.Which('ccache')
+      if ShouldForceHostClang():
+        # This flag is only present in clang.
+        flags.extend(['-DCMAKE_%s_FLAGS=-Qunused-arguments' %
+                      c for c in ['C', 'CXX']])
     except:
       compiler_launcher = None
 
@@ -127,3 +138,12 @@ def NinjaJobs():
   if UsingGoma():
     return ['-j', '50']
   return []
+
+
+def SetForceHostClang(force):
+  global force_host_clang
+  force_host_clang = force
+
+
+def ShouldForceHostClang():
+  return force_host_clang

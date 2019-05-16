@@ -97,8 +97,8 @@ def GetPrebuilt(*args):
 
 
 def GetPrebuiltClang(binary):
-  return GetPrebuilt('third_party', 'llvm-build',
-                     'Release+Asserts', 'bin', binary)
+  return os.path.join(work_dirs.GetV8(), 'third_party', 'llvm-build',
+                      'Release+Asserts', 'bin', binary)
 
 
 def GetSrcDir(*args):
@@ -635,12 +635,8 @@ def AllSources():
       Source('v8', work_dirs.GetV8(),
              GIT_MIRROR_BASE + 'v8/v8.git',
              custom_sync=ChromiumFetchSync),
-      Source('tools-clang', GetPrebuilt('tools', 'clang'),
-             GIT_MIRROR_BASE + 'chromium/src/tools/clang.git'),
-      Source('host-toolchain', GetPrebuilt(), '',
+      Source('host-toolchain', work_dirs.GetV8(), '',
              custom_sync=SyncToolchain),
-      Source('cr-buildtools', GetSrcDir('build'),
-             GIT_MIRROR_BASE + 'chromium/src/build.git'),
       Source('cmake', '', '',  # The source and git args are ignored.
              custom_sync=SyncPrebuiltCMake),
       Source('nodejs', '', '',  # The source and git args are ignored.
@@ -714,7 +710,7 @@ def GetRepoInfo():
 # Build rules
 
 def OverrideCMakeCompiler():
-  if IsWindows():
+  if IsWindows() or not host_toolchains.ShouldForceHostClang():
     return []
   return ['-DCMAKE_C_COMPILER=' + GetPrebuiltClang('clang'),
           '-DCMAKE_CXX_COMPILER=' + GetPrebuiltClang('clang++')]
@@ -1644,6 +1640,9 @@ def ParseArgs():
       '--git-status', dest='git_status', default=False, action='store_true',
       help='Show git status for each sync target. '
            "Doesn't sync, build, or test")
+  parser.add_argument(
+      '--no-host-clang', dest='host_clang', action='store_false',
+      help="Don't force chrome clang as the host compiler")
 
   return parser.parse_args()
 
@@ -1716,6 +1715,8 @@ def main():
     work_dirs.SetInstall(options.install_dir)
   if options.prebuilt_dir:
     work_dirs.SetPrebuilt(options.prebuilt_dir)
+  if not options.host_clang:
+    host_toolchains.SetForceHostClang(False)
 
   sync_include = options.sync_include if options.sync else []
   sync_filter = Filter('sync', sync_include, options.sync_exclude)

@@ -13,6 +13,6 @@ install:
   - pip install flake8==3.4.1
 script:
   - flake8
-  - ./src/build.py --sync-include=tools-clang,host-toolchain,cmake,wabt --build-include=wabt,debian --no-test
+  - ./src/build.py --sync-include=cmake,wabt --build-include=wabt,debian --no-test --no-host-clang
 notifications:
   email: false
