@@ -710,7 +710,7 @@ def GetRepoInfo():
 # Build rules
 
 def OverrideCMakeCompiler():
-  if IsWindows():
+  if IsWindows() or host_toolchains.ShouldForceHostClang():
     return []
   return ['-DCMAKE_C_COMPILER=' + GetPrebuiltClang('clang'),
           '-DCMAKE_CXX_COMPILER=' + GetPrebuiltClang('clang++')]

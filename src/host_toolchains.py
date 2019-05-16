@@ -121,8 +121,10 @@ def CMakeLauncherFlags():
   else:
     try:
       compiler_launcher = proc.Which('ccache')
-      flags.extend(['-DCMAKE_%s_FLAGS=-Qunused-arguments' %
-                    c for c in ['C', 'CXX']])
+      if ShouldForceHostClang():
+        # This flag is only present in clang.
+        flags.extend(['-DCMAKE_%s_FLAGS=-Qunused-arguments' %
+                      c for c in ['C', 'CXX']])
     except:
       compiler_launcher = None
 
