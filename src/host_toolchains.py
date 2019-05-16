@@ -24,9 +24,6 @@ import proc
 import work_dirs
 
 
-force_host_clang = True
-
-
 def SetupToolchain():
   return os.path.join(work_dirs.GetV8(), 'build', 'toolchain', 'win',
                       'setup_toolchain.py')
@@ -136,12 +133,3 @@ def NinjaJobs():
   if UsingGoma():
     return ['-j', '50']
   return []
-
-
-def SetForceHostClang(force):
-  global force_host_clang
-  force_host_clang = force
-
-
-def ShouldForceHostClang():
-  return force_host_clang
