@@ -678,7 +678,7 @@ def Clobber():
     dirs = [work_dirs.GetBuild()]
   else:
     dirs = work_dirs.GetAll()
-  for work_dir in dirs
+  for work_dir in dirs:
     Remove(work_dir)
     Mkdir(work_dir)
   with open(clobber_file, 'w') as f:
