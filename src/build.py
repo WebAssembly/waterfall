@@ -48,8 +48,8 @@ JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
 # This file has a special path to avoid warnings about the system being unknown
 CMAKE_TOOLCHAIN_FILE = 'Wasi.cmake'
 
-EMSCRIPTEN_CONFIG_ASMJS = 'emscripten_config'
-EMSCRIPTEN_CONFIG_WASM = 'emscripten_config_vanilla'
+EMSCRIPTEN_CONFIG_FASTCOMP = 'emscripten_config_fastcomp'
+EMSCRIPTEN_CONFIG_UPSTREAM = 'emscripten_config_upstream'
 
 # Avoid flakes: use cached repositories to avoid relying on external network.
 GITHUB_REMOTE = 'github'
@@ -994,8 +994,8 @@ def Emscripten():
     with open(outfile, 'w') as config:
       config.write(text)
 
-  configs = [('asm2wasm', GetInstallDir(EMSCRIPTEN_CONFIG_ASMJS)),
-             ('emwasm', GetInstallDir(EMSCRIPTEN_CONFIG_WASM))]
+  configs = [('asm2wasm', GetInstallDir(EMSCRIPTEN_CONFIG_FASTCOMP)),
+             ('emwasm', GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM))]
 
   for config_name, config in configs:
     buildbot.Step('emscripten (%s)' % config_name)
@@ -1460,7 +1460,7 @@ def TestAsm():
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
     CompileLLVMTortureEmscripten(
         'asm2wasm',
-        GetInstallDir(EMSCRIPTEN_CONFIG_ASMJS),
+        GetInstallDir(EMSCRIPTEN_CONFIG_FASTCOMP),
         GetTortureDir('asm2wasm', opt),
         ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES,
         opt)
@@ -1485,7 +1485,7 @@ def TestEmwasm():
   for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
     CompileLLVMTortureEmscripten(
         'emwasm',
-        GetInstallDir(EMSCRIPTEN_CONFIG_WASM),
+        GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM),
         GetTortureDir('emwasm', opt),
         EMWASM_KNOWN_TORTURE_COMPILE_FAILURES,
         opt)
@@ -1523,7 +1523,7 @@ def TestEmtest():
     ExecuteEmscriptenTestSuite(
         'emwasm',
         ['wasm2', 'other'],
-        GetInstallDir(EMSCRIPTEN_CONFIG_WASM),
+        GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM),
         os.path.join(work_dirs.GetTest(), 'emtest-out'))
 
 
@@ -1531,7 +1531,7 @@ def TestEmtestAsm2Wasm():
   ExecuteEmscriptenTestSuite(
       'asm2wasm',
       ['wasm2'],
-      GetInstallDir(EMSCRIPTEN_CONFIG_ASMJS),
+      GetInstallDir(EMSCRIPTEN_CONFIG_FASTCOMP),
       os.path.join(work_dirs.GetTest(), 'emtest-asm2wasm-out'))
 
 
