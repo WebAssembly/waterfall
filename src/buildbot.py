@@ -37,6 +37,15 @@ SCHEDULER = SCHEDULERS[BUILDBOT_SCHEDULER]
 BUILDBOT_REVISION = os.environ.get('BUILDBOT_REVISION', None)
 BUILDBOT_BUILDNUMBER = os.environ.get('BUILDBOT_BUILDNUMBER', None)
 BUILDBOT_BUILDERNAME = os.environ.get('BUILDBOT_BUILDERNAME', None)
+BUILDBOT_MASTERNAME = os.environ.get('BUILDBOT_MASTERNAME', None)
+
+# Possible masters include None (running locally), the waterfall integration
+# bot, or the emscripten-releases bot.
+WATERFALL_BOT = 'client.wasm.llvm'
+EMSCRIPTEN_RELEASES_BOT = 'emscripten-releases'
+
+assert BUILDBOT_MASTERNAME in [None, WATERFALL_BOT, EMSCRIPTEN_RELEASES_BOT], \
+    'unknown mastername: %s' % str(BUILDBOT_MASTERNAME)
 
 
 def IsBot():
@@ -46,6 +55,12 @@ def IsBot():
 
 def BuildNumber():
   return BUILDBOT_BUILDNUMBER
+
+
+def IsEmscriptenReleasesBot():
+  """Return true if running on the emscripten-releases builders,
+     False otherwise."""
+  return BUILDBOT_MASTERNAME is EMSCRIPTEN_RELEASES_BOT
 
 
 def ShouldClobber():
