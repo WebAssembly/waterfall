@@ -16,22 +16,31 @@
 
 import os
 import proc
-
+from buildbot import IsEmscriptenReleasesBot
 
 CLOUD_STORAGE_BASE_URL = 'https://storage.googleapis.com/'
-CLOUD_STORAGE_PATH = 'wasm-llvm/builds/'
+WATERFALL_CLOUD_STORAGE_PATH = 'wasm-llvm/builds/'
+EMSCRIPTEN_RELEASES_CLOUD_STORAGE_PATH = \
+    'wasm-llvm/emscripten-releases-builds/'
+
+
+def GetCloudStoragePath():
+  if IsEmscriptenReleasesBot():
+    return EMSCRIPTEN_RELEASES_CLOUD_STORAGE_PATH
+  else:
+    return WATERFALL_CLOUD_STORAGE_PATH
 
 
 def Upload(local, remote):
   """Upload file to Cloud Storage."""
   if not os.environ.get('BUILDBOT_BUILDERNAME'):
     return
-  remote = CLOUD_STORAGE_PATH + remote
+  remote = GetCloudStoragePath() + remote
   proc.check_call(
       ['gsutil.py', 'cp', '-a', 'public-read', local, 'gs://' + remote])
   return CLOUD_STORAGE_BASE_URL + remote
 
 
 def Download(remote, local):
-  remote = CLOUD_STORAGE_PATH + remote
+  remote = GetCloudStoragePath() + remote
   proc.check_call(['gsutil.py', 'cp', 'gs://' + remote, local])
