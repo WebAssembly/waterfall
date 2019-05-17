@@ -60,7 +60,7 @@ def BuildNumber():
 def IsEmscriptenReleasesBot():
   """Return true if running on the emscripten-releases builders,
      False otherwise."""
-  return BUILDBOT_MASTERNAME is EMSCRIPTEN_RELEASES_BOT
+  return BUILDBOT_MASTERNAME == EMSCRIPTEN_RELEASES_BOT
 
 
 def ShouldClobber():
