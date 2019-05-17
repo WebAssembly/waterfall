@@ -80,7 +80,7 @@ def IsUploadingBot():
       return True
     else:
       # We are on emscripten-releases. CI bots upload, but not try.
-      return BUILDBOT_BUCKET == CI_BUCKET:
+      return BUILDBOT_BUCKET == CI_BUCKET
   return False
 
 
