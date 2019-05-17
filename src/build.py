@@ -1670,7 +1670,7 @@ def run(sync_filter, build_filter, test_filter):
                         os.pathsep + os.environ['PATH'])
 
   # TODO(dschuff): Figure out how to make these statically linked?
-  if IsWindows():
+  if IsWindows() and build_filter.Any():
     host_toolchains.CopyDlls(GetInstallDir('bin'), 'Debug')
 
   try:
