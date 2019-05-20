@@ -1373,10 +1373,11 @@ def AllBuilds():
       Build('fastcomp', Fastcomp),
       Build('emscripten', Emscripten),
       # Target libs
+      # TODO: re-enable wasi on windows, see #517
       Build('wasi-sysroot', Wasi, os_filter=Filter(exclude=['windows'])),
-      Build('compiler-rt', CompilerRT),
-      Build('libcxx', LibCXX),
-      Build('libcxxabi', LibCXXABI),
+      Build('compiler-rt', CompilerRT, os_filter=Filter(exclude=['windows'])),
+      Build('libcxx', LibCXX, os_filter=Filter(exclude=['windows'])),
+      Build('libcxxabi', LibCXXABI, os_filter=Filter(exclude=['windows'])),
       # Archive
       Build('archive', ArchiveBinaries),
       Build('debian', DebianPackage),
@@ -1541,7 +1542,8 @@ def TestEmtestAsm2Wasm():
 
 
 ALL_TESTS = [
-    Test('bare', TestBare),
+    # TODO: re-enable wasi on windows, see #517
+    Test('bare', TestBare, Filter(exclude=['windows'])),
     # The windows/mac exclusions here are just to reduce the test matrix, since
     # these tests only test codegen, which should be the same on all OSes
     Test('asm', TestAsm, Filter(exclude=['windows', 'mac'])),
