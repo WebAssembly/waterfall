@@ -1373,7 +1373,7 @@ def AllBuilds():
       Build('fastcomp', Fastcomp),
       Build('emscripten', Emscripten),
       # Target libs
-      Build('wasi-sysroot', Wasi),
+      Build('wasi-sysroot', Wasi, os_filter=Filter(exclude=['windows']),
       Build('compiler-rt', CompilerRT),
       Build('libcxx', LibCXX),
       Build('libcxxabi', LibCXXABI),
