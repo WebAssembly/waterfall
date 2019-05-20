@@ -673,7 +673,7 @@ def Clobber():
     return
 
   buildbot.Step('Clobbering work dir')
-  if buildbot.IsEmscriptenReleases():
+  if buildbot.IsEmscriptenReleasesBot():
     # depot_tools and the recipe clear the rest.
     dirs = [work_dirs.GetBuild()]
   else:
