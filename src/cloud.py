@@ -20,7 +20,7 @@ from buildbot import IsEmscriptenReleasesBot, IsUploadingBot
 CLOUD_STORAGE_BASE_URL = 'https://storage.googleapis.com/'
 WATERFALL_CLOUD_STORAGE_PATH = 'wasm-llvm/builds/'
 EMSCRIPTEN_RELEASES_CLOUD_STORAGE_PATH = \
-    'wasm-llvm/emscripten-releases-builds/'
+    'webassembly/emscripten-releases-builds/'
 
 
 def GetCloudStoragePath():
