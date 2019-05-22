@@ -1336,8 +1336,8 @@ def Summary(repos):
   info_file = GetInstallDir('buildinfo.json')
   # Emscripten-releases bots run the stages separately so LKGR has no way of
   # knowing whether everything passed or not.
-  should_upload = (buildbot.IsUploadingBot()
-                   and not buildbot.IsEmscriptenReleasesBot())
+  should_upload = (buildbot.IsUploadingBot() and not
+                   buildbot.IsEmscriptenReleasesBot())
 
   if should_upload:
     info_json = json.dumps(info, indent=2)
