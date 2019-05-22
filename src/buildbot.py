@@ -62,14 +62,16 @@ def IsBot():
   return BUILDBOT_BUILDNUMBER is not None
 
 
-def BuildNumber():
-  return BUILDBOT_BUILDNUMBER
-
-
 def IsEmscriptenReleasesBot():
   """Return true if running on the emscripten-releases builders,
      False otherwise."""
   return BUILDBOT_MASTERNAME == EMSCRIPTEN_RELEASES_BOT
+
+
+def BuildNumber():
+  if IsEmscriptenReleasesBot():
+    return BUILDBOT_REVISION
+  return BUILDBOT_BUILDNUMBER
 
 
 def IsUploadingBot():
