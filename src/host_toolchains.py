@@ -20,6 +20,7 @@ import json
 import os
 import shutil
 
+import file_util
 import proc
 import work_dirs
 
@@ -99,6 +100,7 @@ def SetUpVSEnv(outdir):
 
 def CopyDlls(dir, configuration):
   """Copy MSVS Runtime dlls into a build directory"""
+  file_util.Mkdir(dir)
   proc.check_call([VSToolchainPy(), 'copy_dlls', dir, configuration, 'x64'])
   # LLD needs also concrt140.dll, which the Chromium copy_dlls doesn't include.
   for dll in glob.glob(os.path.join(GetRuntimeDir(), 'concrt140*.dll')):
