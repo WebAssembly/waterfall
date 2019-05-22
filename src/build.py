@@ -1530,13 +1530,11 @@ def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
 
 
 def TestEmtest():
-  # These tests hang on the Mac bots for reasons we don't understand yet.
-  if not IsMac():
-    ExecuteEmscriptenTestSuite(
-        'emwasm',
-        ['wasm2', 'other'],
-        GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM),
-        os.path.join(work_dirs.GetTest(), 'emtest-out'))
+  ExecuteEmscriptenTestSuite(
+      'emwasm',
+      ['wasm2', 'other'],
+      GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM),
+      os.path.join(work_dirs.GetTest(), 'emtest-out'))
 
 
 def TestEmtestAsm2Wasm():
