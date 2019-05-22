@@ -1182,7 +1182,7 @@ def Wasi():
 
 def ArchiveBinaries():
   buildbot.Step('Archive binaries')
-  if not IsUploadingBot():
+  if not buildbot.IsUploadingBot():
     return
   # All relevant binaries were copied to the LLVM directory.
   # TODO(sergiyb): Restore printing list of binaries on Linux and Mac once it
