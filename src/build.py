@@ -329,7 +329,7 @@ def Zip(directory, print_content=False):
 
 def UploadFile(local_name, remote_name):
   """Archive the file with the given name, and with the LLVM git hash."""
-  if not buildbot.IsBot():
+  if not buildbot.IsUploadingBot():
     return
   buildbot.Link('download', cloud.Upload(local_name, '%s/%s/%s' % (
       buildbot.BuilderName(), buildbot.BuildNumber(), remote_name)))
@@ -337,7 +337,7 @@ def UploadFile(local_name, remote_name):
 
 def UploadArchive(name, archive):
   """Archive the tar/zip file with the given name and the build number."""
-  if not buildbot.IsBot():
+  if not buildbot.IsUploadingBot():
     return
   extension = os.path.splitext(archive)[1]
   UploadFile(archive, 'wasm-%s%s' % (name, extension))
@@ -1182,6 +1182,8 @@ def Wasi():
 
 def ArchiveBinaries():
   buildbot.Step('Archive binaries')
+  if not IsUploadingBot():
+    return
   # All relevant binaries were copied to the LLVM directory.
   # TODO(sergiyb): Restore printing list of binaries on Linux and Mac once it
   # works. See https://crbug.com/916775 and https://crbug.com/940663
