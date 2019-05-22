@@ -1334,8 +1334,12 @@ def Summary(repos):
   info['build'] = buildbot.BuildNumber()
   info['scheduler'] = buildbot.Scheduler()
   info_file = GetInstallDir('buildinfo.json')
+  # Emscripten-releases bots run the stages separately so LKGR has no way of
+  # knowing whether everything passed or not.
+  should_upload = (buildbot.IsUploadingBot() and not
+                   buildbot.IsEmscriptenReleasesBot())
 
-  if buildbot.IsBot():
+  if should_upload:
     info_json = json.dumps(info, indent=2)
     print info_json
 
@@ -1350,14 +1354,14 @@ def Summary(repos):
   for step in buildbot.WarnedList():
     print '    %s' % step
 
-  if buildbot.IsBot():
+  if should_upload:
     latest_file = '%s/%s' % (buildbot.BuilderName(), 'latest.json')
     buildbot.Link('latest.json', cloud.Upload(info_file, latest_file))
 
   if buildbot.Failed():
     buildbot.Fail()
   else:
-    if buildbot.IsBot():
+    if should_upload:
       lkgr_file = '%s/%s' % (buildbot.BuilderName(), 'lkgr.json')
       buildbot.Link('lkgr.json', cloud.Upload(info_file, lkgr_file))
 
