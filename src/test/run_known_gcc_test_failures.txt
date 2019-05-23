@@ -105,8 +105,9 @@ va-arg-22.c.js emwasm # abort()
 ### Failures specific to emscripten
 # no builtin returnaddress or frameaddress
 20010122-1.c.js asm2wasm
+20010122-1.c.js O3,emwasm
 frame-address.c.js asm2wasm
-pr17377.c.js
+pr17377.c.js asm2wasm
 
 # inline assembly tricks
 20030222-1.c.js asm2wasm
