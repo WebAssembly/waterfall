@@ -1,7 +1,6 @@
 # Fails with bare wasm clang, no emcc (some details in LLVM's
 # /lib/target/WebAssembly/known_gcc_test_failures.txt)
 	20000822-1.c
-	20010122-1.c
 	20010209-1.c
 	20010605-1.c
 	20020412-1.c
@@ -56,11 +55,6 @@
 	20071220-1.c
 	20071220-2.c
 	990208-1.c # no computed goto, but a blockaddress instruction that we can't select
-
-# Works with asm2wasm
-	pr17377.c # __builtin_return_address
-	20030323-1.c # __builtin_return_address
-	20030811-1.c # __builtin_return_address
 
 # Untriaged
 	pr56982.c O3
