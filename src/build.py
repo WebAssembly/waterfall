@@ -663,10 +663,12 @@ def Clobber():
   clobber_file = GetBuildDir('clobber_version.txt')
   if not clobber:
     if not os.path.exists(clobber_file):
+      print 'Clobber file %s does not exist.' % clobber_file
       clobber = True
     else:
       existing_tag = int(open(clobber_file).read().strip())
       if existing_tag != CLOBBER_BUILD_TAG:
+        print 'Clobber file %s has tag %s.' % (clobber_file, existing_tag)
         clobber = True
 
   if not clobber:
