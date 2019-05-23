@@ -1593,7 +1593,7 @@ def ParseArgs():
       help='Include only the comma-separated list of sync targets')
   sync_grp.add_argument(
       '--sync-exclude', dest='sync_exclude', default='', type=SplitComma,
-      help='Include only the comma-separated list of sync targets')
+      help='Exclude the comma-separated list of sync targets')
 
   parser.add_argument(
       '--sync-lkgr', dest='sync_lkgr', default=False, action='store_true',
@@ -1609,7 +1609,7 @@ def ParseArgs():
       help='Include only the comma-separated list of build targets')
   build_grp.add_argument(
       '--build-exclude', dest='build_exclude', default='', type=SplitComma,
-      help='Include only the comma-separated list of build targets')
+      help='Exclude the comma-separated list of build targets')
 
   test_grp = parser.add_mutually_exclusive_group()
   test_grp.add_argument(
@@ -1620,7 +1620,7 @@ def ParseArgs():
       help='Include only the comma-separated list of test targets')
   test_grp.add_argument(
       '--test-exclude', dest='test_exclude', default='', type=SplitComma,
-      help='Include only the comma-separated list of test targets')
+      help='Exclude the comma-separated list of test targets')
 
   parser.add_argument(
       '--no-threads', action='store_true',
