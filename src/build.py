@@ -1149,22 +1149,13 @@ def Wasi():
   cc_env = BuildEnv(build_dir, use_gnuwin32=True)
   src_dir = GetSrcDir('wasi-sysroot')
   try:
-    o = proc.check_output([proc.Which('make'), '--output-sync',
-                           '-j%s' % NPROC,
-                           'SYSROOT=' + build_dir,
-                           'WASM_CC=' + GetInstallDir('bin', 'clang')],
-                          stderr=proc.STDOUT,
-                          env=cc_env,
-                          cwd=src_dir)
-    # TODO(https://bugs.chromium.org/p/chromium/issues/detail?id=940663):
-    # Cepturing stdout/stderr is workaround for some kind infrasturcture
-    # failure on LUCI where the make subprocess fails with:
-    # `write error: stdout`.
-    for l in o.splitlines():
-      print >> sys.stderr, l[:100]
-  except proc.CalledProcessError as e:
-    for l in e.output.splitlines():
-      print >> sys.stderr, l[:100]
+    proc.check_call([proc.Which('make'), '--output-sync',
+                     '-j%s' % NPROC,
+                     'SYSROOT=' + build_dir,
+                     'WASM_CC=' + GetInstallDir('bin', 'clang')],
+                    env=cc_env,
+                    cwd=src_dir)
+  except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
     buildbot.Fail()
   CopyTree(build_dir, GetInstallDir('sysroot'))
