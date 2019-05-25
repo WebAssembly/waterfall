@@ -750,8 +750,13 @@ def CMakeCommandWasi(args):
 
 
 def CopyLLVMTools(build_dir, prefix=''):
-  # The following isn't useful for now, and takes up space.
-  Remove(GetInstallDir(prefix, 'bin', 'clang-check'))
+  # The following aren't useful for now, and take up space.
+  for unneeded_tool in ('clang-check', 'clang-format',
+                        'clang-extdef-mapping', 'clang-import-test',
+                        'clang-offload-bundler', 'clang-refactor',
+                        'clang-rename'):
+    Remove(GetInstallDir(prefix, 'bin', unneeded_tool))
+
   # The following are useful, LLVM_INSTALL_TOOLCHAIN_ONLY did away with them.
   extra_bins = map(Executable,
                    ['FileCheck', 'lli', 'llc', 'llvm-as', 'llvm-dis',
