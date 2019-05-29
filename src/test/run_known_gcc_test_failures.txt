@@ -213,8 +213,8 @@ torture__pr48695.C.o.wasm O2
 
 20031003-1.c.o.wasm O0
 pr23135.c.o.wasm O0
-ubsan__return-1.C.o.wasm O0
 
+ubsan__return-1.C.o.wasm
 abi__bitfield1.C.o.wasm
 abi__vbase13.C.o.wasm
 eh__alias1.C.o.wasm
