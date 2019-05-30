@@ -647,8 +647,8 @@ def AllSources():
              WASM_GIT_BASE + 'wabt.git'),
       Source('binaryen', GetSrcDir('binaryen'),
              WASM_GIT_BASE + 'binaryen.git'),
-      Source('wasi-sysroot', GetSrcDir('wasi-sysroot'),
-             'https://github.com/CraneStation/wasi-sysroot.git'),
+      Source('wasi-libc', GetSrcDir('wasi-libc'),
+             'https://github.com/CraneStation/wasi-libc.git'),
       Source('java', '', '',  # The source and git args are ignored.
              custom_sync=SyncPrebuiltJava)
   ]
@@ -1148,13 +1148,13 @@ def LibCXXABI():
   CopyLibraryToSysroot(os.path.join(SCRIPT_DIR, 'libc++abi.imports'))
 
 
-def Wasi():
+def WasiLibc():
   buildbot.Step('Wasi')
-  build_dir = os.path.join(work_dirs.GetBuild(), 'wasi-sysroot-out')
+  build_dir = os.path.join(work_dirs.GetBuild(), 'wasi-libc-out')
   if os.path.isdir(build_dir):
     Remove(build_dir)
   cc_env = BuildEnv(build_dir, use_gnuwin32=True)
-  src_dir = GetSrcDir('wasi-sysroot')
+  src_dir = GetSrcDir('wasi-libc')
   try:
     proc.check_call([proc.Which('make'), '--output-sync',
                      '-j%s' % NPROC,
@@ -1378,7 +1378,7 @@ def AllBuilds():
       Build('emscripten', Emscripten),
       # Target libs
       # TODO: re-enable wasi on windows, see #517
-      Build('wasi-sysroot', Wasi, os_filter=Filter(exclude=['windows'])),
+      Build('wasi-libc', WasiLibc, os_filter=Filter(exclude=['windows'])),
       Build('compiler-rt', CompilerRT, os_filter=Filter(exclude=['windows'])),
       Build('libcxx', LibCXX, os_filter=Filter(exclude=['windows'])),
       Build('libcxxabi', LibCXXABI, os_filter=Filter(exclude=['windows'])),
