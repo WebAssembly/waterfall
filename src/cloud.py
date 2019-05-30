@@ -36,7 +36,7 @@ def Upload(local, remote):
     return
   remote = GetCloudStoragePath() + remote
   proc.check_call(
-      ['gsutil.py', 'cp', '-a', 'public-read', local, 'gs://' + remote])
+      ['gsutil.py', 'cp', local, 'gs://' + remote])
   return CLOUD_STORAGE_BASE_URL + remote
 
 
