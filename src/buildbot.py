@@ -76,14 +76,14 @@ def BuildNumber():
 
 def IsUploadingBot():
   """Return True if this is a bot that should upload builds."""
-  if IsBot():
-    if not IsEmscriptenReleasesBot():
-      # We are on the waterfall bot. All of these upload.
-      return True
-    else:
-      # We are on emscripten-releases. CI bots upload, but not try.
-      return BUILDBOT_BUCKET == CI_BUCKET
-  return False
+  if not IsBot():
+    return False
+  if not IsEmscriptenReleasesBot():
+    # We are on the waterfall bot. None of these upload.
+    return False
+  else:
+    # We are on emscripten-releases. CI bots upload, but not try.
+    return BUILDBOT_BUCKET == CI_BUCKET
 
 
 def ShouldClobber():
