@@ -1553,7 +1553,7 @@ ALL_TESTS = [
     # These tests do have interesting differences on OSes (especially the
     # 'other' tests) and eventually should run everywhere.
     Test('emtest', TestEmtest),
-    Test('emtest-asm', TestEmtestAsm2Wasm, Filter(exclude=['mac'])),
+    Test('emtest-asm', TestEmtestAsm2Wasm, Filter(exclude=['mac', 'windows'])),
 ]
 
 
