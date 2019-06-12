@@ -807,6 +807,9 @@ def LLVM():
       '-DLLVM_ENABLE_ASSERTIONS=ON',
       '-DLLVM_TARGETS_TO_BUILD=X86;WebAssembly',
       '-DLLVM_ENABLE_PROJECTS=lld;clang',
+      # linking libtinfo dynamically causes problems on some linuxes,
+      # https://github.com/emscripten-core/emsdk/issues/252
+      '-DLLVM_ENABLE_TERMINFO=0',
   ])
 
   jobs = host_toolchains.NinjaJobs()
