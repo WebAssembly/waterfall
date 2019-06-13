@@ -959,6 +959,9 @@ def Fastcomp():
       '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
       '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
       '-DLLVM_ENABLE_ASSERTIONS=ON',
+      # linking libtinfo dynamically causes problems on some linuxes,
+      # https://github.com/emscripten-core/emsdk/issues/252
+      '-DLLVM_ENABLE_TERMINFO=0',
       ('-DLLVM_EXTERNAL_CLANG_SOURCE_DIR=%s' %
        GetSrcDir('emscripten-fastcomp-clang'))
   ])
