@@ -809,7 +809,7 @@ def LLVM():
       '-DLLVM_ENABLE_PROJECTS=lld;clang',
       # linking libtinfo dynamically causes problems on some linuxes,
       # https://github.com/emscripten-core/emsdk/issues/252
-      '-DLLVM_ENABLE_TERMINFO=0',
+      '-DLLVM_ENABLE_TERMINFO=%d' % (not IsLinux()),
   ])
 
   jobs = host_toolchains.NinjaJobs()
@@ -961,7 +961,7 @@ def Fastcomp():
       '-DLLVM_ENABLE_ASSERTIONS=ON',
       # linking libtinfo dynamically causes problems on some linuxes,
       # https://github.com/emscripten-core/emsdk/issues/252
-      '-DLLVM_ENABLE_TERMINFO=0',
+      '-DLLVM_ENABLE_TERMINFO=%d' % (not IsLinux()),
       ('-DLLVM_EXTERNAL_CLANG_SOURCE_DIR=%s' %
        GetSrcDir('emscripten-fastcomp-clang'))
   ])
