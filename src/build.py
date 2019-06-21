@@ -70,6 +70,9 @@ WASM_STORAGE_BASE = 'https://wasm.storage.googleapis.com/'
 
 GNUWIN32_ZIP = 'gnuwin32.zip'
 
+EMSCRIPTEN_CACHE_DIR = os.path.expanduser(
+    os.path.join('~', '.emscripten_cache'))
+
 # This version is the current LLVM version in development. This needs to be
 # manually updated to the latest x.0.0 version whenever LLVM starts development
 # on a new major version. This is so our manual build of compiler-rt is put
@@ -979,7 +982,7 @@ def Emscripten():
   buildbot.Step('emscripten')
   # Remove cached library builds (e.g. libc, libc++) to force them to be
   # rebuilt in the step below.
-  Remove(os.path.expanduser(os.path.join('~', '.emscripten_cache')))
+  Remove(EMSCRIPTEN_CACHE_DIR)
   src_dir = GetSrcDir('emscripten')
   em_install_dir = GetInstallDir('emscripten')
   Remove(em_install_dir)
@@ -1012,10 +1015,13 @@ def Emscripten():
     with open(outfile, 'w') as config:
       config.write(text)
 
-  configs = [('asm2wasm', GetInstallDir(EMSCRIPTEN_CONFIG_FASTCOMP)),
-             ('emwasm', GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM))]
+  configs = [
+      ('asm2wasm', GetInstallDir(EMSCRIPTEN_CONFIG_FASTCOMP),
+       'asmjs', ('libc.bc',)),
+      ('emwasm', GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM),
+       'wasm-obj', ('libc.a',))]
 
-  for config_name, config in configs:
+  for config_name, config, cache_subdir, cache_libs in configs:
     buildbot.Step('emscripten (%s)' % config_name)
     print 'Config file: ', config
     src_config = os.path.join(SCRIPT_DIR, os.path.basename(config))
@@ -1056,6 +1062,12 @@ def Emscripten():
       buildbot.Fail()
     finally:
       del os.environ['EM_CONFIG']
+
+    # Copy the main system libraries so users don't need to themselves.
+    os.makedirs(GetInstallDir('lib', cache_subdir))
+    for cache_lib in cache_libs:
+      shutil.copy2(os.path.join(EMSCRIPTEN_CACHE_DIR, cache_subdir, cache_lib),
+                   GetInstallDir('lib', cache_subdir, cache_lib))
 
   wrapper = os.path.join(SCRIPT_DIR, 'emcc_wrapper.sh')
   shutil.copy2(wrapper, GetInstallDir('bin', 'emcc'))
