@@ -1015,11 +1015,18 @@ def Emscripten():
     with open(outfile, 'w') as config:
       config.write(text)
 
+  # We don't bundle every single file in the cache, since there are a lot and
+  # it would bloat our downloads. But some are useful to bundle:
+  #   * libc is large and slow to build (many tiny files).
+  #   * generated_struct_info.json is generated in a boostrapping operation
+  #     that is confusing to debug if the user has a broken setup.
+  #   * optimizer.2.exe takes a while to build and also requires a local
+  #     compiler environment for native executables.
   configs = [
       ('asm2wasm', GetInstallDir(EMSCRIPTEN_CONFIG_FASTCOMP),
-       'asmjs', ('libc.bc',)),
+       'asmjs', ('libc.bc', 'generated_struct_info.json', 'optimizer.2.exe')),
       ('emwasm', GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM),
-       'wasm-obj', ('libc.a',))]
+       'wasm-obj', ('libc.a', 'generated_struct_info.json'))]
 
   for config_name, config, cache_subdir, cache_libs in configs:
     buildbot.Step('emscripten (%s)' % config_name)
