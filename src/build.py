@@ -1062,7 +1062,7 @@ def Emscripten():
       # archive/install dir.
       proc.check_call([
           sys.executable, os.path.join(em_install_dir, 'embuilder.py'),
-          'build', 'libc', 'struct_info'])
+          'build', 'SYSTEM'])
 
     except proc.CalledProcessError:
       # Note the failure but allow the build to continue.
