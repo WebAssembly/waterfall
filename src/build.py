@@ -1024,11 +1024,13 @@ def Emscripten():
   #     compiler environment for native executables.
   configs = [
       ('asm2wasm', GetInstallDir(EMSCRIPTEN_CONFIG_FASTCOMP),
-       'asmjs', ('libc.bc', 'generated_struct_info.json', 'optimizer.2.exe')),
+       'asmjs', ['SYSTEM', 'native_optimizer'],
+       ('libc.bc', 'generated_struct_info.json', 'optimizer.2.exe')),
       ('emwasm', GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM),
-       'wasm-obj', ('libc.a', 'generated_struct_info.json'))]
+       'wasm-obj', ['SYSTEM'],
+       ('libc.a', 'generated_struct_info.json'))]
 
-  for config_name, config, cache_subdir, cache_libs in configs:
+  for config_name, config, cache_subdir, embuilder_args, cache_libs in configs:
     buildbot.Step('emscripten (%s)' % config_name)
     print 'Config file: ', config
     src_config = os.path.join(SCRIPT_DIR, os.path.basename(config))
@@ -1062,7 +1064,7 @@ def Emscripten():
       # archive/install dir.
       proc.check_call([
           sys.executable, os.path.join(em_install_dir, 'embuilder.py'),
-          'build', 'SYSTEM'])
+          'build'] + embuilder_args)
 
     except proc.CalledProcessError:
       # Note the failure but allow the build to continue.
