@@ -1024,13 +1024,11 @@ def Emscripten():
   #     compiler environment for native executables.
   configs = [
       ('asm2wasm', GetInstallDir(EMSCRIPTEN_CONFIG_FASTCOMP),
-       'asmjs', ['SYSTEM', 'native_optimizer'],
-       ('libc.bc', 'generated_struct_info.json', 'optimizer.2.exe')),
+       'asmjs', ('libc.bc', 'generated_struct_info.json')),
       ('emwasm', GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM),
-       'wasm-obj', ['SYSTEM'],
-       ('libc.a', 'generated_struct_info.json'))]
+       'wasm-obj', ('libc.a', 'generated_struct_info.json'))]
 
-  for config_name, config, cache_subdir, embuilder_args, cache_libs in configs:
+  for config_name, config, cache_subdir, cache_libs in configs:
     buildbot.Step('emscripten (%s)' % config_name)
     print 'Config file: ', config
     src_config = os.path.join(SCRIPT_DIR, os.path.basename(config))
@@ -1064,7 +1062,7 @@ def Emscripten():
       # archive/install dir.
       proc.check_call([
           sys.executable, os.path.join(em_install_dir, 'embuilder.py'),
-          'build'] + embuilder_args)
+          'build', 'libc', 'struct_info'])
 
     except proc.CalledProcessError:
       # Note the failure but allow the build to continue.
@@ -1073,10 +1071,18 @@ def Emscripten():
       del os.environ['EM_CONFIG']
 
     # Copy the main system libraries so users don't need to themselves.
-    os.makedirs(GetInstallDir('lib', cache_subdir))
-    for cache_lib in cache_libs:
-      shutil.copy2(os.path.join(EMSCRIPTEN_CACHE_DIR, cache_subdir, cache_lib),
-                   GetInstallDir('lib', cache_subdir, cache_lib))
+    packaging_dir = GetInstallDir('lib', cache_subdir)
+    if not os.path.exists(packaging_dir):
+      os.makedirs(packaging_dir)
+    for name in cache_libs:
+      shutil.copy2(os.path.join(EMSCRIPTEN_CACHE_DIR, cache_subdir, name),
+                   os.path.join(packaging_dir, name))
+
+    # The asm.js optimizer is built in a special way above in this function,
+    # and so copying it is special as well.
+    if config_name == 'asm2wasm':
+      shutil.copy2(GetInstallDir('bin', 'optimizer'),
+                   os.path.join(packaging_dir, 'optimizer.2.exe'))
 
   wrapper = os.path.join(SCRIPT_DIR, 'emcc_wrapper.sh')
   shutil.copy2(wrapper, GetInstallDir('bin', 'emcc'))
