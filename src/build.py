@@ -1073,7 +1073,7 @@ def Emscripten():
 
     # Copy the main system libraries so users don't need to themselves.
     packaging_dir = GetInstallDir('lib', cache_subdir)
-    if not os.path.exists(packaging_dir):
+    if not os.path.isdir(packaging_dir):
       os.makedirs(packaging_dir)
     for name in cache_libs:
       shutil.copy2(os.path.join(EMSCRIPTEN_CACHE_DIR, cache_subdir, name),
