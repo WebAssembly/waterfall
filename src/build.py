@@ -999,7 +999,8 @@ def Emscripten():
   Mkdir(optimizer_out_dir)
   cc_env = BuildEnv(optimizer_out_dir)
   command = CMakeCommandNative([
-      os.path.join(src_dir, 'tools', 'optimizer')
+      os.path.join(src_dir, 'tools', 'optimizer'),
+      '-DCMAKE_BUILD_TYPE=Release'
   ])
   proc.check_call(command, cwd=optimizer_out_dir, env=cc_env)
   proc.check_call(['ninja'] + host_toolchains.NinjaJobs(),
