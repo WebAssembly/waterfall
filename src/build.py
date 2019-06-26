@@ -1078,12 +1078,6 @@ def Emscripten():
       shutil.copy2(os.path.join(EMSCRIPTEN_CACHE_DIR, cache_subdir, name),
                    os.path.join(packaging_dir, name))
 
-    # The asm.js optimizer is built in a special way above in this function,
-    # and so copying it is special as well.
-    if config_name == 'asm2wasm':
-      shutil.copy2(GetInstallDir('bin', 'optimizer'),
-                   os.path.join(packaging_dir, 'optimizer.2.exe'))
-
   wrapper = os.path.join(SCRIPT_DIR, 'emcc_wrapper.sh')
   shutil.copy2(wrapper, GetInstallDir('bin', 'emcc'))
   shutil.copy2(wrapper, GetInstallDir('bin', 'em++'))
