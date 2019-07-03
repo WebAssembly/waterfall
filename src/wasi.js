@@ -587,24 +587,10 @@ try {
     quit(e.exit_code);
   } else if (e instanceof NotYetImplementedException) {
     print('NotYetImplemented: ' + e.what);
-    throw e;
+  } else if (e instanceof WebAssembly.RuntimeError) {
+    print('Runtime trap: ' + e.message);
   } else {
-    function is_runtime_trap(e) {
-      if ('string' != typeof e) return false;
-      let traps = ['unreachable',
-                   'memory access out of bounds',
-                   'divide by zero',
-                   'divide result unrepresentable',
-                   'remainder by zero',
-                   'integer result unrepresentable',
-                   'invalid function',
-                   'function signature mismatch'];
-      for (let msg in traps) if (e == traps[msg]) return true;
-      return false;
-    }
-    print(is_runtime_trap(e) ?
-        ('Runtime trap: ' + e) :
-        ('Unknown exception of type `' + typeof(e) + '`: ' + e));
-    throw e;
+    print('Unknown exception of type `' + typeof(e) + '`: ' + e);
   }
+  throw e;
 }
