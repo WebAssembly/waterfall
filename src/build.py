@@ -1561,17 +1561,19 @@ def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
 
 
 def TestEmtest():
+  tests = options.test_params if options.test_params else ['wasm2', 'other']
   ExecuteEmscriptenTestSuite(
       'emwasm',
-      ['wasm2', 'other'],
+      tests,
       GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM),
       os.path.join(work_dirs.GetTest(), 'emtest-out'))
 
 
 def TestEmtestAsm2Wasm():
+  tests = options.test_params if options.test_params else ['wasm2']
   ExecuteEmscriptenTestSuite(
       'asm2wasm',
-      ['wasm2'],
+      tests,
       GetInstallDir(EMSCRIPTEN_CONFIG_FASTCOMP),
       os.path.join(work_dirs.GetTest(), 'emtest-asm2wasm-out'))
 
@@ -1668,6 +1670,9 @@ def ParseArgs():
   test_grp.add_argument(
       '--test-exclude', dest='test_exclude', default='', type=SplitComma,
       help='Exclude the comma-separated list of test targets')
+  parser.add_argument(
+      '--test-params', dest='test_params', default='', type=SplitComma,
+      help='Test selector to pass through to emscripten testsuite runner')
 
   parser.add_argument(
       '--no-threads', action='store_true',
