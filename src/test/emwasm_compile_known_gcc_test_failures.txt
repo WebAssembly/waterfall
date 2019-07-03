@@ -56,9 +56,6 @@
 	20071220-2.c
 	990208-1.c # no computed goto, but a blockaddress instruction that we can't select
 
-# Untriaged
-	pr56982.c O3
-
 20071018-1.c # undefined symbol __builtin_malloc
 20071120-1.c # undefined symbol __builtin_malloc
 medce-1.c O0 # link_error
