@@ -111,7 +111,6 @@ pr17377.c.js asm2wasm
 
 # inline assembly tricks
 20030222-1.c.js asm2wasm
-20071220-1.c.js
 20071220-2.c.js
 pr38533.c.js asm2wasm
 pr41239.c.js asm2wasm

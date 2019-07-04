@@ -5,21 +5,19 @@
 	20010605-1.c
 	20020412-1.c
 	20030501-1.c
-	20040302-1.c
 	20040308-1.c
 	20040423-1.c
 	20040520-1.c
 	20041218-2.c
 	20061220-1.c
 	20070919-1.c
-	20071210-1.c
+	20071220-1.c O3
+	20071220-2.c
 	20090219-1.c
 	920302-1.c
 	920415-1.c
 	920428-2.c
 	920501-3.c
-	920501-4.c
-	920501-5.c
 	920501-7.c
 	920612-2.c
 	920721-4.c
@@ -27,11 +25,10 @@
 	921017-1.c
 	921215-1.c
 	931002-1.c
-	980526-1.c
+	990208-1.c
 	990413-2.c
 	align-nest.c
 	built-in-setjmp.c
-	comp-goto-1.c
 	comp-goto-2.c
 	nest-align-1.c
 	nest-stdar-1.c
@@ -49,12 +46,6 @@
 	pr51447.c
 	pr60003.c
 
-
-# Computed gotos (but works with bare wasm clang)
-	20041214-1.c O0
-	20071220-1.c
-	20071220-2.c
-	990208-1.c # no computed goto, but a blockaddress instruction that we can't select
 
 20071018-1.c # undefined symbol __builtin_malloc
 20071120-1.c # undefined symbol __builtin_malloc
