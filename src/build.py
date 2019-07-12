@@ -765,17 +765,10 @@ def CopyLLVMTools(build_dir, prefix=''):
                    ['FileCheck', 'lli', 'llc', 'llvm-as', 'llvm-dis',
                     'llvm-link', 'llvm-mc', 'llvm-nm', 'llvm-objdump',
                     'llvm-readobj', 'opt', 'llvm-dwarfdump'])
-  extra_libs = ['lib%s*.%s*' % (lib, ext)
-                for lib in ('LLVM', 'clang')
-                for ext in ['so', 'dylib', 'dll']]
   for p in [glob.glob(os.path.join(build_dir, 'bin', b)) for b in
             extra_bins]:
     for e in p:
       CopyBinaryToArchive(os.path.join(build_dir, 'bin', e), prefix)
-  for p in [glob.glob(os.path.join(build_dir, 'lib', l)) for l in
-            extra_libs]:
-    for e in p:
-      CopyLibraryToArchive(os.path.join(build_dir, 'lib', e), prefix)
 
 
 def BuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
