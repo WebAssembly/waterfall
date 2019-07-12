@@ -765,8 +765,9 @@ def CopyLLVMTools(build_dir, prefix=''):
                    ['FileCheck', 'lli', 'llc', 'llvm-as', 'llvm-dis',
                     'llvm-link', 'llvm-mc', 'llvm-nm', 'llvm-objdump',
                     'llvm-readobj', 'opt', 'llvm-dwarfdump'])
-  extra_libs = ['libLLVM*.%s' % ext for ext in ['so', 'dylib', 'dll']]
-  extra_libs += ['libclang-cpp.%s*' % ext for ext in ['so', 'dylib', 'dll']]
+  extra_libs = ['lib%s*.%s*' % (lib, ext)
+                for lib in ('LLVM', 'clang')
+                for ext in ['so', 'dylib', 'dll']]
   for p in [glob.glob(os.path.join(build_dir, 'bin', b)) for b in
             extra_bins]:
     for e in p:
