@@ -1079,12 +1079,6 @@ def Emscripten():
       shutil.copy2(os.path.join(EMSCRIPTEN_CACHE_DIR, cache_subdir, name),
                    os.path.join(packaging_dir, name))
 
-  wrapper = os.path.join(SCRIPT_DIR, 'emcc_wrapper.sh')
-  shutil.copy2(wrapper, GetInstallDir('bin', 'emcc'))
-  shutil.copy2(wrapper, GetInstallDir('bin', 'em++'))
-  shutil.copy2(wrapper, GetInstallDir('bin', 'emconfigure'))
-  shutil.copy2(wrapper, GetInstallDir('bin', 'emmake'))
-
 
 def CompilerRT():
   # TODO(sbc): Figure out how to do this step as part of the llvm build.
