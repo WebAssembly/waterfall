@@ -754,15 +754,19 @@ def CMakeCommandWasi(args):
 
 def CopyLLVMTools(build_dir, prefix=''):
   # The following aren't useful for now, and take up space.
-  for unneeded_tool in ('clang-check', 'clang-format',
-                        'clang-extdef-mapping', 'clang-import-test',
-                        'clang-offload-bundler', 'clang-refactor',
-                        'clang-rename'):
-    Remove(GetInstallDir(prefix, 'bin', unneeded_tool))
+  # DLLs are in bin/ on Windows but in lib/ on posix.
+  for unneeded_tool in ('clang-check', 'clang-cl', 'clang-extdef-mapping',
+                        'clang-format', 'clang-func-mapping',
+                        'clang-import-test', 'clang-offload-bundler', 'clang-refactor',
+                        'clang-rename', 'libclang.dll', 'llvm-lib'):
+    Remove(GetInstallDir(prefix, 'bin', Executable(unneeded_tool)))
+
+  for lib in ['libclang.%s' for suffix in ('so.*', 'dylib')]:
+    Remove(GetInstallDir(prefix, 'lib', lib))
 
   # The following are useful, LLVM_INSTALL_TOOLCHAIN_ONLY did away with them.
   extra_bins = map(Executable,
-                   ['FileCheck', 'lli', 'llc', 'llvm-as', 'llvm-dis',
+                   ['FileCheck', 'llc', 'llvm-as', 'llvm-dis',
                     'llvm-link', 'llvm-mc', 'llvm-nm', 'llvm-objdump',
                     'llvm-readobj', 'opt', 'llvm-dwarfdump'])
   for p in [glob.glob(os.path.join(build_dir, 'bin', b)) for b in
