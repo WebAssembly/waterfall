@@ -1204,7 +1204,7 @@ def ArchiveBinaries():
     return
   # All relevant binaries were copied to the LLVM directory.
   UploadArchive(
-      'binaries', Archive(GetInstallDir(), print_content=IsBot()))
+      'binaries', Archive(GetInstallDir(), print_content=buildbot.IsBot()))
 
 
 def DebianPackage():
