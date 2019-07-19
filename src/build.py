@@ -755,10 +755,12 @@ def CMakeCommandWasi(args):
 def CopyLLVMTools(build_dir, prefix=''):
   # The following aren't useful for now, and take up space.
   # DLLs are in bin/ on Windows but in lib/ on posix.
-  for unneeded_tool in ('clang-check', 'clang-cl', 'clang-extdef-mapping',
-                        'clang-format', 'clang-func-mapping',
-                        'clang-import-test', 'clang-offload-bundler', 'clang-refactor',
-                        'clang-rename', 'libclang.dll', 'llvm-lib'):
+  for unneeded_tool in ('clang-check', 'clang-cl', 'clang-cpp',
+                        'clang-extdef-mapping', 'clang-format',
+                        'clang-func-mapping', 'clang-import-test',
+                        'clang-offload-bundler', 'clang-refactor',
+                        'clang-rename', 'clang-scan-deps', 'libclang.dll',
+                        'lld-link', 'ld.lld', 'lld64.lld', 'llvm-lib'):
     Remove(GetInstallDir(prefix, 'bin', Executable(unneeded_tool)))
 
   for lib in ['libclang.%s' for suffix in ('so.*', 'dylib')]:
