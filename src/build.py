@@ -293,8 +293,6 @@ def CopyLibraryToSysroot(library):
 def Archive(directory, print_content=False):
   """Create an archive file from directory."""
   # Use the format "native" to the platform
-  if not buildbot.IsBot():
-    return
   if IsWindows():
     return Zip(directory, print_content)
   return Tar(directory, print_content)
@@ -1208,7 +1206,7 @@ def ArchiveBinaries():
   # TODO(sergiyb): Restore printing list of binaries on Linux and Mac once it
   # works. See https://crbug.com/916775 and https://crbug.com/940663
   UploadArchive(
-      'binaries', Archive(GetInstallDir(), print_content=IsWindows()))
+      'binaries', Archive(GetInstallDir(), print_content=IsBot()))
 
 
 def DebianPackage():
