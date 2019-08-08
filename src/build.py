@@ -807,7 +807,6 @@ def LLVM():
       '-DLLVM_TOOL_LTO_BUILD=OFF',
       '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
       '-DLLVM_ENABLE_ASSERTIONS=ON',
-      '-DLLVM_DEFAULT_TARGET_TRIPLE=wasm32-wasi',
       '-DLLVM_TARGETS_TO_BUILD=X86;WebAssembly',
       '-DLLVM_ENABLE_PROJECTS=lld;clang',
       # linking libtinfo dynamically causes problems on some linuxes,
