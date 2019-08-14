@@ -81,7 +81,10 @@ pr34971.c.js # abort()
 va-arg-22.c.o.wasm
 va-arg-22.c.js emwasm # abort()
 
-# no builtin returnaddress
+# __builtin_return_address
+# This is supported on wasm backend, but due to old v8 versions specifying
+# offsets in a non-standard way, programs using __builtin_return_address
+# require -s USE_OFFSET_CONVERTER Emscripten setting.
 20010122-1.c.js
 pr17377.c.js
 
