@@ -77,28 +77,7 @@ pr32244-1.c.js # abort()
 pr34971.c.o.wasm
 pr34971.c.js # abort()
 
-# struct-vararg tests (they work in asm2wasm, not yet triaged vs. opt level).
-# A few of them pass, but most still fail.
-920625-1.c.o.wasm
-920625-1.c.js emwasm # abort()
-931004-10.c.o.wasm
-931004-10.c.js emwasm # abort()
-931004-12.c.o.wasm
-931004-12.c.js emwasm # abort()
-931004-14.c.o.wasm
-931004-14.c.js emwasm # abort()
-931004-6.c.o.wasm
-931004-6.c.js emwasm # abort()
-pr38151.c.o.wasm
-pr38151.c.js emwasm # abort()
-pr44575.c.o.wasm
-pr44575.c.js emwasm # abort()
-stdarg-3.c.o.wasm
-stdarg-3.c.js emwasm # abort()
-strct-stdarg-1.c.o.wasm
-strct-stdarg-1.c.js emwasm # abort()
-strct-varg-1.c.o.wasm
-strct-varg-1.c.js emwasm # abort()
+# vararg test
 va-arg-22.c.o.wasm
 va-arg-22.c.js emwasm # abort()
 
