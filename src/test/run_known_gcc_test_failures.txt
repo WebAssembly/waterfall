@@ -77,10 +77,6 @@ pr32244-1.c.js # abort()
 pr34971.c.o.wasm
 pr34971.c.js # abort()
 
-# vararg test
-va-arg-22.c.o.wasm
-va-arg-22.c.js emwasm # abort()
-
 # __builtin_return_address
 # This is supported on wasm backend, but due to old v8 versions specifying
 # offsets in a non-standard way, programs using __builtin_return_address
