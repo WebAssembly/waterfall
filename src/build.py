@@ -971,11 +971,6 @@ def Fastcomp():
        GetSrcDir('emscripten-fastcomp-clang'))
   ])
 
-  if IsMac():
-    # Workaround for https://github.com/kripken/emscripten/issues/5418.
-    # Should we drop support for OS X 10.12 and below?
-    command.append('-DHAVE_FUTIMENS=0')
-
   proc.check_call(command, cwd=build_dir, env=cc_env)
 
   jobs = host_toolchains.NinjaJobs()
