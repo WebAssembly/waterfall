@@ -730,6 +730,9 @@ def CMakeCommandBase():
   command.append('-DPYTHON_EXECUTABLE=%s' % sys.executable)
   command.append('-DCMAKE_EXPORT_COMPILE_COMMANDS=ON')
   command.append('-DCMAKE_BUILD_TYPE=Release')
+  if IsMac:
+    # Target macOS Seirra (10.12)
+    command.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=10.12')
   return command
 
 
@@ -813,11 +816,6 @@ def LLVM():
       # https://github.com/emscripten-core/emsdk/issues/252
       '-DLLVM_ENABLE_TERMINFO=%d' % (not IsLinux()),
   ])
-
-  if IsMac():
-    # Workaround for https://github.com/kripken/emscripten/issues/5418.
-    # Should we drop support for OS X 10.12 and below?
-    command.append('-DHAVE_FUTIMENS=0')
 
   jobs = host_toolchains.NinjaJobs()
 
@@ -972,11 +970,6 @@ def Fastcomp():
       ('-DLLVM_EXTERNAL_CLANG_SOURCE_DIR=%s' %
        GetSrcDir('emscripten-fastcomp-clang'))
   ])
-
-  if IsMac():
-    # Workaround for https://github.com/kripken/emscripten/issues/5418.
-    # Should we drop support for OS X 10.12 and below?
-    command.append('-DHAVE_FUTIMENS=0')
 
   proc.check_call(command, cwd=build_dir, env=cc_env)
 
