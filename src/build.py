@@ -1414,8 +1414,9 @@ def AllBuilds():
 
 # For now, just the builds used to test WASI, and emscripten torture tests on wasm-stat.us
 
-DEFAULT_BUILDS = ['llvm', 'jsvu', 'wabt', 'binaryen', 'fastcomp', 'emscripten',
-                  'wasi-libc', 'compiler-rt', 'libcxx', 'libcxxabi']
+DEFAULT_BUILDS = ['llvm', 'v8', 'jsvu', 'wabt', 'binaryen', 'fastcomp',
+                  'emscripten', 'wasi-libc', 'compiler-rt', 'libcxx',
+                  'libcxxabi']
 
 def BuildRepos(filter):
   for rule in filter.Apply(AllBuilds()):
@@ -1766,9 +1767,9 @@ def main():
 
   sync_include = options.sync_include if options.sync else []
   sync_filter = Filter('sync', sync_include, options.sync_exclude)
-  build_include = options.build_include if options.build else DEFAULT_BUILDS
+  build_include = options.build_include if options.build and options.build_include else DEFAULT_BUILDS
   build_filter = Filter('build', build_include, options.build_exclude)
-  test_include = options.test_include if options.test else DEFAULT_TESTS
+  test_include = options.test_include if options.test and options.test_include else DEFAULT_TESTS
   test_filter = Filter('test', test_include, options.test_exclude)
 
   try:
