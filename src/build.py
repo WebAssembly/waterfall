@@ -1335,11 +1335,12 @@ def ValidateLLVMTorture(indir, ext, opt):
 
 
 class Build(object):
-  def __init__(self, name_, runnable_, os_filter=None,
+  def __init__(self, name_, runnable_, os_filter=None, is_default=True,
                *args, **kwargs):
     self.name = name_
     self.runnable = runnable_
     self.os_filter = os_filter
+    self.is_deafult = is_default
     self.args = args
     self.kwargs = kwargs
 
@@ -1410,6 +1411,11 @@ def AllBuilds():
       Build('debian', DebianPackage),
   ]
 
+
+# For now, just the builds used to test WASI, and emscripten torture tests on wasm-stat.us
+
+DEFAULT_BUILDS = ['llvm', 'jsvu', 'wabt', 'binaryen', 'fastcomp', 'emscripten',
+                  'wasi-libc', 'compiler-rt', 'libcxx', 'libcxxabi']
 
 def BuildRepos(filter):
   for rule in filter.Apply(AllBuilds()):
@@ -1580,6 +1586,9 @@ ALL_TESTS = [
     Test('emtest', TestEmtest),
     Test('emtest-asm', TestEmtestAsm2Wasm, Filter(exclude=['mac', 'windows'])),
 ]
+
+# The default tests to run on wasm-stat.us (just WASI and emwasm torture)
+DEFAULT_TESTS = ['bare', 'emwasm']
 
 
 def TextWrapNameList(prefix, items):
@@ -1757,9 +1766,9 @@ def main():
 
   sync_include = options.sync_include if options.sync else []
   sync_filter = Filter('sync', sync_include, options.sync_exclude)
-  build_include = options.build_include if options.build else []
+  build_include = options.build_include if options.build else DEFAULT_BUILDS
   build_filter = Filter('build', build_include, options.build_exclude)
-  test_include = options.test_include if options.test else []
+  test_include = options.test_include if options.test else DEFAULT_TESTS
   test_filter = Filter('test', test_include, options.test_exclude)
 
   try:
