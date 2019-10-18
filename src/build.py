@@ -1767,9 +1767,11 @@ def main():
 
   sync_include = options.sync_include if options.sync else []
   sync_filter = Filter('sync', sync_include, options.sync_exclude)
-  build_include = options.build_include if options.build and options.build_include else DEFAULT_BUILDS
+  build_include = [] if not options.build else (
+      options.build_include if options.build_include else DEFAULT_BUILDS)
   build_filter = Filter('build', build_include, options.build_exclude)
-  test_include = options.test_include if options.test and options.test_include else DEFAULT_TESTS
+  test_include = [] if not options.test else (
+      options.test_include if options.test_include else DEFAULT_TESTS)
   test_filter = Filter('test', test_include, options.test_exclude)
 
   try:
