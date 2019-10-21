@@ -1412,11 +1412,12 @@ def AllBuilds():
   ]
 
 
-# For now, just the builds used to test WASI, and emscripten torture tests on wasm-stat.us
-
+# For now, just the builds used to test WASI and emscripten torture tests
+# on wasm-stat.us
 DEFAULT_BUILDS = ['llvm', 'v8', 'jsvu', 'wabt', 'binaryen', 'fastcomp',
                   'emscripten', 'wasi-libc', 'compiler-rt', 'libcxx',
                   'libcxxabi']
+
 
 def BuildRepos(filter):
   for rule in filter.Apply(AllBuilds()):
