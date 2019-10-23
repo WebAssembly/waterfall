@@ -771,7 +771,7 @@ def CopyLLVMTools(build_dir, prefix=''):
   extra_bins = map(Executable,
                    ['FileCheck', 'llc', 'llvm-as', 'llvm-dis',
                     'llvm-link', 'llvm-mc', 'llvm-nm', 'llvm-objdump',
-                    'llvm-readobj', 'opt', 'llvm-dwarfdump'])
+                    'llvm-readobj', 'llvm-size', 'opt', 'llvm-dwarfdump'])
   for p in [glob.glob(os.path.join(build_dir, 'bin', b)) for b in
             extra_bins]:
     for e in p:
