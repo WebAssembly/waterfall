@@ -867,10 +867,9 @@ def V8():
     proc.check_call(['tools/run-tests.py', 'unittests', '--no-presubmit',
                      '--outdir', out_dir],
                     cwd=src_dir)
-  # Copy the V8 blobs as well as the ICU data file for timezone data.
+  # Copy the V8 snapshot as well as the ICU data file for timezone data.
   # icudtl.dat is the little-endian version, which goes with x64.
-  to_archive = [Executable('d8'), 'natives_blob.bin', 'snapshot_blob.bin',
-                'icudtl.dat']
+  to_archive = [Executable('d8'), 'snapshot_blob.bin', 'icudtl.dat']
   for a in to_archive:
     CopyBinaryToArchive(os.path.join(out_dir, a))
 
