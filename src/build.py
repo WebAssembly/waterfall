@@ -656,11 +656,11 @@ def AllSources():
 
 
 def Clobber():
-  # Don't ever clobber non-bot (local) work directories
-  if not buildbot.IsBot():
+  # Don't automatically clobber non-bot (local) work directories
+  if not buildbot.IsBot() and not options.clobber:
     return
 
-  clobber = buildbot.ShouldClobber()
+  clobber = options.clobber or buildbot.ShouldClobber()
   clobber_file = GetBuildDir('clobber_version.txt')
   if not clobber:
     if not os.path.exists(clobber_file):
@@ -1690,6 +1690,9 @@ def ParseArgs():
   parser.add_argument(
       '--no-host-clang', dest='host_clang', action='store_false',
       help="Don't force chrome clang as the host compiler")
+  parser.add_arugment(
+      '--clobber', dest='clobber', default=False, action='store_true',
+      help="Delete working directories, forcing a clean build")
 
   return parser.parse_args()
 
