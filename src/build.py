@@ -676,8 +676,9 @@ def Clobber():
     return
 
   buildbot.Step('Clobbering work dir')
-  if buildbot.IsEmscriptenReleasesBot():
-    # depot_tools and the recipe clear the rest.
+  if buildbot.IsEmscriptenReleasesBot() or not buildbot.IsBot():
+    # Never clear source dirs locally.
+    # On emscripten-releases, depot_tools and the recipe clear the rest.
     dirs = [work_dirs.GetBuild()]
   else:
     dirs = work_dirs.GetAll()
@@ -1690,7 +1691,7 @@ def ParseArgs():
   parser.add_argument(
       '--no-host-clang', dest='host_clang', action='store_false',
       help="Don't force chrome clang as the host compiler")
-  parser.add_arugment(
+  parser.add_argument(
       '--clobber', dest='clobber', default=False, action='store_true',
       help="Delete working directories, forcing a clean build")
 
