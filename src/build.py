@@ -82,7 +82,7 @@ LLVM_VERSION = '10.0.0'
 # Update this number each time you want to create a clobber build.  If the
 # clobber_version.txt file in the build dir doesn't match we remove ALL work
 # dirs.  This works like a simpler version of chromium's landmine feature.
-CLOBBER_BUILD_TAG = 10
+CLOBBER_BUILD_TAG = 11
 
 options = None
 
@@ -656,11 +656,11 @@ def AllSources():
 
 
 def Clobber():
-  # Don't ever clobber non-bot (local) work directories
-  if not buildbot.IsBot():
+  # Don't automatically clobber non-bot (local) work directories
+  if not buildbot.IsBot() and not options.clobber:
     return
 
-  clobber = buildbot.ShouldClobber()
+  clobber = options.clobber or buildbot.ShouldClobber()
   clobber_file = GetBuildDir('clobber_version.txt')
   if not clobber:
     if not os.path.exists(clobber_file):
@@ -676,8 +676,9 @@ def Clobber():
     return
 
   buildbot.Step('Clobbering work dir')
-  if buildbot.IsEmscriptenReleasesBot():
-    # depot_tools and the recipe clear the rest.
+  if buildbot.IsEmscriptenReleasesBot() or not buildbot.IsBot():
+    # Never clear source dirs locally.
+    # On emscripten-releases, depot_tools and the recipe clear the rest.
     dirs = [work_dirs.GetBuild()]
   else:
     dirs = work_dirs.GetAll()
@@ -1690,6 +1691,9 @@ def ParseArgs():
   parser.add_argument(
       '--no-host-clang', dest='host_clang', action='store_false',
       help="Don't force chrome clang as the host compiler")
+  parser.add_argument(
+      '--clobber', dest='clobber', default=False, action='store_true',
+      help="Delete working directories, forcing a clean build")
 
   return parser.parse_args()
 
