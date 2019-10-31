@@ -839,7 +839,6 @@ def LLVM():
                      Executable(link))
 
 
-
 def TestLLVMRegression():
   if not options.run_tool_tests:
     return
