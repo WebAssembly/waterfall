@@ -838,7 +838,17 @@ def LLVM():
         shutil.copy2(Executable(os.path.join(install_bin, target)),
                      Executable(link))
 
+
+
+def TestLLVMRegression():
   if not options.run_tool_tests:
+    return
+
+  build_dir = os.path.join(work_dirs.GetBuild(), 'llvm-out')
+  cc_env = BuildEnv(build_dir, bin_subdir=True)
+  if not os.path.isdir(build_dir):
+    print 'LLVM Build dir %s does not exist' % build_dir
+    buildbot.Fail()
     return
 
   def RunWithUnixUtils(cmd, **kwargs):
@@ -1577,6 +1587,7 @@ def TestEmtestAsm2Wasm():
 
 
 ALL_TESTS = [
+    Test('llvm-regression', TestLLVMRegression),
     # TODO: re-enable wasi on windows, see #517
     Test('bare', TestBare, Filter(exclude=['windows'])),
     # The windows/mac exclusions here are just to reduce the test matrix, since
