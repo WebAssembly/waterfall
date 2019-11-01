@@ -990,40 +990,43 @@ def Fastcomp():
   CopyLLVMTools(build_dir, 'fastcomp')
 
 
+def BuildEmscriptenOptimizer():
+  # Remove cached library builds (e.g. libc, libc++) to force them to be
+  # rebuilt in the step below.
+  Remove(EMSCRIPTEN_CACHE_DIR)
+  src_dir = GetSrcDir('emscripten')
+  em_install_dir = GetInstallDir('emscripten')
+  Remove(em_install_dir)
+  print 'Copying directory %s to %s' % (src_dir, em_install_dir)
+  shutil.copytree(src_dir,
+                  em_install_dir,
+                  symlinks=True,
+                  # Ignore the big git blob so it doesn't get archived.
+                  ignore=shutil.ignore_patterns('.git'))
+
+  # Manually build the native asm.js optimizer (the cmake build in embuilder
+  # doesn't work on the waterfall)
+  optimizer_out_dir = GetBuildDir('em-optimizer-out')
+  Mkdir(optimizer_out_dir)
+  cc_env = BuildEnv(optimizer_out_dir)
+  command = CMakeCommandNative([
+      os.path.join(src_dir, 'tools', 'optimizer'),
+      '-DCMAKE_BUILD_TYPE=Release'
+  ])
+  proc.check_call(command, cwd=optimizer_out_dir, env=cc_env)
+  proc.check_call(['ninja'] + host_toolchains.NinjaJobs(),
+                  cwd=optimizer_out_dir, env=cc_env)
+  CopyBinaryToArchive(Executable(
+      os.path.join(optimizer_out_dir, 'optimizer')))
+
+
 def Emscripten(variant):
   buildbot.Step('emscripten')
   if variant == 'upstream':
     # This work is only done once (not per-variant), so only do it if the
     # variant is 'upstream'. This means that the upstream variant does
     # need to go first.
-
-    # Remove cached library builds (e.g. libc, libc++) to force them to be
-    # rebuilt in the step below.
-    Remove(EMSCRIPTEN_CACHE_DIR)
-    src_dir = GetSrcDir('emscripten')
-    em_install_dir = GetInstallDir('emscripten')
-    Remove(em_install_dir)
-    print 'Copying directory %s to %s' % (src_dir, em_install_dir)
-    shutil.copytree(src_dir,
-                    em_install_dir,
-                    symlinks=True,
-                    # Ignore the big git blob so it doesn't get archived.
-                    ignore=shutil.ignore_patterns('.git'))
-
-    # Manually build the native asm.js optimizer (the cmake build in embuilder
-    # doesn't work on the waterfall)
-    optimizer_out_dir = GetBuildDir('em-optimizer-out')
-    Mkdir(optimizer_out_dir)
-    cc_env = BuildEnv(optimizer_out_dir)
-    command = CMakeCommandNative([
-        os.path.join(src_dir, 'tools', 'optimizer'),
-        '-DCMAKE_BUILD_TYPE=Release'
-    ])
-    proc.check_call(command, cwd=optimizer_out_dir, env=cc_env)
-    proc.check_call(['ninja'] + host_toolchains.NinjaJobs(),
-                    cwd=optimizer_out_dir, env=cc_env)
-    CopyBinaryToArchive(Executable(
-        os.path.join(optimizer_out_dir, 'optimizer')))
+    BuildEmscriptenOptimizer()
 
   def WriteEmscriptenConfig(infile, outfile):
     with open(infile) as config:
@@ -1084,7 +1087,7 @@ def Emscripten(variant):
     # This depends on binaryen already being built and installed into the
     # archive/install dir.
     proc.check_call([
-        sys.executable, os.path.join(em_install_dir, 'embuilder.py'),
+        sys.executable, os.path.join(GetInstallDir('emscripten'), 'embuilder.py'),
         'build', 'SYSTEM'])
 
   except proc.CalledProcessError:
