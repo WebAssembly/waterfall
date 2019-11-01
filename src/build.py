@@ -1022,7 +1022,8 @@ def Emscripten(variant):
     proc.check_call(command, cwd=optimizer_out_dir, env=cc_env)
     proc.check_call(['ninja'] + host_toolchains.NinjaJobs(),
                     cwd=optimizer_out_dir, env=cc_env)
-    CopyBinaryToArchive(Executable(os.path.join(optimizer_out_dir, 'optimizer')))
+    CopyBinaryToArchive(Executable(
+        os.path.join(optimizer_out_dir, 'optimizer')))
 
   def WriteEmscriptenConfig(infile, outfile):
     with open(infile) as config:
@@ -1049,7 +1050,8 @@ def Emscripten(variant):
 
   config, cache_subdir, cache_libs = configs[variant]
 
-  # Set up the emscripten config and compile the libraries for the specified variant
+  # Set up the emscripten config and compile the libraries for the specified
+  # variant
   buildbot.Step('emscripten (%s)' % variant)
   print 'Config file: ', config
   src_config = os.path.join(SCRIPT_DIR, os.path.basename(config))
