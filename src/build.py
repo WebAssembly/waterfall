@@ -1016,8 +1016,7 @@ def BuildEmscriptenOptimizer():
   proc.check_call(command, cwd=optimizer_out_dir, env=cc_env)
   proc.check_call(['ninja'] + host_toolchains.NinjaJobs(),
                   cwd=optimizer_out_dir, env=cc_env)
-  CopyBinaryToArchive(Executable(
-      os.path.join(optimizer_out_dir, 'optimizer')))
+  CopyBinaryToArchive(Executable(os.path.join(optimizer_out_dir, 'optimizer')))
 
 
 def Emscripten(variant):
@@ -1086,9 +1085,9 @@ def Emscripten(variant):
     # Use emscripten's embuilder to prebuild the system libraries.
     # This depends on binaryen already being built and installed into the
     # archive/install dir.
-    proc.check_call([
-        sys.executable, os.path.join(GetInstallDir('emscripten'), 'embuilder.py'),
-        'build', 'SYSTEM'])
+    proc.check_call([sys.executable,
+                     os.path.join(GetInstallDir('emscripten'), 'embuilder.py'),
+                     'build', 'SYSTEM'])
 
   except proc.CalledProcessError:
     # Note the failure but allow the build to continue.
