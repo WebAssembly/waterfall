@@ -993,6 +993,7 @@ def Fastcomp():
 def BuildEmscriptenOptimizer():
   # Remove cached library builds (e.g. libc, libc++) to force them to be
   # rebuilt in the step below.
+  buildbot.Step('emscripten (optimizer)')
   Remove(EMSCRIPTEN_CACHE_DIR)
   src_dir = GetSrcDir('emscripten')
   em_install_dir = GetInstallDir('emscripten')
@@ -1020,7 +1021,6 @@ def BuildEmscriptenOptimizer():
 
 
 def Emscripten(variant):
-  buildbot.Step('emscripten')
   if variant == 'upstream':
     # This work is only done once (not per-variant), so only do it if the
     # variant is 'upstream'. This means that the upstream variant does
