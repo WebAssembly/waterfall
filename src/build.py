@@ -840,9 +840,6 @@ def LLVM():
 
 
 def TestLLVMRegression():
-  if not options.run_tool_tests:
-    return
-
   build_dir = os.path.join(work_dirs.GetBuild(), 'llvm-out')
   cc_env = BuildEnv(build_dir, bin_subdir=True)
   if not os.path.isdir(build_dir):
@@ -873,10 +870,6 @@ def V8():
   jobs = host_toolchains.NinjaJobs()
   proc.check_call(['ninja', '-v', '-C', out_dir, 'd8', 'unittests'] + jobs,
                   cwd=src_dir)
-  if options.run_tool_tests:
-    proc.check_call(['tools/run-tests.py', 'unittests', '--no-presubmit',
-                     '--outdir', out_dir],
-                    cwd=src_dir)
   # Copy the V8 snapshot as well as the ICU data file for timezone data.
   # icudtl.dat is the little-endian version, which goes with x64.
   to_archive = [Executable('d8'), 'snapshot_blob.bin', 'icudtl.dat']
@@ -936,10 +929,6 @@ def Wabt():
   ]), cwd=out_dir, env=cc_env)
 
   proc.check_call(['ninja'], cwd=out_dir, env=cc_env)
-  # TODO(sbc): git submodules are not yet fetched so we can't yet endable
-  # wabt tests.
-  # if options.run_tool_tests:
-  #   proc.check_call(['ninja', 'run-tests'], cwd=out_dir, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=out_dir, env=cc_env)
 
 
@@ -1704,9 +1693,6 @@ def ParseArgs():
   parser.add_argument(
       '--torture-filter',
       help='Limit which torture tests are run by applying the given glob')
-  parser.add_argument(
-      '--no-tool-tests', dest='run_tool_tests', action='store_false',
-      help='Skip the testing of tools (such tools llvm, wabt, v8)')
   parser.add_argument(
       '--git-status', dest='git_status', default=False, action='store_true',
       help='Show git status for each sync target. '
