@@ -839,6 +839,14 @@ def LLVM():
                      Executable(link))
 
 
+def LLVMTestDepends():
+  buildbot.Step('LLVM Test Dependencies')
+  build_dir = os.path.join(work_dirs.GetBuild(), 'llvm-out')
+  proc.check_call(
+      ['ninja', '-v', 'test-depends'] + host_toolchains.NinjaJobs(),
+      cwd=build_dir, env=BuildEnv(build_dir, bin_subdir=True))
+
+
 def TestLLVMRegression():
   build_dir = os.path.join(work_dirs.GetBuild(), 'llvm-out')
   cc_env = BuildEnv(build_dir, bin_subdir=True)
@@ -1404,6 +1412,7 @@ def AllBuilds():
   return [
       # Host tools
       Build('llvm', LLVM),
+      Build('llvm-test-depends', LLVMTestDepends),
       Build('v8', V8, os_filter=Filter(exclude=['mac'])),
       Build('jsvu', Jsvu, os_filter=Filter(exclude=['windows'])),
       Build('wabt', Wabt),
