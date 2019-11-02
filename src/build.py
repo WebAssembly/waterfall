@@ -141,7 +141,7 @@ def WindowsFSEscape(path):
 
 
 # Use prebuilt Node.js because the buildbots don't have node preinstalled
-NODE_VERSION = '10.15.3'
+NODE_VERSION = '12.9.1'
 NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
 
 
