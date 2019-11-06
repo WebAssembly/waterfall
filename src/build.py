@@ -731,9 +731,13 @@ def CMakeCommandBase():
   command.append('-DPYTHON_EXECUTABLE=%s' % sys.executable)
   command.append('-DCMAKE_EXPORT_COMPILE_COMMANDS=ON')
   command.append('-DCMAKE_BUILD_TYPE=Release')
-  if IsMac:
+  if IsMac():
     # Target macOS Seirra (10.12)
     command.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=10.12')
+  elif IsWindows():
+    # CMake's usual logic fails to find LUCI's git on Windows
+    git_exe = proc.Which('git')
+    command.append('-DGIT_EXECUTABLE=%s' % git_exe)
   return command
 
 
@@ -936,7 +940,7 @@ def Wabt():
       '-DBUILD_TESTS=OFF'
   ]), cwd=out_dir, env=cc_env)
 
-  proc.check_call(['ninja'], cwd=out_dir, env=cc_env)
+  proc.check_call(['ninja', '-v'], cwd=out_dir, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=out_dir, env=cc_env)
 
 
