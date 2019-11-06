@@ -736,7 +736,7 @@ def CMakeCommandBase():
     command.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=10.12')
   elif IsWindows():
     # CMake's usual logic fails to find LUCI's git on Windows
-    git_exe = proc.check_output(['where', 'git']).strip()
+    git_exe = proc.Which('git')
     command.append('-DGIT_EXECUTABLE=%s' % git_exe)
   return command
 
