@@ -177,7 +177,7 @@ def CMakeArch():
   return 'x64' if IsWindows() else 'x86_64'
 
 
-PREBUILT_CMAKE_VERSION = '3.7.2'
+PREBUILT_CMAKE_VERSION = '3.15.3'
 PREBUILT_CMAKE_BASE_NAME = 'cmake-%s-%s-%s' % (PREBUILT_CMAKE_VERSION,
                                                CMakePlatformName(),
                                                CMakeArch())
