@@ -1198,16 +1198,12 @@ def WasiLibc():
     Remove(build_dir)
   cc_env = BuildEnv(build_dir, use_gnuwin32=True)
   src_dir = GetSrcDir('wasi-libc')
-  try:
-    proc.check_call([proc.Which('make'), '--output-sync',
-                     '-j%s' % NPROC,
-                     'SYSROOT=' + build_dir,
-                     'WASM_CC=' + GetInstallDir('bin', 'clang')],
-                    env=cc_env,
-                    cwd=src_dir)
-  except proc.CalledProcessError:
-    # Note the failure but allow the build to continue.
-    buildbot.Fail()
+  proc.check_call([proc.Which('make'),
+                   '-j%s' % NPROC,
+                   'SYSROOT=' + build_dir,
+                   'WASM_CC=' + GetInstallDir('bin', 'clang')],
+                  env=cc_env,
+                  cwd=src_dir)
   CopyTree(build_dir, GetInstallDir('sysroot'))
 
   # We add the cmake toolchain file and out JS polyfill script to make using
