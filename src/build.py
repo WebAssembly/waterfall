@@ -941,10 +941,6 @@ def Wabt():
   ]), cwd=out_dir, env=cc_env)
 
   proc.check_call(['ninja', '-v'], cwd=out_dir, env=cc_env)
-  # TODO(sbc): git submodules are not yet fetched so we can't yet endable
-  # wabt tests.
-  # if options.run_tool_tests:
-  #   proc.check_call(['ninja', 'run-tests'], cwd=out_dir, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=out_dir, env=cc_env)
 
 
