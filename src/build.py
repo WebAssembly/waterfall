@@ -82,7 +82,7 @@ LLVM_VERSION = '10.0.0'
 # Update this number each time you want to create a clobber build.  If the
 # clobber_version.txt file in the build dir doesn't match we remove ALL work
 # dirs.  This works like a simpler version of chromium's landmine feature.
-CLOBBER_BUILD_TAG = 11
+CLOBBER_BUILD_TAG = 12
 
 options = None
 
@@ -719,10 +719,12 @@ def GetRepoInfo():
 # Build rules
 
 def OverrideCMakeCompiler():
-  if IsWindows() or not host_toolchains.ShouldForceHostClang():
+  if not host_toolchains.ShouldForceHostClang():
     return []
-  return ['-DCMAKE_C_COMPILER=' + GetPrebuiltClang('clang'),
-          '-DCMAKE_CXX_COMPILER=' + GetPrebuiltClang('clang++')]
+  cc = 'clang-cl' if IsWindows() else 'clang'
+  cxx = 'clang-cl' if IsWindows() else 'clang++'
+  return ['-DCMAKE_C_COMPILER=' + Executable(GetPrebuiltClang(cc)),
+          '-DCMAKE_CXX_COMPILER=' + Executable(GetPrebuiltClang(cxx))]
 
 
 def CMakeCommandBase():
@@ -741,13 +743,18 @@ def CMakeCommandBase():
   return command
 
 
-def CMakeCommandNative(args):
+def CMakeCommandNative(args, force_host_clang=True):
   command = CMakeCommandBase()
   command.append('-DCMAKE_INSTALL_PREFIX=%s' % GetInstallDir())
-  command.extend(OverrideCMakeCompiler())
-  command.extend(host_toolchains.CMakeLauncherFlags())
+  if force_host_clang:
+    command.extend(OverrideCMakeCompiler())
+    # Goma doesn't have MSVC in its cache, so don't use it in this case
+    command.extend(host_toolchains.CMakeLauncherFlags())
   command.extend(args)
-  return command
+  # On Windows, CMake chokes on paths containing backslashes that come from the
+  # command line. Probably they just need to be escaped, but using '/' instead
+  # is easier and works just as well.
+  return [arg.replace('\\', '/') for arg in command]
 
 
 def CMakeCommandWasi(args):
@@ -805,6 +812,7 @@ def LLVM():
   build_dylib = 'ON' if not IsWindows() else 'OFF'
   command = CMakeCommandNative([
       GetLLVMSrcDir('llvm'),
+      '-DCMAKE_CXX_FLAGS=-Wno-nonportable-include-path',
       '-DLLVM_INCLUDE_EXAMPLES=OFF',
       '-DCOMPILER_RT_BUILD_XRAY=OFF',
       '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
@@ -979,12 +987,11 @@ def Fastcomp():
       '-DLLVM_ENABLE_TERMINFO=%d' % (not IsLinux()),
       ('-DLLVM_EXTERNAL_CLANG_SOURCE_DIR=%s' %
        GetSrcDir('emscripten-fastcomp-clang'))
-  ])
+  ], force_host_clang=False)
 
   proc.check_call(command, cwd=build_dir, env=cc_env)
 
-  jobs = host_toolchains.NinjaJobs()
-  proc.check_call(['ninja'] + jobs, cwd=build_dir, env=cc_env)
+  proc.check_call(['ninja'], cwd=build_dir, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=build_dir, env=cc_env)
   # Fastcomp has a different install location than the rest of the tools
   BuildEnv(install_dir, bin_subdir=True)
