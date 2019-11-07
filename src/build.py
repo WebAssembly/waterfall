@@ -1603,11 +1603,10 @@ def TestEmtestAsm2Wasm():
       os.path.join(work_dirs.GetTest(), 'emtest-asm2wasm-out'))
 
 
-
 def TestLLVMTestSuite():
   outdir = GetBuildDir('llvmtest-out')
   # The compiler changes on every run, so incremental builds don't make sense.
-  #Remove(outdir)
+  Remove(outdir)
   Mkdir(outdir)
   # The C++ tests explicitly link libstdc++ for some reason, but we use libc++
   # and it's unnecessary to link it anyway. So create an empty libstdc++.a
@@ -1630,12 +1629,31 @@ def TestLLVMTestSuite():
              '-v', '-o', results_file, '.'], cwd=outdir)
 
   with open(os.path.join(outdir, results_file)) as results_fd:
-    results = json.loads(results_fd.read())
-    for test in results['tests']:
-      if test['code'] == 'FAIL':
-        print test['name']
-        print test['output']
+    json_results = json.loads(results_fd.read())
 
+  def get_names(code):
+    # Strip the unneccessary spaces from the test name
+    return [r['name'].replace('test-suite :: ', '')
+            for r in json_results['tests'] if r['code'] == code]
+
+  failures = get_names('FAIL')
+  successes = get_names('PASS')
+
+  expected_failures = testing.parse_exclude_files([os.path.join(SCRIPT_DIR, 'test/llvmtest_known_failures.txt')], [])
+  unexpected_failures = [f for f in failures if f not in expected_failures]
+  unexpected_successes = [f for f in successes if f in expected_failures]
+
+  if len(unexpected_failures) > 0:
+    print 'Unexpected failures:'
+    for test in unexpected_failures:
+      print test
+  if len(unexpected_successes) > 0:
+    print 'Unexpected successes:'
+    for test in unexpected_successes:
+      print test
+
+  if len(unexpected_failures) + len(unexpected_successes) > 0:
+    buildbot.Fail()
 
 
 ALL_TESTS = [
