@@ -946,7 +946,7 @@ def Wabt():
   proc.check_call(CMakeCommandNative([
       GetSrcDir('wabt'),
       '-DBUILD_TESTS=OFF'
-  ]), cwd=out_dir, env=cc_env)
+  ], force_host_clang=False), cwd=out_dir, env=cc_env)
 
   proc.check_call(['ninja', '-v'], cwd=out_dir, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=out_dir, env=cc_env)
