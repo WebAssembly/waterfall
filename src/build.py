@@ -41,7 +41,6 @@ import proc
 import testing
 import work_dirs
 
-
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
 
@@ -719,10 +718,12 @@ def GetRepoInfo():
 # Build rules
 
 def OverrideCMakeCompiler():
-  if IsWindows() or not host_toolchains.ShouldForceHostClang():
+  if not host_toolchains.ShouldForceHostClang():
     return []
-  return ['-DCMAKE_C_COMPILER=' + GetPrebuiltClang('clang'),
-          '-DCMAKE_CXX_COMPILER=' + GetPrebuiltClang('clang++')]
+  cc = 'clang-cl' if IsWindows() else 'clang'
+  cxx = 'clang-cl' if IsWindows() else 'clang++'
+  return ['-DCMAKE_C_COMPILER=' + Executable(GetPrebuiltClang(cc)),
+          '-DCMAKE_CXX_COMPILER=' + Executable(GetPrebuiltClang(cxx))]
 
 
 def CMakeCommandBase():
@@ -747,7 +748,10 @@ def CMakeCommandNative(args):
   command.extend(OverrideCMakeCompiler())
   command.extend(host_toolchains.CMakeLauncherFlags())
   command.extend(args)
-  return command
+  # On Windows, CMake chokes on paths containing backslashes that come from the
+  # command line. Probably they just need to be escaped, but using '/' instead
+  # is easier and works just as well.
+  return [arg.replace('\\', '/') for arg in command]
 
 
 def CMakeCommandWasi(args):
@@ -805,6 +809,7 @@ def LLVM():
   build_dylib = 'ON' if not IsWindows() else 'OFF'
   command = CMakeCommandNative([
       GetLLVMSrcDir('llvm'),
+      '-DCMAKE_CXX_FLAGS=-Wno-nonportable-include-path',
       '-DLLVM_INCLUDE_EXAMPLES=OFF',
       '-DCOMPILER_RT_BUILD_XRAY=OFF',
       '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
@@ -967,6 +972,7 @@ def Fastcomp():
   cc_env = BuildEnv(build_dir, bin_subdir=True)
   command = CMakeCommandNative([
       GetSrcDir('emscripten-fastcomp'),
+      '-DCMAKE_CXX_FLAGS=-Wno-nonportable-include-path',
       '-DLLVM_INCLUDE_EXAMPLES=OFF',
       '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
       '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
