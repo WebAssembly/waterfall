@@ -19,7 +19,7 @@ import multiprocessing
 try:
   import queue
 except ImportError:
-  import Queue
+  import Queue as queue
 import sys
 
 
@@ -83,6 +83,6 @@ class ParallelRunner(object):
 def get_from_queue(q):
   try:
     return q.get(True, 0.1)
-  except Queue.Empty:
+  except queue.Empty:
     pass
   return None

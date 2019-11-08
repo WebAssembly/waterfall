@@ -162,7 +162,7 @@ class TriangularArray:
     self.arr[k] = value
 
   def __iter__(self):
-    return self.arr.iteritems()
+    return iter(self.arr.items())
 
 
 class SimilarityGroup:

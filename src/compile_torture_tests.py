@@ -57,7 +57,7 @@ def find_runnable_tests(directory, pattern):
     for filename in files:
       if fnmatch.fnmatch(filename, pattern):
         fullname = os.path.join(root, filename)
-        with open(fullname, 'r') as f:
+        with open(fullname, 'r', encoding='ISO8859-1') as f:
           header = f.read(1024)
         if '{ dg-do run }' in header and 'dg-additional-sources' not in header:
           results.append(fullname)
