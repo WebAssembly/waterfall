@@ -597,7 +597,7 @@ def SyncPrebuiltCMake(name, src_dir, git_repo):
 def SyncPrebuiltNodeJS(name, src_dir, git_repo):
   extension = {'darwin': 'tar.xz',
                'linux': 'tar.xz',
-               'linux2': 'tar.xz', # TODO: remove with python2
+               'linux2': 'tar.xz',  # TODO: remove with python2
                'win32': 'zip'}[sys.platform]
   out_dir = GetPrebuilt(NODE_BASE_NAME + NodePlatformName())
   tarball = NODE_BASE_NAME + NodePlatformName() + '.' + extension
