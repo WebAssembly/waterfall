@@ -245,6 +245,9 @@ LLD_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
 LLVM_TORTURE_EXCLUSIONS = [os.path.join(SCRIPT_DIR, 'test',
                                         'llvm_torture_exclusions')]
 
+RUN_LLVM_TESTSUITE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
+                                            'llvmtest_known_failures.txt')]
+
 # Optimization levels
 BARE_TEST_OPT_FLAGS = ['O0', 'O2']
 EMSCRIPTEN_TEST_OPT_FLAGS = ['O0', 'O3']
@@ -1603,6 +1606,61 @@ def TestEmtestAsm2Wasm():
       os.path.join(work_dirs.GetTest(), 'emtest-asm2wasm-out'))
 
 
+def TestLLVMTestSuite():
+  outdir = GetBuildDir('llvmtest-out')
+  # The compiler changes on every run, so incremental builds don't make sense.
+  Remove(outdir)
+  Mkdir(outdir)
+  # The C++ tests explicitly link libstdc++ for some reason, but we use libc++
+  # and it's unnecessary to link it anyway. So create an empty libstdc++.a
+  proc.check_call([GetInstallDir('bin', 'llvm-ar'), 'rc', 'libstdc++.a'],
+                  cwd=outdir)
+  command = [GetInstallDir('emscripten', 'emcmake')] + CMakeCommandBase() + [
+      GetSrcDir('llvm-test-suite'),
+      '-DCMAKE_C_COMPILER=' + GetInstallDir('emscripten', 'emcc'),
+      '-DCMAKE_CXX_COMPILER=' + GetInstallDir('emscripten', 'em++'),
+      '-DTEST_SUITE_RUN_UNDER=' + NodeBin(),
+      '-DTEST_SUITE_USER_MODE_EMULATION=ON',
+      '-DTEST_SUITE_SUBDIRS=SingleSource',
+      '-DTEST_SUITE_EXTRA_EXE_LINKER_FLAGS=-L %s -s TOTAL_MEMORY=1024MB' %
+      outdir,
+      '-DTEST_SUITE_LLVM_SIZE=' + GetInstallDir('emscripten', 'emsize.py')]
+
+  proc.check_call(command, cwd=outdir)
+  proc.check_call(['ninja', '-v'], cwd=outdir)
+  results_file = 'results.json'
+  proc.call([GetBuildDir('llvm-out', 'bin', 'llvm-lit'),
+             '-v', '-o', results_file, '.'], cwd=outdir)
+
+  with open(os.path.join(outdir, results_file)) as results_fd:
+    json_results = json.loads(results_fd.read())
+
+  def get_names(code):
+    # Strip the unneccessary spaces from the test name
+    return [r['name'].replace('test-suite :: ', '')
+            for r in json_results['tests'] if r['code'] == code]
+
+  failures = get_names('FAIL')
+  successes = get_names('PASS')
+
+  expected_failures = testing.parse_exclude_files(RUN_LLVM_TESTSUITE_FAILURES,
+                                                  [])
+  unexpected_failures = [f for f in failures if f not in expected_failures]
+  unexpected_successes = [f for f in successes if f in expected_failures]
+
+  if len(unexpected_failures) > 0:
+    print 'Emscripten unexpected failures:'
+    for test in unexpected_failures:
+      print test
+  if len(unexpected_successes) > 0:
+    print 'Emscripten unexpected successes:'
+    for test in unexpected_successes:
+      print test
+
+  if len(unexpected_failures) + len(unexpected_successes) > 0:
+    buildbot.Fail()
+
+
 ALL_TESTS = [
     Test('llvm-regression', TestLLVMRegression),
     # TODO: re-enable wasi on windows, see #517
@@ -1615,6 +1673,7 @@ ALL_TESTS = [
     # 'other' tests) and eventually should run everywhere.
     Test('emtest', TestEmtest),
     Test('emtest-asm', TestEmtestAsm2Wasm, Filter(exclude=['mac', 'windows'])),
+    Test('llvmtest', TestLLVMTestSuite, Filter(include=['linux'])),
 ]
 
 # The default tests to run on wasm-stat.us (just WASI and emwasm torture)
