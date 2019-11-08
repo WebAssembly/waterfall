@@ -1623,7 +1623,7 @@ def TestLLVMTestSuite():
       '-DTEST_SUITE_USER_MODE_EMULATION=ON',
       '-DTEST_SUITE_SUBDIRS=SingleSource',
       '-DTEST_SUITE_EXTRA_EXE_LINKER_FLAGS=-L %s -s TOTAL_MEMORY=1024MB' %
-        outdir,
+      outdir,
       '-DTEST_SUITE_LLVM_SIZE=' + GetInstallDir('emscripten', 'emsize.py')]
 
   proc.check_call(command, cwd=outdir)
@@ -1643,7 +1643,8 @@ def TestLLVMTestSuite():
   failures = get_names('FAIL')
   successes = get_names('PASS')
 
-  expected_failures = testing.parse_exclude_files(RUN_LLVM_TESTSUITE_FAILURES, [])
+  expected_failures = testing.parse_exclude_files(RUN_LLVM_TESTSUITE_FAILURES,
+                                                  [])
   unexpected_failures = [f for f in failures if f not in expected_failures]
   unexpected_successes = [f for f in successes if f in expected_failures]
 
