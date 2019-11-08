@@ -245,6 +245,9 @@ LLD_KNOWN_TORTURE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
 LLVM_TORTURE_EXCLUSIONS = [os.path.join(SCRIPT_DIR, 'test',
                                         'llvm_torture_exclusions')]
 
+RUN_LLVM_TESTSUITE_FAILURES = [os.path.join(SCRIPT_DIR, 'test',
+                                            'llvmtest_known_failures.txt')]
+
 # Optimization levels
 BARE_TEST_OPT_FLAGS = ['O0', 'O2']
 EMSCRIPTEN_TEST_OPT_FLAGS = ['O0', 'O3']
@@ -1619,7 +1622,8 @@ def TestLLVMTestSuite():
       '-DTEST_SUITE_RUN_UNDER=' + NodeBin(),
       '-DTEST_SUITE_USER_MODE_EMULATION=ON',
       '-DTEST_SUITE_SUBDIRS=SingleSource',
-      '-DTEST_SUITE_EXTRA_EXE_LINKER_FLAGS=-L %s -s TOTAL_MEMORY=1024MB' % outdir,
+      '-DTEST_SUITE_EXTRA_EXE_LINKER_FLAGS=-L %s -s TOTAL_MEMORY=1024MB' %
+        outdir,
       '-DTEST_SUITE_LLVM_SIZE=' + GetInstallDir('emscripten', 'emsize.py')]
 
   proc.check_call(command, cwd=outdir)
@@ -1639,16 +1643,16 @@ def TestLLVMTestSuite():
   failures = get_names('FAIL')
   successes = get_names('PASS')
 
-  expected_failures = testing.parse_exclude_files([os.path.join(SCRIPT_DIR, 'test/llvmtest_known_failures.txt')], [])
+  expected_failures = testing.parse_exclude_files(RUN_LLVM_TESTSUITE_FAILURES, [])
   unexpected_failures = [f for f in failures if f not in expected_failures]
   unexpected_successes = [f for f in successes if f in expected_failures]
 
   if len(unexpected_failures) > 0:
-    print 'Unexpected failures:'
+    print 'Emscripten unexpected failures:'
     for test in unexpected_failures:
       print test
   if len(unexpected_successes) > 0:
-    print 'Unexpected successes:'
+    print 'Emscripten unexpected successes:'
     for test in unexpected_successes:
       print test
 
