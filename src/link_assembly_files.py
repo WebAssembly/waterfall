@@ -14,6 +14,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from __future__ import print_function
 import argparse
 import glob
 import os
@@ -46,7 +47,7 @@ def run(linker, files, fails, attributes, out, args):
   assert os.path.isdir(out), 'Cannot find outdir %s' % out
   input_files = glob.glob(files)
   if len(input_files) == 0:
-    print 'No files found by %s' % files
+    print('No files found by %s' % files)
     return 1
   if not args:
     args = []

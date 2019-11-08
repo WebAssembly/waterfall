@@ -14,8 +14,12 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from __future__ import print_function
 import multiprocessing
-import Queue
+try:
+  import queue
+except ImportError:
+  import Queue
 import sys
 
 
@@ -25,7 +29,7 @@ def g_testing_thread(test_function, work_queue, result_queue):
     try:
       result = test_function(test)
     except Exception as e:
-      print >> sys.stderr, "Something went wrong", e
+      print("Something went wrong", e, file=sys.stderr)
       raise
     result_queue.put(result)
 
@@ -66,7 +70,7 @@ class ParallelRunner(object):
         num += 1
         # Print periodically to assure the bot monitor that we are still alive
         if num % 10 == 0:
-          print 'Got test results:', num
+          print('Got test results:', num)
         buffered_results.append(res)
       else:
         self.clear_finished_processes()

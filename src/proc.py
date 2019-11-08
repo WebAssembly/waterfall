@@ -21,6 +21,7 @@
 
 # Imports subprocess in its own namespace so we can always refer directly to
 # its attributes.
+from __future__ import print_function
 import subprocess
 import os
 import sys
@@ -73,7 +74,7 @@ def LogCall(funcname, cmd, cwd):
     c = cmd
   else:
     c = ' '.join('"' + c + '"' if ' ' in c else c for c in cmd)
-  print '%s(`%s`, cwd=`%s`)' % (funcname, c, cwd)
+  print('%s(`%s`, cwd=`%s`)' % (funcname, c, cwd))
 
 
 # Now we can override any parts of subprocess we want, while leaving the rest.

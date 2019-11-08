@@ -14,6 +14,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from __future__ import print_function
 import difflib
 import math
 import os
@@ -133,8 +134,8 @@ def parse_exclude_files(fails, config_attributes):
       test = tokens[0]
 
       if test in excludes:
-        print 'ERROR: duplicate exclude: [%s]' % line
-        print 'Files: %s and %s' % (excludes[test], excludefile)
+        print('ERROR: duplicate exclude: [%s]' % line)
+        print('Files: %s and %s' % (excludes[test], excludefile))
         sys.exit(1)
       excludes[test] = excludefile
     f.close()
@@ -231,7 +232,7 @@ def make_blocking(fileno):
     flags = fcntl(fd, F_GETFL)
     if flags & os.O_NONBLOCK:
       fcntl(fd, F_SETFL, flags & ~os.O_NONBLOCK)
-    print 'make_blocking old flags %s' % hex(flags)
+    print('make_blocking old flags %s' % hex(flags))
   except ImportError:
     pass
 
@@ -292,7 +293,7 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
 
   def similar_failures(label, failures):
     if len(failures) > max_failure_count:
-      print 'Too many %s failures to show similarity' % label
+      print('Too many %s failures to show similarity' % label)
       return []
     return similarity(failures, similarity_cutoff)
 
