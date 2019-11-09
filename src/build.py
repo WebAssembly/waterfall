@@ -15,6 +15,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from __future__ import print_function
 import argparse
 import glob
 import json
@@ -27,7 +28,6 @@ import tempfile
 import textwrap
 import time
 import traceback
-import urllib2
 import zipfile
 
 import buildbot
@@ -125,7 +125,7 @@ def IsWindows():
 
 
 def IsLinux():
-  return sys.platform == 'linux2'
+  return sys.platform.startswith('linux')
 
 
 def IsMac():
@@ -147,6 +147,7 @@ NODE_BASE_NAME = 'node-v' + NODE_VERSION + '-'
 
 def NodePlatformName():
   return {'darwin': 'darwin-x64',
+          'linux': 'linux-x64',
           'linux2': 'linux-x64',
           'win32': 'win-x64'}[sys.platform]
 
@@ -168,7 +169,8 @@ os.environ['PATH'] = NodeBinDir() + os.pathsep + os.environ['PATH']
 
 
 def CMakePlatformName():
-  return {'linux2': 'Linux',
+  return {'linux': 'Linux',
+          'linux2': 'Linux',
           'darwin': 'Darwin',
           'win32': 'win64'}[sys.platform]
 
@@ -196,7 +198,8 @@ def PrebuiltCMakeBin():
 
 
 def BuilderPlatformName():
-  return {'linux2': 'linux',
+  return {'linux': 'linux',
+          'linux2': 'linux',
           'darwin': 'mac',
           'win32': 'windows'}[sys.platform]
 
@@ -272,7 +275,7 @@ GCC_CLONE_DEPTH = 1000
 def CopyBinaryToArchive(binary, prefix=''):
   """All binaries are archived in the same tar file."""
   install_bin = GetInstallDir(prefix, 'bin')
-  print 'Copying binary %s to archive %s' % (binary, install_bin)
+  print('Copying binary %s to archive %s' % (binary, install_bin))
   Mkdir(install_bin)
   shutil.copy2(binary, install_bin)
 
@@ -280,7 +283,7 @@ def CopyBinaryToArchive(binary, prefix=''):
 def CopyLibraryToArchive(library, prefix=''):
   """All libraries are archived in the same tar file."""
   install_lib = GetInstallDir(prefix, 'lib')
-  print 'Copying library %s to archive %s' % (library, install_lib)
+  print('Copying library %s to archive %s' % (library, install_lib))
   Mkdir(install_lib)
   shutil.copy2(library, install_lib)
 
@@ -288,7 +291,7 @@ def CopyLibraryToArchive(library, prefix=''):
 def CopyLibraryToSysroot(library):
   """All libraries are archived in the same tar file."""
   install_lib = GetInstallDir('sysroot', 'lib', 'wasm32-wasi')
-  print 'Copying library %s to archive %s' % (library, install_lib)
+  print('Copying library %s to archive %s' % (library, install_lib))
   Mkdir(install_lib)
   shutil.copy2(library, install_lib)
 
@@ -318,16 +321,16 @@ def Zip(directory, print_content=False):
   assert os.path.isdir(directory), 'Must be a directory'
   dirname, basename = os.path.split(directory)
   archive = os.path.join(dirname, basename + '.zip')
-  print 'Creating zip archive', archive
+  print('Creating zip archive', archive)
   with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
     for root, dirs, files in os.walk(directory):
       for name in files:
         fs_path = os.path.join(root, name)
         zip_path = os.path.relpath(fs_path, os.path.dirname(directory))
         if print_content:
-          print 'Adding', fs_path
+          print('Adding', fs_path)
         z.write(fs_path, zip_path)
-  print 'Size:', os.stat(archive).st_size
+  print('Size:', os.stat(archive).st_size)
   return archive
 
 
@@ -444,8 +447,8 @@ class Source(object):
 
   def Sync(self, good_hashes=None):
     if self.os_filter and not self.os_filter.Check(BuilderPlatformName()):
-      print "Skipping %s: Doesn't work on %s" % (self.name,
-                                                 BuilderPlatformName())
+      print("Skipping %s: Doesn't work on %s" % (self.name,
+                                                 BuilderPlatformName()))
       return
     if good_hashes and good_hashes.get(self.name):
       self.checkout = good_hashes[self.name]
@@ -457,7 +460,7 @@ class Source(object):
   def GitCloneFetchCheckout(self):
     """Clone a git repo if not already cloned, then fetch and checkout."""
     if os.path.isdir(self.src_dir):
-      print '%s directory already exists' % self.name
+      print('%s directory already exists' % self.name)
     else:
       clone = ['clone', self.git_repo, self.src_dir]
       if self.depth:
@@ -499,17 +502,17 @@ class Source(object):
 
   def PrintGitStatus(self):
     """"Print the current git status for the sync target."""
-    print '<<<<<<<<<< STATUS FOR', self.name, '>>>>>>>>>>'
+    print('<<<<<<<<<< STATUS FOR', self.name, '>>>>>>>>>>')
     if os.path.exists(self.src_dir):
       proc.check_call(['git', 'status'], cwd=self.src_dir)
-    print
+    print()
 
 
 def ChromiumFetchSync(name, work_dir, git_repo,
                       checkout=RemoteBranch('master')):
   """Some Chromium projects want to use gclient for clone and dependencies."""
   if os.path.isdir(work_dir):
-    print '%s directory already exists' % name
+    print('%s directory already exists' % name)
   else:
     # Create Chromium repositories one deeper, separating .gclient files.
     parent = os.path.split(work_dir)[0]
@@ -549,21 +552,26 @@ def SyncArchive(out_dir, name, url):
       with open(stamp_file) as f:
         stamp_url = f.read().strip()
       if stamp_url == url:
-        print '%s directory already exists' % name
+        print('%s directory already exists' % name)
         return
-    print '%s directory exists but is not up-to-date' % name
-  print 'Downloading %s from %s' % (name, url)
+    print('%s directory exists but is not up-to-date' % name)
+  print('Downloading %s from %s' % (name, url))
   work_dir = os.path.dirname(out_dir)
 
   try:
-    f = urllib2.urlopen(url)
-    print 'URL: %s' % f.geturl()
-    print 'Info: %s' % f.info()
+    if sys.version_info.major == 2:
+      from urllib2 import urlopen, URLError
+    else:
+      from urllib.request import urlopen, URLError
+
+    f = urlopen(url)
+    print('URL: %s' % f.geturl())
+    print('Info: %s' % f.info())
     with tempfile.NamedTemporaryFile() as t:
       t.write(f.read())
       t.flush()
       t.seek(0)
-      print 'Extracting into %s' % work_dir
+      print('Extracting into %s' % work_dir)
       ext = os.path.splitext(url)[-1]
       if ext == '.zip':
         with zipfile.ZipFile(t, 'r') as zip:
@@ -572,8 +580,8 @@ def SyncArchive(out_dir, name, url):
         proc.check_call(['tar', '-xvf', t.name], cwd=work_dir)
       else:
         tarfile.open(fileobj=t).extractall(path=work_dir)
-  except urllib2.URLError as e:
-    print 'Error downloading %s: %s' % (url, e)
+  except URLError as e:
+    print('Error downloading %s: %s' % (url, e))
     raise
 
   with open(stamp_file, 'w') as f:
@@ -588,7 +596,8 @@ def SyncPrebuiltCMake(name, src_dir, git_repo):
 
 def SyncPrebuiltNodeJS(name, src_dir, git_repo):
   extension = {'darwin': 'tar.xz',
-               'linux2': 'tar.xz',
+               'linux': 'tar.xz',
+               'linux2': 'tar.xz',  # TODO: remove with python2
                'win32': 'zip'}[sys.platform]
   out_dir = GetPrebuilt(NODE_BASE_NAME + NodePlatformName())
   tarball = NODE_BASE_NAME + NodePlatformName() + '.' + extension
@@ -605,7 +614,7 @@ def SyncGNUWin32(name, src_dir, git_repo):
 
 
 def SyncPrebuiltJava(name, src_dir, git_repo):
-  platform = {'linux2': 'linux', 'darwin': 'osx',
+  platform = {'linux': 'linux', 'linux2': 'linux', 'darwin': 'osx',
               'win32': 'windows'}[sys.platform]
   tarball = 'jre-' + JAVA_VERSION + '_' + platform + '-x64_bin.tar.gz'
   java_url = WASM_STORAGE_BASE + tarball
@@ -667,12 +676,12 @@ def Clobber():
   clobber_file = GetBuildDir('clobber_version.txt')
   if not clobber:
     if not os.path.exists(clobber_file):
-      print 'Clobber file %s does not exist.' % clobber_file
+      print('Clobber file %s does not exist.' % clobber_file)
       clobber = True
     else:
       existing_tag = int(open(clobber_file).read().strip())
       if existing_tag != CLOBBER_BUILD_TAG:
-        print 'Clobber file %s has tag %s.' % (clobber_file, existing_tag)
+        print('Clobber file %s has tag %s.' % (clobber_file, existing_tag))
         clobber = True
 
   if not clobber:
@@ -866,7 +875,7 @@ def TestLLVMRegression():
   build_dir = os.path.join(work_dirs.GetBuild(), 'llvm-out')
   cc_env = BuildEnv(build_dir, bin_subdir=True)
   if not os.path.isdir(build_dir):
-    print 'LLVM Build dir %s does not exist' % build_dir
+    print('LLVM Build dir %s does not exist' % build_dir)
     buildbot.Fail()
     return
 
@@ -1009,7 +1018,7 @@ def BuildEmscriptenOptimizer():
   src_dir = GetSrcDir('emscripten')
   em_install_dir = GetInstallDir('emscripten')
   Remove(em_install_dir)
-  print 'Copying directory %s to %s' % (src_dir, em_install_dir)
+  print('Copying directory %s to %s' % (src_dir, em_install_dir))
   shutil.copytree(src_dir,
                   em_install_dir,
                   symlinks=True,
@@ -1066,7 +1075,7 @@ def Emscripten(variant):
   # Set up the emscripten config and compile the libraries for the specified
   # variant
   buildbot.Step('emscripten (%s)' % variant)
-  print 'Config file: ', config
+  print('Config file: ', config)
   src_config = os.path.join(SCRIPT_DIR, os.path.basename(config))
   WriteEmscriptenConfig(src_config, config)
 
@@ -1329,13 +1338,13 @@ def ExecuteLLVMTorture(name, runner, indir, fails, attributes, extension, opt,
 
   buildbot.Step('Execute LLVM Torture (%s, %s)' % (name, opt))
   if not indir:
-    print 'Step skipped: no input'
+    print('Step skipped: no input')
     buildbot.Warn()
     return None
   assert os.path.isfile(runner), 'Cannot find runner at %s' % runner
   files = os.path.join(indir, '*.%s' % extension)
   if len(glob.glob(files)) == 0:
-    print "No files found by", files
+    print("No files found by", files)
     buildbot.Fail()
     return
   unexpected_result_count = execute_files.run(
@@ -1374,8 +1383,8 @@ class Build(object):
 
   def Run(self):
     if self.os_filter and not self.os_filter.Check(BuilderPlatformName()):
-      print "Skipping %s: Doesn't work on %s" % (self.runnable.__name__,
-                                                 BuilderPlatformName())
+      print("Skipping %s: Doesn't work on %s" % (self.runnable.__name__,
+                                                 BuilderPlatformName()))
       return
     self.runnable(*self.args, **self.kwargs)
 
@@ -1393,18 +1402,18 @@ def Summary(repos):
 
   if should_upload:
     info_json = json.dumps(info, indent=2)
-    print info_json
+    print(info_json)
 
     with open(info_file, 'w+') as f:
       f.write(info_json)
       f.write('\n')
 
-  print 'Failed steps: %s.' % buildbot.Failed()
+  print('Failed steps: %s.' % buildbot.Failed())
   for step in buildbot.FailedList():
-    print '    %s' % step
-  print 'Warned steps: %s.' % buildbot.Warned()
+    print('    %s' % step)
+  print('Warned steps: %s.' % buildbot.Warned())
   for step in buildbot.WarnedList():
-    print '    %s' % step
+    print('    %s' % step)
 
   if should_upload:
     latest_file = '%s/%s' % (buildbot.BuilderName(), 'latest.json')
@@ -1462,8 +1471,8 @@ class Test(object):
 
   def Test(self):
     if self.os_filter and not self.os_filter.Check(BuilderPlatformName()):
-      print "Skipping %s: Doesn't work on %s" % (self.name,
-                                                 BuilderPlatformName())
+      print("Skipping %s: Doesn't work on %s" % (self.name,
+                                                 BuilderPlatformName()))
       return
     self.runnable()
 
@@ -1649,13 +1658,13 @@ def TestLLVMTestSuite():
   unexpected_successes = [f for f in successes if f in expected_failures]
 
   if len(unexpected_failures) > 0:
-    print 'Emscripten unexpected failures:'
+    print('Emscripten unexpected failures:')
     for test in unexpected_failures:
-      print test
+      print(test)
   if len(unexpected_successes) > 0:
-    print 'Emscripten unexpected successes:'
+    print('Emscripten unexpected successes:')
     for test in unexpected_successes:
-      print test
+      print(test)
 
   if len(unexpected_failures) + len(unexpected_successes) > 0:
     buildbot.Fail()
@@ -1813,7 +1822,7 @@ def run(sync_filter, build_filter, test_filter):
   except Exception:
     # If any exception reaches here, do not attempt to run the tests; just
     # log the error for buildbot and exit
-    print "Exception thrown in build step."
+    print("Exception thrown in build step.")
     traceback.print_exc()
     buildbot.Fail()
     Summary(repos)
@@ -1864,7 +1873,7 @@ def main():
 
   try:
     ret = run(sync_filter, build_filter, test_filter)
-    print 'Completed in {}s'.format(time.time() - start)
+    print('Completed in {}s'.format(time.time() - start))
     return ret
   except:
     traceback.print_exc()

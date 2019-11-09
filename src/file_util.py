@@ -17,6 +17,7 @@
 
 # Shell utilities
 
+from __future__ import print_function
 import errno
 import os
 import shutil
@@ -26,7 +27,7 @@ import proc
 
 
 def Chdir(path):
-  print 'Change directory to: %s' % path
+  print('Change directory to: %s' % path)
   os.chdir(path)
 
 
@@ -52,7 +53,7 @@ def Remove(path):
   """Remove file or directory if it exists, do nothing otherwise."""
   if not os.path.exists(path):
     return
-  print 'Removing %s' % path
+  print('Removing %s' % path)
   if not os.path.isdir(path):
     os.remove(path)
     return
@@ -77,7 +78,7 @@ def CopyTree(src, dst):
     dst: Destination directory. If it exists, must be a directory. Otherwise it
          will be created, along with parent directories.
   """
-  print 'Copying directory %s to %s' % (src, dst)
+  print('Copying directory %s to %s' % (src, dst))
   if not os.path.isdir(dst):
     os.makedirs(dst)
   for root, dirs, files in os.walk(src):

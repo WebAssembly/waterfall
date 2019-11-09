@@ -15,6 +15,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from __future__ import print_function
 import glob
 import json
 import os
@@ -104,7 +105,7 @@ def CopyDlls(dir, configuration):
   proc.check_call([VSToolchainPy(), 'copy_dlls', dir, configuration, 'x64'])
   # LLD needs also concrt140.dll, which the Chromium copy_dlls doesn't include.
   for dll in glob.glob(os.path.join(GetRuntimeDir(), 'concrt140*.dll')):
-    print 'Copying %s to %s' % (dll, dir)
+    print('Copying %s to %s' % (dll, dir))
     shutil.copy2(dll, dir)
 
 

@@ -14,6 +14,7 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+from __future__ import print_function
 import argparse
 import glob
 import os
@@ -71,7 +72,7 @@ def run(runner, files, fails, attributes, out, wasmjs='', extra_files=[]):
     assert os.path.isfile(wasmjs), 'Cannot find wasm.js %s' % wasmjs
   executable_files = glob.glob(files)
   if len(executable_files) == 0:
-    print 'No files found by %s' % files
+    print('No files found by %s' % files)
     return 1
   return testing.execute(
       tester=testing.Tester(
