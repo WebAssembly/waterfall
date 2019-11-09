@@ -38,7 +38,7 @@ class Result:
 
   def __str__(self):
     return '%s %s%s%s' % ('SUCCEEDED' if self.success else 'FAILED',
-                          self.test, '\n' if self.output else '', self.output)
+                          self.test, '\n' if self.output else '', self.output.decode('utf-8'))
 
   def __nonzero__(self):
     return self.success
