@@ -67,7 +67,7 @@ def GetVSEnv(dir):
         continue
       var, val = e.split('=', 1)
       env[var] = val
-      print(('ENV: %s = %s' % (var, val)))
+      print('ENV: %s = %s' % (var, val))
 
   return env
 

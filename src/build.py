@@ -125,7 +125,7 @@ def IsWindows():
 
 
 def IsLinux():
-  return sys.platform == 'linux2' or sys.platform == 'linux'
+  return sys.platform.startswith('linux')
 
 
 def IsMac():

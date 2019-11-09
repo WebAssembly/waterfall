@@ -16,11 +16,11 @@
 
 from __future__ import print_function
 import multiprocessing
-try:
-  import queue
-except ImportError:
-  import Queue as queue
 import sys
+if sys.version_info.major == 2:
+  import Queue as queue
+else:
+  import queue
 
 
 def g_testing_thread(test_function, work_queue, result_queue):
