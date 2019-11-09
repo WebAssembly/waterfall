@@ -1624,6 +1624,9 @@ def TestLLVMTestSuite():
   # and it's unnecessary to link it anyway. So create an empty libstdc++.a
   proc.check_call([GetInstallDir('bin', 'llvm-ar'), 'rc', 'libstdc++.a'],
                   cwd=outdir)
+  # This has to be in the environment and not TEST_SUITE_EXTRA_C_FLAGS because
+  # CMake doesn't append the flags to the try-compiles.
+  os.environ['EM_CONFIG'] = GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM)
   command = [GetInstallDir('emscripten', 'emcmake')] + CMakeCommandBase() + [
       GetSrcDir('llvm-test-suite'),
       '-DCMAKE_C_COMPILER=' + GetInstallDir('emscripten', 'emcc'),
@@ -1631,8 +1634,8 @@ def TestLLVMTestSuite():
       '-DTEST_SUITE_RUN_UNDER=' + NodeBin(),
       '-DTEST_SUITE_USER_MODE_EMULATION=ON',
       '-DTEST_SUITE_SUBDIRS=SingleSource',
-      '-DTEST_SUITE_EXTRA_EXE_LINKER_FLAGS=-L %s -s TOTAL_MEMORY=1024MB' %
-      outdir,
+      '-DTEST_SUITE_EXTRA_EXE_LINKER_FLAGS=' +
+      '-L %s -s TOTAL_MEMORY=1024MB' % outdir,
       '-DTEST_SUITE_LLVM_SIZE=' + GetInstallDir('emscripten', 'emsize.py')]
 
   proc.check_call(command, cwd=outdir)
