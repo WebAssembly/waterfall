@@ -1844,6 +1844,7 @@ def main():
   global options
   start = time.time()
   options = ParseArgs()
+  print('Python version %s' % sys.version)
 
   if options.no_threads:
     testing.single_threaded = True
