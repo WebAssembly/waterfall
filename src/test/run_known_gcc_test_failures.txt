@@ -193,10 +193,6 @@ torture__pr48695.C.o.wasm O2
 20031003-1.c.o.wasm O0
 pr23135.c.o.wasm O0
 
-# Rely on /dev/zero
-loop-2g.c.o.wasm
-loop-2f.c.o.wasm
-
 abi__bitfield1.C.o.wasm
 abi__vbase13.C.o.wasm
 eh__alias1.C.o.wasm
@@ -276,6 +272,4 @@ tree-ssa__pr33604.C.o.wasm
 ### Sanitizer tests
 # Because we don't run sanitizers on them, they may succeed or fail, and we
 # should not care about the results. For now we list tests that happen to fail.
-asan__deep-stack-uaf-1.C.o.wasm
-asan__symbolize-callback-1.C.o.wasm
 ubsan__return-1.C.o.wasm
