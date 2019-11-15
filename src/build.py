@@ -1689,7 +1689,7 @@ ALL_TESTS = [
 ]
 
 # The default tests to run on wasm-stat.us (just WASI and emwasm torture)
-DEFAULT_TESTS = ['bare', 'emwasm']
+DEFAULT_TESTS = ['bare', 'emwasm', 'llvmtest']
 
 
 def TextWrapNameList(prefix, items):
