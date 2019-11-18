@@ -1616,6 +1616,8 @@ def TestEmtestAsm2Wasm():
 
 
 def TestLLVMTestSuite():
+  buildbot.Step('Execute LLVM TestSuite (emwasm)')
+
   outdir = GetBuildDir('llvmtest-out')
   # The compiler changes on every run, so incremental builds don't make sense.
   Remove(outdir)
