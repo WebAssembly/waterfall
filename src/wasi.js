@@ -179,11 +179,6 @@ var wasi_interface = (function() {
 
   let argv = [];
 
-  function trace(syscall_name, syscall_args) {
-    if (DEBUG)
-      dbg('wasi_snapshot_preview1.' + syscall_name + '(' + Array.from(syscall_args) + ')');
-  }
-
   let stdin = (function() {
     return {
       flush: function() {}
@@ -289,6 +284,11 @@ var wasi_interface = (function() {
 
   function isValidFD(fd) {
     return openFiles.hasOwnProperty(fd)
+  }
+
+  function trace(syscall_name, syscall_args) {
+    if (DEBUG)
+      dbg('wasi_snapshot_preview1.' + syscall_name + '(' + Array.from(syscall_args) + ')');
   }
 
   let module_api = {
