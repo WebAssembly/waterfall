@@ -121,7 +121,7 @@ function read8(offset) { return heap_uint8[offset]; }
 function read16(offset) { return heap_uint16[offset>>1]; }
 function read32(offset) { return heap_uint32[offset>>2]; }
 
-let DEBUG = true;
+let DEBUG = false;
 
 function dbg(message) {
   if (DEBUG)
