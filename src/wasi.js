@@ -130,7 +130,7 @@ function dbg(message) {
 
 // WASI implemenation
 // See: https://github.com/WebAssembly/WASI/blob/master/design/WASI-core.md
-var wasi_unstable = (function() {
+var wasi_interface = (function() {
   const STDIN  = 0;
   const STDOUT = 1;
   const STDERR = 2;
@@ -138,7 +138,7 @@ var wasi_unstable = (function() {
 
   const WASI_ESUCCESS = 0;
   const WASI_EBADF    = 8;
-  const WASI_ENOTSUB  = 58;
+  const WASI_ENOTSUP  = 58;
   const WASI_EPERM    = 63;
 
   const WASI_PREOPENTYPE_DIR = 0;
@@ -235,6 +235,7 @@ var wasi_unstable = (function() {
       flags: 0,
       flush: function() {},
       name: "/",
+      rootdir: "/",
       preopen: true,
       rights_base: WASI_RIGHT_ALL,
       rights_inheriting: WASI_RIGHT_ALL,
@@ -242,6 +243,7 @@ var wasi_unstable = (function() {
   })();
 
   let openFile = function(filename) {
+    dbg('openFile: ' + filename);
     let data = read(filename);
     let position = 0;
     let end = data.length;
@@ -286,13 +288,13 @@ var wasi_unstable = (function() {
 
   function trace(syscall_name, syscall_args) {
     if (DEBUG)
-      dbg('wasi_unstable.' + syscall_name + '(' + Array.from(syscall_args) + ')');
+      dbg('wasi_snapshot_preview1.' + syscall_name + '(' + Array.from(syscall_args) + ')');
   }
 
   let module_api = {
     proc_exit: function(code) {
       trace('proc_exit', arguments);
-      throw new TerminateWasmException('wasi_unstable.proc_exit(' + code + ')', code);
+      throw new TerminateWasmException('proc_exit(' + code + ')', code);
     },
     environ_sizes_get: function(environ_count_out_ptr, environ_buf_size_out_ptr) {
       trace('environ_sizes_get', arguments);
@@ -488,6 +490,9 @@ var wasi_unstable = (function() {
     },
     path_open: function(dirfd, dirflags, path, path_len, oflags, fs_rights_base, fs_rights_inheriting, fs_flags, fd_out) {
       trace('path_open', arguments);
+      checkHeap();
+      let filename = readStr(path, path_len);
+      trace('path_open', ['dirfd=' + dirfd, 'path=' + filename, 'flags=' + oflags]);
       if (!isValidFD(dirfd))
         return WASI_EBADF;
       let file = openFiles[dirfd];
@@ -498,8 +503,8 @@ var wasi_unstable = (function() {
         return WASI_ENOTSUP;
       if (fs_flags)
         return WASI_ENOTSUP;
-      let filename = readStr(path, path_len);
       let fd = nextFD;
+      filename = file.rootdir + filename;
       openFiles[fd] = openFile(filename);
       write32(fd_out, fd);
       while (openFiles[nextFD] != undefined)
@@ -507,13 +512,19 @@ var wasi_unstable = (function() {
       return WASI_ESUCCESS;
     },
     path_unlink_file: function(dirfd, path, path_len) {
-      trace('path_unlink_file', arguments);
-      print("path_unlink_file: " + dirfd + " " + readStr(path, path_len));
-      throw new NotYetImplementedException('path_unlink_file');
+      checkHeap();
+      let filename = readStr(path, path_len);
+      trace('path_unlink_file', ['dirfd=' + dirfd, 'path=' + filename]);
+      let file = openFiles[dirfd];
+      if (file != rootdir)
+        return WASI_EBADF;
+      filename = file.rootdir + filename;
+      trace('path_unlink_file', ['path=' + filename]);
+      //fs.unlinkSync(filename);
+      return WASI_ENOTSUP;
     },
     path_remove_directory: function(dirfd, path, path_len) {
-      trace('path_remove_directory', arguments);
-      dbg("path_remove_directory: " + dirfd + " " + readStr(path, path_len));
+      trace('path_remove_directory', ['dirfd=' + dirfd, 'path=' + readStr(path, path_len)]);
       throw new NotYetImplementedException('path_remove_directory');
     },
     random_get: function(buf, buf_len) {
@@ -548,7 +559,7 @@ let ffi = (function() {
   }
   return {
     env: env,
-    wasi_unstable: wasi_unstable.api
+    wasi_snapshot_preview1: wasi_interface.api
   };
 })();
 
@@ -569,7 +580,7 @@ function loadWasm(file_path) {
 }
 
 let main_module_name = arguments[0];
-wasi_unstable.setArgv(arguments)
+wasi_interface.setArgv(arguments)
 
 main_module = loadWasm(main_module_name);
 
@@ -578,10 +589,10 @@ if (!(main_module.exports._start instanceof Function))
 
 try {
   main_module.exports._start();
-  wasi_unstable.onExit();
+  wasi_interface.onExit();
   print(main_module_name + '::_start returned normally');
 } catch (e) {
-  wasi_unstable.onExit();
+  wasi_interface.onExit();
   if (e instanceof TerminateWasmException) {
     print('Program terminated with: ' + e.exit_code);
     quit(e.exit_code);

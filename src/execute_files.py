@@ -50,9 +50,11 @@ def execute(infile, outfile, extras):
   # https://cs.chromium.org/chromium/src/v8/test/mjsunit/mjsunit.js
   commands = {
       'wasm-shell': [runner, '--entry=main', infile] + out_opt,
-      'd8-wasm': [runner, '--no-wasm-async-compilation'] + wasmjs + [
-          '--', infile] + extra_files,
-      'd8-asm2wasm': [runner, '--no-wasm-async-compilation', infile],
+      'd8-wasm': [runner, '--experimental-wasm-bigint',
+                  '--no-wasm-async-compilation'] + wasmjs + [
+                      '--', infile] + extra_files,
+      'd8-asm2wasm': [runner, '--experimental-wasm-bigint',
+                      '--no-wasm-async-compilation', infile],
       'jsc-wasm': [runner, '--useWebAssembly=1'] + wasmjs + [
           '--', infile] + extra_files,
       'jsc-asm2wasm': [runner, '--useWebAssembly=1', infile],
