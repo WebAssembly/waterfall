@@ -82,7 +82,9 @@ LLVM_VERSION = '10.0.0'
 # Update this number each time you want to create a clobber build.  If the
 # clobber_version.txt file in the build dir doesn't match we remove ALL work
 # dirs.  This works like a simpler version of chromium's landmine feature.
-CLOBBER_BUILD_TAG = 13
+CLOBBER_BUILD_TAG = 14
+
+V8_BUILD_SUBDIR = os.path.join('out.gn', 'x64.release')
 
 options = None
 
@@ -697,6 +699,9 @@ def Clobber():
   for work_dir in dirs:
     Remove(work_dir)
     Mkdir(work_dir)
+  # Also clobber v8
+  v8_dir = os.path.join(work_dirs.GetV8(), V8_BUID_SUBDIR)
+  Remove(v8_dir)
   with open(clobber_file, 'w') as f:
     f.write('%s\n' % CLOBBER_BUILD_TAG)
 
@@ -895,7 +900,7 @@ def TestLLVMRegression():
 def V8():
   buildbot.Step('V8')
   src_dir = work_dirs.GetV8()
-  out_dir = os.path.join(src_dir, 'out.gn', 'x64.release')
+  out_dir = os.path.join(src_dir, V8_BUILD_SUBDIR)
   vpython = 'vpython' + ('.bat' if IsWindows() else '')
   proc.check_call([vpython,
                    os.path.join(src_dir, 'tools', 'dev', 'v8gen.py'),
