@@ -700,7 +700,7 @@ def Clobber():
     Remove(work_dir)
     Mkdir(work_dir)
   # Also clobber v8
-  v8_dir = os.path.join(work_dirs.GetV8(), V8_BUID_SUBDIR)
+  v8_dir = os.path.join(work_dirs.GetV8(), V8_BUILD_SUBDIR)
   Remove(v8_dir)
   with open(clobber_file, 'w') as f:
     f.write('%s\n' % CLOBBER_BUILD_TAG)
