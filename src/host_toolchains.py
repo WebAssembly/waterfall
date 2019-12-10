@@ -94,9 +94,9 @@ def SetUpVSEnv(outdir):
   # Write path information (usable by a non-chromium build) into an environment
   # block
   runtime_dirs = os.pathsep.join(paths['runtime_dirs'])
-  proc.check_call(SetupToolchain() + [
-    'foo', paths['win_sdk'], runtime_dirs,
-    'win', 'x64', 'environment.x64'],
+  proc.check_call(SetupToolchain() +
+                  ['foo', paths['win_sdk'], runtime_dirs,
+                   'win', 'x64', 'environment.x64'],
                   cwd=outdir)
   return GetVSEnv(outdir)
 
