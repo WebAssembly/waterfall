@@ -30,12 +30,14 @@ force_host_clang = True
 
 
 def SetupToolchain():
-  return os.path.join(work_dirs.GetV8(), 'build', 'toolchain', 'win',
-                      'setup_toolchain.py')
+  return ['vpython.bat',
+          os.path.join(work_dirs.GetV8(), 'build', 'toolchain',
+                       'win', 'setup_toolchain.py')]
 
 
 def VSToolchainPy():
-  return os.path.join(work_dirs.GetV8(), 'build', 'vs_toolchain.py')
+  return ['vpython.bat',
+          os.path.join(work_dirs.GetV8(), 'build', 'vs_toolchain.py')]
 
 
 def WinToolchainJson():
@@ -52,7 +54,7 @@ def SyncPrebuiltClang(name, src_dir):
 
 def SyncWinToolchain():
   """Update the VS toolchain used by Chromium bots"""
-  proc.check_call([VSToolchainPy(), 'update'])
+  proc.check_call(VSToolchainPy() + ['update'])
 
 
 def GetVSEnv(dir):
@@ -74,7 +76,7 @@ def GetVSEnv(dir):
 
 def GetRuntimeDir():
   # Get the chromium-packaged toolchain directory info in a JSON file
-  proc.check_call([VSToolchainPy(), 'get_toolchain_dir'])
+  proc.check_call(VSToolchainPy() + ['get_toolchain_dir'])
   with open(WinToolchainJson()) as f:
     paths = json.load(f)
   # Extract the 64-bit runtime path
@@ -85,14 +87,14 @@ def SetUpVSEnv(outdir):
   """Set up the VS build environment used by Chromium bots"""
 
   # Get the chromium-packaged toolchain directory info in a JSON file
-  proc.check_call([VSToolchainPy(), 'get_toolchain_dir'])
+  proc.check_call(VSToolchainPy() + ['get_toolchain_dir'])
   with open(WinToolchainJson()) as f:
     paths = json.load(f)
 
   # Write path information (usable by a non-chromium build) into an environment
   # block
   runtime_dirs = os.pathsep.join(paths['runtime_dirs'])
-  proc.check_call([SetupToolchain(),
+  proc.check_call(SetupToolchain() + [
                    'foo', paths['win_sdk'], runtime_dirs,
                    'win', 'x64', 'environment.x64'],
                   cwd=outdir)
@@ -102,7 +104,7 @@ def SetUpVSEnv(outdir):
 def CopyDlls(dir, configuration):
   """Copy MSVS Runtime dlls into a build directory"""
   file_util.Mkdir(dir)
-  proc.check_call([VSToolchainPy(), 'copy_dlls', dir, configuration, 'x64'])
+  proc.check_call(VSToolchainPy() + ['copy_dlls', dir, configuration, 'x64'])
   # LLD needs also concrt140.dll, which the Chromium copy_dlls doesn't include.
   for dll in glob.glob(os.path.join(GetRuntimeDir(), 'concrt140*.dll')):
     print('Copying %s to %s' % (dll, dir))
