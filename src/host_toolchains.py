@@ -63,7 +63,7 @@ def GetVSEnv(dir):
   # where 'var' is the environment variable name, and 'val' is its value
   env = os.environ.copy()
   with open(os.path.join(dir, 'environment.x64'), 'rb') as f:
-    entries = f.read().split('\0')
+    entries = f.read().decode().split('\0')
     for e in entries:
       if not e:
         continue
