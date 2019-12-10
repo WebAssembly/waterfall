@@ -896,7 +896,7 @@ def V8():
   buildbot.Step('V8')
   src_dir = work_dirs.GetV8()
   out_dir = os.path.join(src_dir, 'out.gn', 'x64.release')
-  vpython = 'vpython' + '.bat' if IsWindows() else ''
+  vpython = 'vpython' + ('.bat' if IsWindows() else '')
   proc.check_call([vpython,
                    os.path.join(src_dir, 'tools', 'dev', 'v8gen.py'),
                    '-vv', 'x64.release'],
