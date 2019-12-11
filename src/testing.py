@@ -41,8 +41,11 @@ class Result:
                           self.test, '\n' if self.output else '',
                           self.output.decode('utf-8'))
 
-  def __nonzero__(self):
+  def __bool__(self):
     return self.success
+
+  # py2 compat
+  __nonzero__ = __bool__
 
   def __lt__(self, other):
     """Sort by test name so that the output files can be compared easily."""
