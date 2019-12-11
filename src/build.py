@@ -1396,18 +1396,19 @@ class Build(object):
     self.runnable(*self.args, **self.kwargs)
 
 
-def Summary(repos):
+def Summary():
   buildbot.Step('Summary')
-  info = {'repositories': repos}
-  info['build'] = buildbot.BuildNumber()
-  info['scheduler'] = buildbot.Scheduler()
-  info_file = GetInstallDir('buildinfo.json')
+
   # Emscripten-releases bots run the stages separately so LKGR has no way of
   # knowing whether everything passed or not.
   should_upload = (buildbot.IsUploadingBot() and not
                    buildbot.IsEmscriptenReleasesBot())
 
   if should_upload:
+    info = {'repositories': GetRepoInfo()}
+    info['build'] = buildbot.BuildNumber()
+    info['scheduler'] = buildbot.Scheduler()
+    info_file = GetInstallDir('buildinfo.json')
     info_json = json.dumps(info, indent=2)
     print(info_json)
 
@@ -1814,7 +1815,6 @@ def run(sync_filter, build_filter, test_filter):
   for work_dir in work_dirs.GetAll():
     Mkdir(work_dir)
   SyncRepos(sync_filter, options.sync_lkgr)
-  repos = GetRepoInfo() if buildbot.IsBot() else {}
   if build_filter.All():
     Remove(GetInstallDir())
     Mkdir(GetInstallDir())
@@ -1837,7 +1837,7 @@ def run(sync_filter, build_filter, test_filter):
     print("Exception thrown in build step.")
     traceback.print_exc()
     buildbot.Fail()
-    Summary(repos)
+    Summary()
     return 1
 
   for t in test_filter.Apply(ALL_TESTS):
@@ -1845,7 +1845,7 @@ def run(sync_filter, build_filter, test_filter):
 
   # Keep the summary step last: it'll be marked as red if the return code is
   # non-zero. Individual steps are marked as red with buildbot.Fail().
-  Summary(repos)
+  Summary()
   return buildbot.Failed()
 
 
