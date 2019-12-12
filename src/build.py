@@ -905,9 +905,9 @@ def V8():
 
   # Generate and write a GN args file.
   gn_args = 'is_debug = false\ntarget_cpu = "x64"\n'
-  if 'GOMA_DIR' in os.environ:
+  if host_toolchains.UsingGoma():
     gn_args += 'use_goma = true\n'
-    gn_args += 'goma_dir = "%s"\n' % os.environ['GOMA_DIR']
+    gn_args += 'goma_dir = "%s"\n' % host_toolchains.GomaDir()
   Mkdir(out_dir)
   with open(os.path.join(out_dir, 'args.gn'), 'w') as f:
     f.write(gn_args)
@@ -1027,7 +1027,8 @@ def Fastcomp():
 
   proc.check_call(command, cwd=build_dir, env=cc_env)
 
-  proc.check_call(['ninja', '-v'], cwd=build_dir, env=cc_env)
+  proc.check_call(['ninja', '-v'] + host_toolchains.NinjaJobs(),
+                  cwd=build_dir, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=build_dir, env=cc_env)
   # Fastcomp has a different install location than the rest of the tools
   BuildEnv(install_dir, bin_subdir=True)
