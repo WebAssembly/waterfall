@@ -1010,6 +1010,7 @@ def Fastcomp():
   cc_env = BuildEnv(build_dir, bin_subdir=True)
   command = CMakeCommandNative([
       GetSrcDir('emscripten-fastcomp'),
+      '-DCMAKE_CXX_FLAGS=-Wno-nonportable-include-path',
       '-DLLVM_INCLUDE_EXAMPLES=OFF',
       '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
       '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
@@ -1022,11 +1023,11 @@ def Fastcomp():
       '-DLLVM_ENABLE_TERMINFO=%d' % (not IsLinux()),
       ('-DLLVM_EXTERNAL_CLANG_SOURCE_DIR=%s' %
        GetSrcDir('emscripten-fastcomp-clang'))
-  ], force_host_clang=False)
+  ])
 
   proc.check_call(command, cwd=build_dir, env=cc_env)
 
-  proc.check_call(['ninja'], cwd=build_dir, env=cc_env)
+  proc.check_call(['ninja', '-v'], cwd=build_dir, env=cc_env)
   proc.check_call(['ninja', 'install'], cwd=build_dir, env=cc_env)
   # Fastcomp has a different install location than the rest of the tools
   BuildEnv(install_dir, bin_subdir=True)
