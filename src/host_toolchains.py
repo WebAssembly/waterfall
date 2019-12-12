@@ -140,7 +140,7 @@ def CMakeLauncherFlags():
 
 
 def NinjaJobs():
-  if UsingGoma():
+  if UsingGoma() and force_host_clang:
     return ['-j', '50']
   return []
 
