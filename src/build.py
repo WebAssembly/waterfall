@@ -1858,6 +1858,9 @@ def run(sync_filter, build_filter, test_filter):
     Summary()
     return 1
 
+  # Override the default locale to use UTF-8 encoding for all files and stdio
+  # streams (see PEP540), since oure test files are encoded with UTF-8.
+  os.environ['PYTHONUTF8'] = '1'
   for t in test_filter.Apply(ALL_TESTS):
     t.Test()
 
