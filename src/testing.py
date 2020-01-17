@@ -77,7 +77,7 @@ class Tester(object):
     try:
       import resource
       resource.setrlimit(resource.RLIMIT_CPU, (90, 90))
-    except:
+    except: # noqa
       pass
 
   def __call__(self, test_file):

@@ -27,7 +27,7 @@ import os
 import sys
 # Imports all of subprocess into the current namespace, effectively
 # re-exporting everything.
-from subprocess import * # flake8: noqa
+from subprocess import * # noqa
 
 
 def Which(filename, cwd=None, is_executable=True):
@@ -45,7 +45,7 @@ def Which(filename, cwd=None, is_executable=True):
     for suffix in exe_suffixes:
       full_path = abs_path + suffix
       if (os.path.isfile(full_path) and
-          (not is_executable or os.access(full_path, os.X_OK))):
+              (not is_executable or os.access(full_path, os.X_OK))):
         return full_path
   raise Exception('File "%s" not found. (cwd=`%s`, PATH=`%s`' %
                   (filename, cwd, os.environ['PATH']))

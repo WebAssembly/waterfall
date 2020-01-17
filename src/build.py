@@ -936,19 +936,19 @@ def Jsvu():
   jsvu_dir = os.path.join(work_dirs.GetBuild(), 'jsvu')
   Mkdir(jsvu_dir)
 
-  try:
-    if IsWindows():
-      # jsvu OS identifiers:
-      # https://github.com/GoogleChromeLabs/jsvu#supported-engines
-      os_id = 'windows64'
-      js_engines = 'chakra'
-    elif IsMac():
-      os_id = 'mac64'
-      js_engines = 'javascriptcore,v8'
-    else:
-      os_id = 'linux64'
-      js_engines = 'javascriptcore'
+  if IsWindows():
+    # jsvu OS identifiers:
+    # https://github.com/GoogleChromeLabs/jsvu#supported-engines
+    os_id = 'windows64'
+    js_engines = 'chakra'
+  elif IsMac():
+    os_id = 'mac64'
+    js_engines = 'javascriptcore,v8'
+  else:
+    os_id = 'linux64'
+    js_engines = 'javascriptcore'
 
+  try:
     # https://github.com/GoogleChromeLabs/jsvu#installation
     # ...except we install it locally instead of globally.
     proc.check_call([os.path.join(NodeBinDir(), 'npm'), 'install', 'jsvu'],
@@ -966,8 +966,7 @@ def Jsvu():
 
     # TODO: Install the JSC binary in the output package, and add the version
     # info to the repo info JSON file (currently in GetRepoInfo)
-
-  except:
+  except proc.CalledProcessError:
     buildbot.Warn()
 
 
@@ -1908,7 +1907,7 @@ def main():
     ret = run(sync_filter, build_filter, test_filter)
     print('Completed in {}s'.format(time.time() - start))
     return ret
-  except:
+  except: # noqa
     traceback.print_exc()
     # If an except is raised during one of the steps we still need to
     # print the @@@STEP_FAILURE@@@ annotation otherwise the annotator
