@@ -464,7 +464,7 @@ class Source(object):
     if os.path.isdir(self.src_dir):
       print('%s directory already exists' % self.name)
     else:
-      clone = ['clone', self.git_repo, self.src_dir]
+      clone = ['clone', '--recurse-submodules', self.git_repo, self.src_dir]
       if self.depth:
         clone.append('--depth')
         clone.append(str(self.depth))
@@ -477,7 +477,8 @@ class Source(object):
       sys.stderr.write(('WARNING: `git checkout %s` not based on waterfall '
                         'remote (%s), checking out local branch'
                         % (self.checkout, WATERFALL_REMOTE)))
-    proc.check_call(['git', 'checkout', self.checkout], cwd=self.src_dir)
+    proc.check_call(['git', 'checkout', '--recurse-submodules', self.checkout],
+                    cwd=self.src_dir)
 
   def CurrentGitInfo(self):
     if not os.path.exists(self.src_dir):
