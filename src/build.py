@@ -635,7 +635,7 @@ def AllSources():
       Source('llvm', GetSrcDir('llvm-project'),
              LLVM_GIT_BASE + 'llvm-project.git'),
       Source('llvm-test-suite', GetSrcDir('llvm-test-suite'),
-             LLVM_MIRROR_BASE + 'test-suite.git'),
+             LLVM_MIRROR_BASE + 'llvm-test-suite.git'),
       Source('emscripten', GetSrcDir('emscripten'),
              EMSCRIPTEN_GIT_BASE + 'emscripten.git'),
       Source('fastcomp', GetSrcDir('emscripten-fastcomp'),
