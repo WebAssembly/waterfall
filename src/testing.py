@@ -47,12 +47,14 @@ class Result:
     __nonzero__ = __bool__
 
     def __lt__(self, other):
-        """Sort by test name so that the output files can be compared easily."""
+        """Sort by test name so that the output files can be compared
+        easily."""
         return self.test < other.test
 
     def similarity(self, other):
         """Compare output similarity, returning a float in the range [0,1]."""
-        # Even quick_ratio is fairly slow on big inputs, capture just the start.
+        # Even quick_ratio is fairly slow on big inputs, capture just the
+        # start.
         max_size = 1024
         return difflib.SequenceMatcher(None, self.output[:max_size],
                                        other.output[:max_size]).quick_ratio()
@@ -88,7 +90,6 @@ class Tester(object):
             outfile = ''
         should_log = sys.platform != 'darwin'
         try:
-
             output = proc.check_output(
                 self.command_ctor(test_file, outfile, self.extras),
                 stderr=proc.STDOUT,
@@ -160,8 +161,8 @@ class TriangularArray:
 
     def __setitem__(self, key, value):
         k = self.canonicalize(key)
-        # Support single-insertion only, the intended usage would be a bug if there
-        # were multiple insertions of the same key.
+        # Support single-insertion only, the intended usage would be a bug if
+        # there were multiple insertions of the same key.
         assert k not in self.arr, 'Double insertion of key %s' % str(k)
         self.arr[k] = value
 
@@ -212,8 +213,8 @@ def similarity(results, cutoff):
                         group_tests.append(other_test)
                         group_similarities.append(similar)
             if len(group_tests) > 1:
-                # Some tests could have similar matches which were more similar to
-                # other tests, leaving this group with a single entry.
+                # Some tests could have similar matches which were more similar
+                # to other tests, leaving this group with a single entry.
                 similar_groups.append(
                     SimilarityGroup(tests=group_tests,
                                     similarities=group_similarities))
@@ -296,9 +297,9 @@ def execute(tester, inputs, fails, exclusions=None, attributes=None):
     ]
 
     similarity_cutoff = 0.9
-    # Calculating similarity is pretty expensive. If too many tests are failing,
-    # it can take minutes, and most of them are probably failing for the same
-    # fundamental reason. Skip in that case.
+    # Calculating similarity is pretty expensive. If too many tests are
+    # failing, it can take minutes, and most of them are probably failing for
+    # the same fundamental reason. Skip in that case.
     failure_cutoff = 0.5
     max_failure_count = max(1, len(inputs) * failure_cutoff)
 

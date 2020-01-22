@@ -460,9 +460,9 @@ class Source(object):
         self.custom_sync = custom_sync
         self.os_filter = os_filter
 
-        # Ensure that git URLs end in .git.  We have had issues in the past where
-        # github would not recognize the requests correctly otherwise due to
-        # chromium's builders setting custom GIT_USER_AGENT:
+        # Ensure that git URLs end in .git.  We have had issues in the past
+        # where github would not recognize the requests correctly otherwise due
+        # to chromium's builders setting custom GIT_USER_AGENT:
         # https://bugs.chromium.org/p/chromium/issues/detail?id=711775
         if git_repo:
             assert git_repo.endswith('.git'), 'Git URLs should end in .git'
@@ -515,8 +515,8 @@ class Source(object):
         try:
             remote = GitRemoteUrl(self.src_dir, WATERFALL_REMOTE)
         except proc.CalledProcessError:
-            # Not all checkouts have the '_waterfall' remote (e.g. the waterfall
-            # itself) so fall back to origin on failure
+            # Not all checkouts have the '_waterfall' remote (e.g. the
+            # waterfall itself) so fall back to origin on failure
             remote = GitRemoteUrl(self.src_dir, 'origin')
 
         return {
@@ -539,7 +539,8 @@ def ChromiumFetchSync(name,
                       work_dir,
                       git_repo,
                       checkout=RemoteBranch('master')):
-    """Some Chromium projects want to use gclient for clone and dependencies."""
+    """Some Chromium projects want to use gclient for clone and
+    dependencies."""
     if os.path.isdir(work_dir):
         print('%s directory already exists' % name)
     else:
@@ -821,9 +822,9 @@ def CMakeCommandNative(args, force_host_clang=True):
         # Goma doesn't have MSVC in its cache, so don't use it in this case
         command.extend(host_toolchains.CMakeLauncherFlags())
     command.extend(args)
-    # On Windows, CMake chokes on paths containing backslashes that come from the
-    # command line. Probably they just need to be escaped, but using '/' instead
-    # is easier and works just as well.
+    # On Windows, CMake chokes on paths containing backslashes that come from
+    # the command line. Probably they just need to be escaped, but using '/'
+    # instead is easier and works just as well.
     return [arg.replace('\\', '/') for arg in command]
 
 
@@ -919,9 +920,9 @@ def LLVM():
                 if not os.path.islink(Executable(link)):
                     os.symlink(Executable(target), Executable(link))
             else:
-                # Windows has no symlinks (at least not from python). Also clang won't
-                # work as a native compiler anyway, so just install it as
-                # wasm32-wasi-clang
+                # Windows has no symlinks (at least not from python). Also
+                # clang won't work as a native compiler anyway, so just install
+                # it as wasm32-wasi-clang
                 shutil.copy2(Executable(os.path.join(install_bin, target)),
                              Executable(link))
 
@@ -973,9 +974,9 @@ def V8():
     # Invoke GN to generate. We need to use vpython as the script interpreter
     # since GN's scripts seem to require python2. Hence we need to invoke GN
     # directly rather than using one of V8's GN wrapper scripts (e.g. mb.py).
-    # But because V8 has a different directory layout from Chrome, we can't just
-    # use the GN wrapper in depot_tools, we have to invoke the one in the V8
-    # buildtools dir directly.
+    # But because V8 has a different directory layout from Chrome, we can't
+    # just use the GN wrapper in depot_tools, we have to invoke the one in the
+    # V8 buildtools dir directly.
     gn_platform = 'linux64' if IsLinux() else 'mac' if IsMac() else 'win'
     gn_exe = Executable(os.path.join(src_dir, 'buildtools', gn_platform, 'gn'))
     proc.check_call([gn_exe, 'gen', out_dir, '--script-executable=' + vpython],
@@ -1025,8 +1026,8 @@ def Jsvu():
         # $HOME/.jsvu/chakra is now available on Windows.
         # $HOME/.jsvu/javascriptcore is now available on Mac.
 
-        # TODO: Install the JSC binary in the output package, and add the version
-        # info to the repo info JSON file (currently in GetRepoInfo)
+        # TODO: Install the JSC binary in the output package, and add the
+        # version info to the repo info JSON file (currently in GetRepoInfo)
     except proc.CalledProcessError:
         buildbot.Warn()
 
@@ -1037,10 +1038,8 @@ def Wabt():
     Mkdir(out_dir)
     cc_env = BuildEnv(out_dir)
 
-    proc.check_call(CMakeCommandNative(
-        [GetSrcDir('wabt'), '-DBUILD_TESTS=OFF']),
-                    cwd=out_dir,
-                    env=cc_env)
+    cmd = CMakeCommandNative([GetSrcDir('wabt'), '-DBUILD_TESTS=OFF'])
+    proc.check_call(cmd=cmd, cwd=out_dir, env=cc_env)
 
     proc.check_call(['ninja', '-v'], cwd=out_dir, env=cc_env)
     proc.check_call(['ninja', 'install'], cwd=out_dir, env=cc_env)
@@ -1053,9 +1052,7 @@ def Binaryen():
     # Currently it's a bad idea to do a non-asserts build of Binaryen
     cc_env = BuildEnv(out_dir, bin_subdir=True, runtime='Debug')
 
-    proc.check_call(CMakeCommandNative([
-        GetSrcDir('binaryen'),
-    ]),
+    proc.check_call(CMakeCommandNative([GetSrcDir('binaryen')]),
                     cwd=out_dir,
                     env=cc_env)
     proc.check_call(['ninja', '-v'], cwd=out_dir, env=cc_env)
@@ -1311,11 +1308,9 @@ def WasiLibc():
         Remove(build_dir)
     cc_env = BuildEnv(build_dir, use_gnuwin32=True)
     src_dir = GetSrcDir('wasi-libc')
-    proc.check_call([
-        proc.Which('make'),
-        '-j%s' % NPROC, 'SYSROOT=' + build_dir,
-        'WASM_CC=' + GetInstallDir('bin', 'clang')
-    ],
+    proc.check_call([proc.Which('make'),
+                     '-j%s' % NPROC, 'SYSROOT=' + build_dir,
+                     'WASM_CC=' + GetInstallDir('bin', 'clang')],
                     env=cc_env,
                     cwd=src_dir)
     CopyTree(build_dir, GetInstallDir('sysroot'))
@@ -1511,8 +1506,8 @@ def Summary():
 
     # Emscripten-releases bots run the stages separately so LKGR has no way of
     # knowing whether everything passed or not.
-    should_upload = (buildbot.IsUploadingBot()
-                     and not buildbot.IsEmscriptenReleasesBot())
+    should_upload = (buildbot.IsUploadingBot() and
+                     not buildbot.IsEmscriptenReleasesBot())
 
     if should_upload:
         info = {'repositories': GetRepoInfo()}
@@ -1704,12 +1699,12 @@ def TestEmwasm():
 def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
     buildbot.Step('Execute emscripten testsuite (%s)' % name)
     Mkdir(outdir)
+    cmd = [
+        GetInstallDir('emscripten', 'tests', 'runner.py'), '--em-config',
+        config
+    ] + tests
     try:
-        proc.check_call([
-            GetInstallDir('emscripten', 'tests', 'runner.py'), '--em-config',
-            config
-        ] + tests,
-                        cwd=outdir)
+        proc.check_call(cmd, cwd=outdir)
     except proc.CalledProcessError:
         buildbot.FailUnless(lambda: warn_only)
 
@@ -1732,15 +1727,17 @@ def TestLLVMTestSuite():
     buildbot.Step('Execute LLVM TestSuite (emwasm)')
 
     outdir = GetBuildDir('llvmtest-out')
-    # The compiler changes on every run, so incremental builds don't make sense.
+    # The compiler changes on every run, so incremental builds don't make
+    # sense.
     Remove(outdir)
     Mkdir(outdir)
-    # The C++ tests explicitly link libstdc++ for some reason, but we use libc++
-    # and it's unnecessary to link it anyway. So create an empty libstdc++.a
+    # The C++ tests explicitly link libstdc++ for some reason, but we use
+    # libc++ and it's unnecessary to link it anyway. So create an empty
+    # libstdc++.a
     proc.check_call([GetInstallDir('bin', 'llvm-ar'), 'rc', 'libstdc++.a'],
                     cwd=outdir)
-    # This has to be in the environment and not TEST_SUITE_EXTRA_C_FLAGS because
-    # CMake doesn't append the flags to the try-compiles.
+    # This has to be in the environment and not TEST_SUITE_EXTRA_C_FLAGS
+    # because CMake doesn't append the flags to the try-compiles.
     os.environ['EM_CONFIG'] = GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM)
     command = [GetInstallDir('emscripten', 'emcmake')] + CMakeCommandBase() + [
         GetSrcDir('llvm-test-suite'), '-DCMAKE_C_COMPILER=' +
@@ -1756,11 +1753,11 @@ def TestLLVMTestSuite():
     proc.check_call(command, cwd=outdir)
     proc.check_call(['ninja', '-v'], cwd=outdir)
     results_file = 'results.json'
-    proc.call([
+    cmd = [
         GetBuildDir('llvm-out', 'bin', 'llvm-lit'), '-v', '-o', results_file,
         '.'
-    ],
-              cwd=outdir)
+    ]
+    proc.call(cmd, cwd=outdir)
 
     with open(os.path.join(outdir, results_file)) as results_fd:
         json_results = json.loads(results_fd.read())
@@ -2049,7 +2046,8 @@ def main():
         # If an except is raised during one of the steps we still need to
         # print the @@@STEP_FAILURE@@@ annotation otherwise the annotator
         # makes the failed stap as green:
-        # TODO(sbc): Remove this if the annotator is fixed: http://crbug.com/647357
+        # TODO(sbc): Remove this if the annotator is fixed:
+        # http://crbug.com/647357
         if buildbot.current_step:
             buildbot.Fail()
         return 1

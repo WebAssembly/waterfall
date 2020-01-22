@@ -93,13 +93,13 @@ def SetUpVSEnv(outdir):
     with open(WinToolchainJson()) as f:
         paths = json.load(f)
 
-    # Write path information (usable by a non-chromium build) into an environment
-    # block
+    # Write path information (usable by a non-chromium build) into an
+    # environment block
     runtime_dirs = os.pathsep.join(paths['runtime_dirs'])
-    proc.check_call(SetupToolchain() + [
+    cmd = SetupToolchain() + [
         'foo', paths['win_sdk'], runtime_dirs, 'win', 'x64', 'environment.x64'
-    ],
-                    cwd=outdir)
+    ]
+    proc.check_call(cmd, cwd=outdir)
     return GetVSEnv(outdir)
 
 
@@ -107,7 +107,8 @@ def CopyDlls(dir, configuration):
     """Copy MSVS Runtime dlls into a build directory"""
     file_util.Mkdir(dir)
     proc.check_call(VSToolchainPy() + ['copy_dlls', dir, configuration, 'x64'])
-    # LLD needs also concrt140.dll, which the Chromium copy_dlls doesn't include.
+    # LLD needs also concrt140.dll, which the Chromium copy_dlls doesn't
+    # include.
     for dll in glob.glob(os.path.join(GetRuntimeDir(), 'concrt140*.dll')):
         print('Copying %s to %s' % (dll, dir))
         shutil.copy2(dll, dir)

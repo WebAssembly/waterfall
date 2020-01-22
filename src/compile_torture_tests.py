@@ -61,9 +61,11 @@ def find_runnable_tests(directory, pattern):
                 with open(fullname, 'rb') as f:
                     header = f.read(1024)
                     # Some of these files really do have non-utf8 in them.
-                    # TODO: open in text mode with the encoding kwarg when we drop py2.
+                    # TODO: open in text mode with the encoding kwarg when we
+                    # drop py2.
                     header = header.decode('ISO8859-1')
-                if '{ dg-do run }' in header and 'dg-additional-sources' not in header:
+                if ('{ dg-do run }' in header and
+                        'dg-additional-sources' not in header):
                     results.append(fullname)
     return results
 

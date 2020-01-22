@@ -68,7 +68,8 @@ class ParallelRunner(object):
             res = get_from_queue(self.result_queue)
             if res is not None:
                 num += 1
-                # Print periodically to assure the bot monitor that we are still alive
+                # Print periodically to assure the bot monitor that we are
+                # still alive
                 if num % 10 == 0:
                     print('Got test results:', num)
                 buffered_results.append(res)

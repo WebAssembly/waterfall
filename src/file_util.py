@@ -58,8 +58,8 @@ def Remove(path):
         os.remove(path)
         return
     if sys.platform == 'win32':
-        # shutil.rmtree() may not work in Windows if a directory contains read-only
-        # files.
+        # shutil.rmtree() may not work in Windows if a directory contains
+        # read-only files.
         proc.check_call('rmdir /S /Q "%s"' % path, shell=True)
     else:
         shutil.rmtree(path)

@@ -78,7 +78,7 @@ def run(runner, files, fails, attributes, out, wasmjs='', extra_files=[]):
     if len(executable_files) == 0:
         print('No files found by %s' % files)
         return 1
-    return testing.execute(tester=testing.Tester(
+    tester = testing.Tester(
         command_ctor=execute,
         outname_ctor=create_outname,
         outdir=out,
@@ -86,7 +86,8 @@ def run(runner, files, fails, attributes, out, wasmjs='', extra_files=[]):
             'runner': runner,
             'wasmjs': wasmjs,
             'extra_files': extra_files if extra_files else []
-        }),
+        })
+    return testing.execute(tester=tester,
                            inputs=executable_files,
                            fails=fails,
                            attributes=attributes)
