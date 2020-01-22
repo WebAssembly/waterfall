@@ -27,12 +27,12 @@ import proc
 
 
 def Chdir(path):
-  print('Change directory to: %s' % path)
-  os.chdir(path)
+    print('Change directory to: %s' % path)
+    os.chdir(path)
 
 
 def Mkdir(path):
-  """Create a directory at a specified path.
+    """Create a directory at a specified path.
 
   Creates all intermediate directories along the way.
   e.g.: Mkdir('a/b/c') when 'a/' is an empty directory will
@@ -40,33 +40,33 @@ def Mkdir(path):
 
   If the path already exists (and is already a directory), this does nothing.
   """
-  try:
-    os.makedirs(path)
-  except OSError as e:
-    if not os.path.isdir(path):
-      raise Exception('Path %s is not a directory!' % path)
-    if not e.errno == errno.EEXIST:
-      raise e
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        if not os.path.isdir(path):
+            raise Exception('Path %s is not a directory!' % path)
+        if not e.errno == errno.EEXIST:
+            raise e
 
 
 def Remove(path):
-  """Remove file or directory if it exists, do nothing otherwise."""
-  if not os.path.exists(path):
-    return
-  print('Removing %s' % path)
-  if not os.path.isdir(path):
-    os.remove(path)
-    return
-  if sys.platform == 'win32':
-    # shutil.rmtree() may not work in Windows if a directory contains read-only
-    # files.
-    proc.check_call('rmdir /S /Q "%s"' % path, shell=True)
-  else:
-    shutil.rmtree(path)
+    """Remove file or directory if it exists, do nothing otherwise."""
+    if not os.path.exists(path):
+        return
+    print('Removing %s' % path)
+    if not os.path.isdir(path):
+        os.remove(path)
+        return
+    if sys.platform == 'win32':
+        # shutil.rmtree() may not work in Windows if a directory contains read-only
+        # files.
+        proc.check_call('rmdir /S /Q "%s"' % path, shell=True)
+    else:
+        shutil.rmtree(path)
 
 
 def CopyTree(src, dst):
-  """Recursively copy the items in the src directory to the dst directory.
+    """Recursively copy the items in the src directory to the dst directory.
 
   Unlike shutil.copytree, the destination directory and any subdirectories and
   files may exist. Existing directories are left untouched, and existing files
@@ -78,18 +78,18 @@ def CopyTree(src, dst):
     dst: Destination directory. If it exists, must be a directory. Otherwise it
          will be created, along with parent directories.
   """
-  print('Copying directory %s to %s' % (src, dst))
-  if not os.path.isdir(dst):
-    os.makedirs(dst)
-  for root, dirs, files in os.walk(src):
-    relroot = os.path.relpath(root, src)
-    dstroot = os.path.join(dst, relroot)
-    for d in dirs:
-      dstdir = os.path.join(dstroot, d)
-      if not os.path.isdir(dstdir):
-        os.mkdir(dstdir)
-    for f in files:
-      dstfile = os.path.join(dstroot, f)
-      if os.path.isfile(dstfile):
-        os.remove(dstfile)
-      shutil.copy2(os.path.join(root, f), dstfile)
+    print('Copying directory %s to %s' % (src, dst))
+    if not os.path.isdir(dst):
+        os.makedirs(dst)
+    for root, dirs, files in os.walk(src):
+        relroot = os.path.relpath(root, src)
+        dstroot = os.path.join(dst, relroot)
+        for d in dirs:
+            dstdir = os.path.join(dstroot, d)
+            if not os.path.isdir(dstdir):
+                os.mkdir(dstdir)
+        for f in files:
+            dstfile = os.path.join(dstroot, f)
+            if os.path.isfile(dstfile):
+                os.remove(dstfile)
+            shutil.copy2(os.path.join(root, f), dstfile)

@@ -25,57 +25,68 @@ import testing
 
 
 def create_outname(outdir, infile, extras):
-  """Create the output file's name."""
-  basename = os.path.basename(infile)
-  outname = basename + '.wasm'
-  return os.path.join(outdir, outname)
+    """Create the output file's name."""
+    basename = os.path.basename(infile)
+    outname = basename + '.wasm'
+    return os.path.join(outdir, outname)
 
 
 def link(infile, outfile, extras):
-  """Create the command-line for a linker invocation."""
-  linker = extras['linker']
-  install_root = os.path.dirname(os.path.dirname(linker))
-  sysroot_dir = os.path.join(install_root, 'sysroot')
-  command = [linker, '--sysroot=%s' % sysroot_dir, '-Wl,-zstack-size=1048576',
-             '-o', outfile, infile, '-lwasi-emulated-mman']
-  return command + extras['args']
+    """Create the command-line for a linker invocation."""
+    linker = extras['linker']
+    install_root = os.path.dirname(os.path.dirname(linker))
+    sysroot_dir = os.path.join(install_root, 'sysroot')
+    command = [
+        linker,
+        '--sysroot=%s' % sysroot_dir, '-Wl,-zstack-size=1048576', '-o',
+        outfile, infile, '-lwasi-emulated-mman'
+    ]
+    return command + extras['args']
 
 
 def run(linker, files, fails, attributes, out, args):
-  """Link all files."""
-  assert os.path.isfile(linker), 'Cannot find linker at %s' % linker
-  assert os.path.isdir(out), 'Cannot find outdir %s' % out
-  input_files = glob.glob(files)
-  if len(input_files) == 0:
-    print('No files found by %s' % files)
-    return 1
-  if not args:
-    args = []
-  return testing.execute(
-      tester=testing.Tester(
-          command_ctor=link,
-          outname_ctor=create_outname,
-          outdir=out,
-          extras={'linker': linker, 'args': args}),
-      inputs=input_files,
-      fails=fails,
-      attributes=attributes)
+    """Link all files."""
+    assert os.path.isfile(linker), 'Cannot find linker at %s' % linker
+    assert os.path.isdir(out), 'Cannot find outdir %s' % out
+    input_files = glob.glob(files)
+    if len(input_files) == 0:
+        print('No files found by %s' % files)
+        return 1
+    if not args:
+        args = []
+    return testing.execute(tester=testing.Tester(command_ctor=link,
+                                                 outname_ctor=create_outname,
+                                                 outdir=out,
+                                                 extras={
+                                                     'linker': linker,
+                                                     'args': args
+                                                 }),
+                           inputs=input_files,
+                           fails=fails,
+                           attributes=attributes)
 
 
 def main():
-  parser = argparse.ArgumentParser(
-      description='Link .o files into a .wasm.')
-  parser.add_argument('--linker', type=str, required=True,
-                      help='Linker path')
-  parser.add_argument('--files', type=str, required=True,
-                      help='Glob pattern for .s files')
-  parser.add_argument('--fails', type=str, required=True,
-                      help='Expected failures')
-  parser.add_argument('--out', type=str, required=True,
-                      help='Output directory')
-  args = parser.parse_args()
-  return run(args.linker, args.files, args.fails, args.out)
+    parser = argparse.ArgumentParser(description='Link .o files into a .wasm.')
+    parser.add_argument('--linker',
+                        type=str,
+                        required=True,
+                        help='Linker path')
+    parser.add_argument('--files',
+                        type=str,
+                        required=True,
+                        help='Glob pattern for .s files')
+    parser.add_argument('--fails',
+                        type=str,
+                        required=True,
+                        help='Expected failures')
+    parser.add_argument('--out',
+                        type=str,
+                        required=True,
+                        help='Output directory')
+    args = parser.parse_args()
+    return run(args.linker, args.files, args.fails, args.out)
 
 
 if __name__ == '__main__':
-  sys.exit(main())
+    sys.exit(main())

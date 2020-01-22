@@ -24,22 +24,21 @@ EMSCRIPTEN_RELEASES_CLOUD_STORAGE_PATH = \
 
 
 def GetCloudStoragePath():
-  if IsEmscriptenReleasesBot():
-    return EMSCRIPTEN_RELEASES_CLOUD_STORAGE_PATH
-  else:
-    return WATERFALL_CLOUD_STORAGE_PATH
+    if IsEmscriptenReleasesBot():
+        return EMSCRIPTEN_RELEASES_CLOUD_STORAGE_PATH
+    else:
+        return WATERFALL_CLOUD_STORAGE_PATH
 
 
 def Upload(local, remote):
-  """Upload file to Cloud Storage."""
-  if not IsUploadingBot():
-    return
-  remote = GetCloudStoragePath() + remote
-  proc.check_call(
-      ['gsutil.py', 'cp', local, 'gs://' + remote])
-  return CLOUD_STORAGE_BASE_URL + remote
+    """Upload file to Cloud Storage."""
+    if not IsUploadingBot():
+        return
+    remote = GetCloudStoragePath() + remote
+    proc.check_call(['gsutil.py', 'cp', local, 'gs://' + remote])
+    return CLOUD_STORAGE_BASE_URL + remote
 
 
 def Download(remote, local):
-  remote = GetCloudStoragePath() + remote
-  proc.check_call(['gsutil.py', 'cp', 'gs://' + remote, local])
+    remote = GetCloudStoragePath() + remote
+    proc.check_call(['gsutil.py', 'cp', 'gs://' + remote, local])
