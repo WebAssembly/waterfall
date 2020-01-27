@@ -1616,7 +1616,7 @@ def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
   Mkdir(outdir)
   try:
     proc.check_call([os.path.join(NodeBinDir(), 'npm'), 'install'],
-                     cwd=GetInstallDir('emscripten'))
+                    cwd=GetInstallDir('emscripten'))
     proc.check_call(
         [GetInstallDir('emscripten', 'tests', 'runner.py'),
          '--em-config', config] + tests,
