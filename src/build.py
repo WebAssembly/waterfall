@@ -165,11 +165,6 @@ def NodeBin():
   return Executable(os.path.join(NodeBinDir(), 'node'))
 
 
-# `npm` uses whatever `node` is in `PATH`. To make sure it uses the
-# Node.js version we want, we prepend the node bin dir to `PATH`.
-os.environ['PATH'] = NodeBinDir() + os.pathsep + os.environ['PATH']
-
-
 def CMakePlatformName():
   return {'linux': 'Linux',
           'linux2': 'Linux',
@@ -1824,6 +1819,11 @@ def ParseArgs():
   return parser.parse_args()
 
 
+def AddToPath(path):
+  print("adding to path: %s" % path)
+  os.environ['PATH'] = path + os.pathsep + os.environ['PATH']
+
+
 def run(sync_filter, build_filter, test_filter):
   if options.git_status:
     for s in AllSources():
@@ -1842,8 +1842,11 @@ def run(sync_filter, build_filter, test_filter):
     Mkdir(GetInstallDir('lib'))
 
   # Add prebuilt cmake to PATH so any subprocesses use a consistent cmake.
-  os.environ['PATH'] = (os.path.dirname(PrebuiltCMakeBin()) +
-                        os.pathsep + os.environ['PATH'])
+  AddToPath(os.path.dirname(PrebuiltCMakeBin()))
+
+  # `npm` uses whatever `node` is in `PATH`. To make sure it uses the
+  # Node.js version we want, we prepend the node bin dir to `PATH`.
+  AddToPath(NodeBinDir())
 
   # TODO(dschuff): Figure out how to make these statically linked?
   if IsWindows() and build_filter.Any():
