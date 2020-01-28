@@ -39,7 +39,7 @@ def Which(filename, cwd=None, is_executable=True):
     to_search.insert(0, cwd)
   exe_suffixes = ['']
   if sys.platform == 'win32' and is_executable:
-    exe_suffixes = ['.exe', '.bat'] + exe_suffixes
+    exe_suffixes = ['.exe', '.bat', '.cmd'] + exe_suffixes
   for path in to_search:
     abs_path = os.path.abspath(os.path.join(path, filename))
     for suffix in exe_suffixes:
@@ -56,7 +56,7 @@ def MungeExe(cmd, cwd):
   if exe.endswith('.py'):
     script = Which(exe, cwd, is_executable=False)
     return [sys.executable, script] + cmd[1:]
-  if exe == 'git' or exe == 'gclient':
+  if exe in ('git', 'npm', 'gclient'):
     return [Which(exe, cwd)] + cmd[1:]
   return cmd
 
