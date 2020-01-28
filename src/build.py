@@ -948,8 +948,7 @@ def Jsvu():
   try:
     # https://github.com/GoogleChromeLabs/jsvu#installation
     # ...except we install it locally instead of globally.
-    proc.check_call([os.path.join(NodeBinDir(), 'npm'), 'install', 'jsvu'],
-                    cwd=jsvu_dir)
+    proc.check_call(['npm', 'install', 'jsvu'], cwd=jsvu_dir)
 
     jsvu_bin = Executable(os.path.join(
         jsvu_dir, 'node_modules', 'jsvu', 'cli.js'))
@@ -1610,8 +1609,7 @@ def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
   buildbot.Step('Execute emscripten testsuite (%s)' % name)
   Mkdir(outdir)
   try:
-    proc.check_call([os.path.join(NodeBinDir(), 'npm'), 'install'],
-                    cwd=GetInstallDir('emscripten'))
+    proc.check_call(['npm', 'install'], cwd=GetInstallDir('emscripten'))
     proc.check_call(
         [GetInstallDir('emscripten', 'tests', 'runner.py'),
          '--em-config', config] + tests,
