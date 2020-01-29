@@ -634,10 +634,10 @@ def AllSources():
       Source('emscripten', GetSrcDir('emscripten'),
              EMSCRIPTEN_GIT_BASE + 'emscripten.git'),
       Source('fastcomp', GetSrcDir('emscripten-fastcomp'),
-             EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp.git')
+             EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp.git'),
       Source('fastcomp-clang',
              GetSrcDir('emscripten-fastcomp-clang'),
-             EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp-clang.git')
+             EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp-clang.git'),
       Source('gcc', GetSrcDir('gcc'),
              GIT_MIRROR_BASE + 'chromiumos/third_party/gcc.git',
              checkout=GCC_REVISION, depth=GCC_CLONE_DEPTH),
