@@ -347,6 +347,18 @@ def UploadArchive(name, archive):
   UploadFile(archive, 'wasm-%s%s' % (name, extension))
 
 
+def SetUpNpmClosure():
+  proc.check_call(['npm', 'ci'], cwd=GetInstallDir('emscripten'))
+  if IsWindows():
+    redist_dir = GetPrebuilt('msvc100_redist')
+    SyncArchive(redist_dir, 'MSVC 2010 Redistributable DLLs',
+                WASM_STORAGE_BASE + 'msvc100_redist.zip')
+    shutil.copy2(os.path.join(redist_dir, 'msvcr100.dll'),
+                 GetInstallDir('emscripten',
+                            'node_modules',
+                            'google-closure-compiler-windows'))
+
+
 # Repo and subproject utilities
 
 def GitRemoteUrl(cwd, remote):
@@ -1607,7 +1619,7 @@ def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
   buildbot.Step('Execute emscripten testsuite (%s)' % name)
   Mkdir(outdir)
   try:
-    proc.check_call(['npm', 'ci'], cwd=GetInstallDir('emscripten'))
+    SetUpNpmClosure()
     proc.check_call(
         [GetInstallDir('emscripten', 'tests', 'runner.py'),
          '--em-config', config] + tests,
