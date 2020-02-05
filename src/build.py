@@ -834,7 +834,8 @@ def LLVM():
       '-DLLVM_TOOL_LTO_BUILD=OFF',
       '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
       '-DLLVM_ENABLE_ASSERTIONS=ON',
-      '-DLLVM_TARGETS_TO_BUILD=X86;WebAssembly',
+      '-DLLVM_TARGETS_TO_BUILD=WebAssembly',
+      '-DLLVM_DEFAULT_TARGET_TRIPLE=wasm32-wasi'
       '-DLLVM_ENABLE_PROJECTS=lld;clang',
       # linking libtinfo dynamically causes problems on some linuxes,
       # https://github.com/emscripten-core/emsdk/issues/252
