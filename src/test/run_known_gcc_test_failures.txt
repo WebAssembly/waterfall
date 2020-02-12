@@ -96,9 +96,9 @@ pr41239.c.js asm2wasm
 pr49279.c.js asm2wasm
 
 # aborts in native clang
-20021127-1.c.o.wasm O0
-20021127-1.c.js O0,emwasm
-20031003-1.c.js O0 # abort() in emwasm
+20021127-1.c.o.wasm
+20031003-1.c.o.wasm
+20031003-1.c.js # abort() in emwasm
 
 # hoisting of conditional cast causing wasm float->int conversion trap
 # https://github.com/WebAssembly/binaryen/issues/983
@@ -190,7 +190,6 @@ switch-1.c.o.wasm
 # Untriaged lld failures
 torture__pr48695.C.o.wasm O2
 
-20031003-1.c.o.wasm O0
 pr23135.c.o.wasm O0
 
 abi__bitfield1.C.o.wasm
