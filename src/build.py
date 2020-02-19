@@ -1084,7 +1084,7 @@ def Emscripten(variant):
       'fastcomp': (GetInstallDir(EMSCRIPTEN_CONFIG_FASTCOMP),
                    'asmjs', ('libc.bc', 'generated_struct_info.json')),
       'upstream': (GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM),
-                   'wasm-obj', ('libc.a', 'generated_struct_info.json'))
+                   'wasm', ('libc.a', 'generated_struct_info.json'))
   }
 
   config, cache_subdir, cache_libs = configs[variant]
