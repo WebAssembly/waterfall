@@ -21,7 +21,6 @@
 
 # Imports subprocess in its own namespace so we can always refer directly to
 # its attributes.
-from __future__ import print_function
 import subprocess
 import os
 import sys

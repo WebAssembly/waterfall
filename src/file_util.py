@@ -17,7 +17,6 @@
 
 # Shell utilities
 
-from __future__ import print_function
 import errno
 import os
 import shutil
