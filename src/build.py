@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 #   Copyright 2015 WebAssembly Community Group participants
@@ -40,7 +40,6 @@ import proc
 import testing
 import work_dirs
 from urllib.request import urlopen, URLError
-
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
