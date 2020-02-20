@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 #   Copyright 2015 WebAssembly Community Group participants
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +12,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from __future__ import print_function
 import difflib
 import math
 import os

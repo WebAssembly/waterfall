@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #   Copyright 2016 WebAssembly Community Group participants
@@ -15,7 +14,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from __future__ import print_function
 import glob
 import json
 import os

@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 #   Copyright 2018 WebAssembly Community Group participants
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,13 +12,9 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from __future__ import print_function
 import multiprocessing
 import sys
-if sys.version_info.major == 2:
-  import Queue as queue
-else:
-  import queue
+import queue
 
 
 def g_testing_thread(test_function, work_queue, result_queue):

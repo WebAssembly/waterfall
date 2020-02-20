@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #   Copyright 2015 WebAssembly Community Group participants
@@ -17,7 +16,6 @@
 
 # Shell utilities
 
-from __future__ import print_function
 import errno
 import os
 import shutil

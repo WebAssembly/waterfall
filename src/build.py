@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 #   Copyright 2015 WebAssembly Community Group participants
@@ -15,7 +15,6 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-from __future__ import print_function
 import argparse
 import glob
 import json
@@ -40,6 +39,7 @@ import link_assembly_files
 import proc
 import testing
 import work_dirs
+from urllib.request import urlopen, URLError
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -558,11 +558,6 @@ def SyncArchive(out_dir, name, url):
   work_dir = os.path.dirname(out_dir)
 
   try:
-    if sys.version_info.major == 2:
-      from urllib2 import urlopen, URLError
-    else:
-      from urllib.request import urlopen, URLError
-
     f = urlopen(url)
     print('URL: %s' % f.geturl())
     print('Info: %s' % f.info())
@@ -596,7 +591,6 @@ def SyncPrebuiltCMake(name, src_dir, git_repo):
 def SyncPrebuiltNodeJS(name, src_dir, git_repo):
   extension = {'darwin': 'tar.xz',
                'linux': 'tar.xz',
-               'linux2': 'tar.xz',  # TODO: remove with python2
                'win32': 'zip'}[sys.platform]
   out_dir = GetPrebuilt(NODE_BASE_NAME + NodePlatformName())
   tarball = NODE_BASE_NAME + NodePlatformName() + '.' + extension
