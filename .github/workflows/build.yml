@@ -10,7 +10,8 @@ on:
 
 jobs:
   flake8:
-    runs-on: [ubuntu-latst]
+    runs-on: ubuntu-latest
+    steps:
     - uses: actions/setup-python@v1
       with:
         python-version: '3.x'
@@ -21,7 +22,7 @@ jobs:
       run: pip install flake8==3.7.8
     - run: flake8
   build:
-    runs-on: [ubuntu-latst]
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/setup-python@v1
       with:
