@@ -31,6 +31,6 @@ jobs:
       with:
         submodules: true
     - name: install dependencies
-      run: apt-get install ninja-build devscripts
+      run: sudo apt-get install ninja-build devscripts
     - name: build.py
       run: ./src/build.py --sync-include=cmake,wabt --build-include=wabt,debian --no-test --no-host-clang
