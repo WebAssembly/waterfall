@@ -85,6 +85,7 @@ LLVM_VERSION = '11.0.0'
 CLOBBER_BUILD_TAG = 15
 
 V8_BUILD_SUBDIR = os.path.join('out.gn', 'x64.release')
+V8_LINUX_SYSROOT = 'build/linux/debian_sid_amd64-sysroot'
 
 options = None
 
@@ -750,7 +751,9 @@ def CMakeCommandBase():
 
 def CMakeCommandNative(args, force_host_clang=True):
   command = CMakeCommandBase()
-  command.append('-DCMAKE_INSTALL_PREFIX=%s' % GetInstallDir())
+  command.extend(['-DCMAKE_INSTALL_PREFIX=%s' % GetInstallDir(),
+                  '-DCMAKE_SYSROOT=%s' %
+                  os.path.join(work_dirs.GetV8(), V8_LINUX_SYSROOT)])
   if force_host_clang:
     command.extend(OverrideCMakeCompiler())
     # Goma doesn't have MSVC in its cache, so don't use it in this case
@@ -818,6 +821,7 @@ def LLVM():
   command = CMakeCommandNative([
       GetLLVMSrcDir('llvm'),
       '-DCMAKE_CXX_FLAGS=-Wno-nonportable-include-path',
+      '-DLLVM_ENABLE_LIBXML2=OFF',
       '-DLLVM_INCLUDE_EXAMPLES=OFF',
       '-DCOMPILER_RT_BUILD_XRAY=OFF',
       '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
