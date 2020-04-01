@@ -752,7 +752,7 @@ def CMakeCommandBase():
 def CMakeCommandNative(args):
   command = CMakeCommandBase()
   command.append('-DCMAKE_INSTALL_PREFIX=%s' % GetInstallDir())
-  if host_toolchains.ShouldUseSysroot():
+  if IsLinux() and host_toolchains.ShouldUseSysroot():
     command.append('-DCMAKE_SYSROOT=%s' %
                    os.path.join(work_dirs.GetV8(), V8_LINUX_SYSROOT))
   if host_toolchains.ShouldForceHostClang():
