@@ -155,7 +155,7 @@ def ShouldForceHostClang():
 
 def SetUseSysroot(use):
   global use_sysroot
-  use = use_sysroot
+  use_sysroot = use
 
 
 def ShouldUseSysroot():
