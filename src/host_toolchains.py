@@ -25,6 +25,7 @@ import work_dirs
 
 
 force_host_clang = True
+use_sysroot = True
 
 
 def SetupToolchain():
@@ -150,3 +151,12 @@ def SetForceHostClang(force):
 
 def ShouldForceHostClang():
   return force_host_clang
+
+
+def SetUseSysroot(use):
+  global use_sysroot
+  use_sysroot = use
+
+
+def ShouldUseSysroot():
+  return use_sysroot

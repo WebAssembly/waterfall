@@ -33,4 +33,4 @@ jobs:
     - name: install dependencies
       run: sudo apt-get --quiet install ninja-build devscripts
     - name: build.py
-      run: ./src/build.py --sync-include=cmake,wabt --build-include=wabt,debian --no-test --no-host-clang
+      run: ./src/build.py --sync-include=cmake,wabt --build-include=wabt,debian --no-test --no-host-clang --no-sysroot

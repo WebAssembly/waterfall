@@ -85,6 +85,7 @@ LLVM_VERSION = '11.0.0'
 CLOBBER_BUILD_TAG = 15
 
 V8_BUILD_SUBDIR = os.path.join('out.gn', 'x64.release')
+V8_LINUX_SYSROOT = 'build/linux/debian_sid_amd64-sysroot'
 
 options = None
 
@@ -748,10 +749,13 @@ def CMakeCommandBase():
   return command
 
 
-def CMakeCommandNative(args, force_host_clang=True):
+def CMakeCommandNative(args):
   command = CMakeCommandBase()
   command.append('-DCMAKE_INSTALL_PREFIX=%s' % GetInstallDir())
-  if force_host_clang:
+  if IsLinux() and host_toolchains.ShouldUseSysroot():
+    command.append('-DCMAKE_SYSROOT=%s' %
+                   os.path.join(work_dirs.GetV8(), V8_LINUX_SYSROOT))
+  if host_toolchains.ShouldForceHostClang():
     command.extend(OverrideCMakeCompiler())
     # Goma doesn't have MSVC in its cache, so don't use it in this case
     command.extend(host_toolchains.CMakeLauncherFlags())
@@ -818,6 +822,7 @@ def LLVM():
   command = CMakeCommandNative([
       GetLLVMSrcDir('llvm'),
       '-DCMAKE_CXX_FLAGS=-Wno-nonportable-include-path',
+      '-DLLVM_ENABLE_LIBXML2=OFF',
       '-DLLVM_INCLUDE_EXAMPLES=OFF',
       '-DCOMPILER_RT_BUILD_XRAY=OFF',
       '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
@@ -997,6 +1002,8 @@ def Fastcomp():
   command = CMakeCommandNative([
       GetSrcDir('emscripten-fastcomp'),
       '-DCMAKE_CXX_FLAGS=-Wno-nonportable-include-path',
+      '-DLLVM_ENABLE_LIBXML2=OFF',
+      '-DLLVM_INCLUDE_TESTS=OFF',
       '-DLLVM_INCLUDE_EXAMPLES=OFF',
       '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
       '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
@@ -1782,6 +1789,9 @@ def ParseArgs():
       '--no-host-clang', dest='host_clang', action='store_false',
       help="Don't force chrome clang as the host compiler")
   parser.add_argument(
+      '--no-sysroot', dest='use_sysroot', action='store_false',
+      help="Don't use the V8 sysroot to build on Linux")
+  parser.add_argument(
       '--clobber', dest='clobber', default=False, action='store_true',
       help="Delete working directories, forcing a clean build")
 
@@ -1869,6 +1879,8 @@ def main():
     work_dirs.SetPrebuilt(options.prebuilt_dir)
   if not options.host_clang:
     host_toolchains.SetForceHostClang(False)
+  if not options.use_sysroot:
+    host_toolchains.SetUseSysroot(False)
 
   sync_include = options.sync_include if options.sync else []
   sync_filter = Filter('sync', sync_include, options.sync_exclude)
