@@ -1003,6 +1003,7 @@ def Fastcomp():
       GetSrcDir('emscripten-fastcomp'),
       '-DCMAKE_CXX_FLAGS=-Wno-nonportable-include-path',
       '-DLLVM_ENABLE_LIBXML2=OFF',
+      '-DLLVM_INCLUDE_TESTS=OFF',
       '-DLLVM_INCLUDE_EXAMPLES=OFF',
       '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
       '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
