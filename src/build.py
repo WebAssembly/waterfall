@@ -85,7 +85,12 @@ LLVM_VERSION = '11.0.0'
 CLOBBER_BUILD_TAG = 16
 
 V8_BUILD_SUBDIR = os.path.join('out.gn', 'x64.release')
-V8_LINUX_SYSROOT = 'build/linux/debian_sid_amd64-sysroot'
+
+LINUX_SYSROOT = 'debian_stretch_amd64_sysroot'
+LINUX_SYSROOT_URL = 'https://commondatastorage.googleapis.com/' +
+                    'chrome-linux-sysroot/toolchain/' +
+                    '3c248ba4290a5ad07085b7af07e6785bf1ae5b66/' +
+                    LINUX_SYSROOT + '.tar.xz'
 
 options = None
 
@@ -538,12 +543,13 @@ def SyncToolchain(name, src_dir, git_repo):
     assert os.path.isfile(cxx), 'Expect clang++ at %s' % cxx
 
 
-def SyncArchive(out_dir, name, url):
+def SyncArchive(out_dir, name, url, create_out_dir=False):
   """Download and extract an archive (zip, tar.gz or tar.xz) file from a URL.
 
-  The extraction happens in the prebuilt dir and our convention is that
-  archives contain a top-level directory containing all the files; this
-  is expected to be 'out_dir', so if 'out_dir' already exists then download
+  The extraction happens in the prebuilt dir. If create_out_dir is True,
+  out_dir will be created and the archive will be extracted inside. Otherwise
+  the archive is expected to contain a top-level directory with all the files;
+  this is expected to be 'out_dir', so if 'out_dir' already exists then download
   will be skipped.
   """
   stamp_file = os.path.join(out_dir, 'stamp.txt')
@@ -556,7 +562,12 @@ def SyncArchive(out_dir, name, url):
         return
     print('%s directory exists but is not up-to-date' % name)
   print('Downloading %s from %s' % (name, url))
-  work_dir = os.path.dirname(out_dir)
+
+  if create_out_dir:
+    os.makedirs(out_dir)
+    work_dir = out_dir
+  else:
+    work_dir = os.path.dirname(out_dir)
 
   try:
     f = urlopen(url)
@@ -615,6 +626,13 @@ def SyncPrebuiltJava(name, src_dir, git_repo):
   SyncArchive(JavaDir(), name, java_url)
 
 
+def SyncLinuxSysroot(name, src_dir, git_repo):
+  if not (IsLinux() and host_toolchains.ShouldUseSysroot()):
+    return
+  SyncArchive(GetPrebuilt(LINUX_SYSROOT), name, LINUX_SYSROOT_URL,
+              create_out_dir=True)
+
+
 def NoSync(*args):
   pass
 
@@ -654,7 +672,9 @@ def AllSources():
       Source('wasi-libc', GetSrcDir('wasi-libc'),
              'https://github.com/CraneStation/wasi-libc.git'),
       Source('java', '', '',  # The source and git args are ignored.
-             custom_sync=SyncPrebuiltJava)
+             custom_sync=SyncPrebuiltJava),
+      Source('sysroot', '', '', # The source and git args are ignored.
+             custom_sync=SyncLinuxSysroot)
   ]
 
 
@@ -753,8 +773,7 @@ def CMakeCommandNative(args):
   command = CMakeCommandBase()
   command.append('-DCMAKE_INSTALL_PREFIX=%s' % GetInstallDir())
   if IsLinux() and host_toolchains.ShouldUseSysroot():
-    command.append('-DCMAKE_SYSROOT=%s' %
-                   os.path.join(work_dirs.GetV8(), V8_LINUX_SYSROOT))
+    command.append('-DCMAKE_SYSROOT=%s' % GetPrebuilt(LINUX_SYSROOT))
   if host_toolchains.ShouldForceHostClang():
     command.extend(OverrideCMakeCompiler())
     # Goma doesn't have MSVC in its cache, so don't use it in this case
