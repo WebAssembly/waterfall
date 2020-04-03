@@ -87,10 +87,10 @@ CLOBBER_BUILD_TAG = 16
 V8_BUILD_SUBDIR = os.path.join('out.gn', 'x64.release')
 
 LINUX_SYSROOT = 'debian_stretch_amd64_sysroot'
-LINUX_SYSROOT_URL = 'https://commondatastorage.googleapis.com/' +
-                    'chrome-linux-sysroot/toolchain/' +
-                    '3c248ba4290a5ad07085b7af07e6785bf1ae5b66/' +
-                    LINUX_SYSROOT + '.tar.xz'
+LINUX_SYSROOT_URL = ('https://commondatastorage.googleapis.com/' +
+                     'chrome-linux-sysroot/toolchain/' +
+                     '3c248ba4290a5ad07085b7af07e6785bf1ae5b66/' +
+                     LINUX_SYSROOT + '.tar.xz')
 
 options = None
 
@@ -549,8 +549,8 @@ def SyncArchive(out_dir, name, url, create_out_dir=False):
   The extraction happens in the prebuilt dir. If create_out_dir is True,
   out_dir will be created and the archive will be extracted inside. Otherwise
   the archive is expected to contain a top-level directory with all the files;
-  this is expected to be 'out_dir', so if 'out_dir' already exists then download
-  will be skipped.
+  this is expected to be 'out_dir', so if 'out_dir' already exists then the
+  download will be skipped.
   """
   stamp_file = os.path.join(out_dir, 'stamp.txt')
   if os.path.isdir(out_dir):
@@ -673,7 +673,7 @@ def AllSources():
              'https://github.com/CraneStation/wasi-libc.git'),
       Source('java', '', '',  # The source and git args are ignored.
              custom_sync=SyncPrebuiltJava),
-      Source('sysroot', '', '', # The source and git args are ignored.
+      Source('sysroot', '', '',  # The source and git args are ignored.
              custom_sync=SyncLinuxSysroot)
   ]
 
