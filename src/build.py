@@ -1052,7 +1052,7 @@ def InstallEmscripten():
   em_install_dir = GetInstallDir('emscripten')
   Remove(em_install_dir)
   print('Installing emscripten into %s' % (src_dir, em_install_dir))
-  proc.check_call(['make', 'install', 'DISTDIR=' % em_install_dir],
+  proc.check_call([os.path.join('tools', 'install.py'), em_install_dir],
                   cwd=src_dir)
 
 
