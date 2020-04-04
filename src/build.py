@@ -1047,20 +1047,21 @@ def Fastcomp():
   CopyLLVMTools(build_dir, 'fastcomp')
 
 
+def InstallEmscripten():
+  src_dir = GetSrcDir('emscripten')
+  em_install_dir = GetInstallDir('emscripten')
+  Remove(em_install_dir)
+  print('Installing emscripten into %s' % em_install_dir)
+  proc.check_call([os.path.join('tools', 'install.py'), em_install_dir],
+                  cwd=src_dir)
+
+
 def BuildEmscriptenOptimizer():
   # Remove cached library builds (e.g. libc, libc++) to force them to be
   # rebuilt in the step below.
   buildbot.Step('emscripten (optimizer)')
   Remove(EMSCRIPTEN_CACHE_DIR)
   src_dir = GetSrcDir('emscripten')
-  em_install_dir = GetInstallDir('emscripten')
-  Remove(em_install_dir)
-  print('Copying directory %s to %s' % (src_dir, em_install_dir))
-  shutil.copytree(src_dir,
-                  em_install_dir,
-                  symlinks=True,
-                  # Ignore the big git blob so it doesn't get archived.
-                  ignore=shutil.ignore_patterns('.git'))
 
   # Manually build the native asm.js optimizer (the cmake build in embuilder
   # doesn't work on the waterfall)
@@ -1082,6 +1083,7 @@ def Emscripten(variant):
     # This work is only done once (not per-variant), so only do it if the
     # variant is 'upstream'. This means that the upstream variant does
     # need to go first.
+    InstallEmscripten()
     BuildEmscriptenOptimizer()
 
   def WriteEmscriptenConfig(infile, outfile):
