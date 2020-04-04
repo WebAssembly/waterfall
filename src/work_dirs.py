@@ -16,7 +16,6 @@
 
 import os
 
-
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_WORK_DIR = os.path.join(os.path.dirname(SCRIPT_DIR), 'src', 'work')
 
@@ -31,15 +30,15 @@ dirs = {}
 
 
 def MakeGetterSetter(path_type, default):
-  def getter():
-    return dirs.get(path_type, default)
+    def getter():
+        return dirs.get(path_type, default)
 
-  def setter(dir):
-    if path_type in dirs:
-      raise Exception('Path %s set more than once' % path_type)
-    dirs[path_type] = os.path.abspath(dir)
+    def setter(dir):
+        if path_type in dirs:
+            raise Exception('Path %s set more than once' % path_type)
+        dirs[path_type] = os.path.abspath(dir)
 
-  return getter, setter
+    return getter, setter
 
 
 GetSync, SetSync = MakeGetterSetter('sync', DEFAULT_SYNC_DIR)
@@ -51,4 +50,4 @@ GetInstall, SetInstall = MakeGetterSetter('install', DEFAULT_INSTALL_DIR)
 
 
 def GetAll():
-  return [GetSync(), GetBuild(), GetTest(), GetInstall()]
+    return [GetSync(), GetBuild(), GetTest(), GetInstall()]
