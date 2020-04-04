@@ -1051,7 +1051,7 @@ def InstallEmscripten():
   src_dir = GetSrcDir('emscripten')
   em_install_dir = GetInstallDir('emscripten')
   Remove(em_install_dir)
-  print('Installing emscripten into %s' % (src_dir, em_install_dir))
+  print('Installing emscripten into %s' % em_install_dir)
   proc.check_call([os.path.join('tools', 'install.py'), em_install_dir],
                   cwd=src_dir)
 
