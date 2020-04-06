@@ -774,6 +774,9 @@ def CMakeCommandNative(args):
   command.append('-DCMAKE_INSTALL_PREFIX=%s' % GetInstallDir())
   if IsLinux() and host_toolchains.ShouldUseSysroot():
     command.append('-DCMAKE_SYSROOT=%s' % GetPrebuilt(LINUX_SYSROOT))
+    command.extend(['-DCMAKE_%s_LINKER_FLAGS=-static-libstdc++' % l for l in
+                    ['EXE', 'SHARED']])
+
   if host_toolchains.ShouldForceHostClang():
     command.extend(OverrideCMakeCompiler())
     # Goma doesn't have MSVC in its cache, so don't use it in this case
