@@ -82,7 +82,7 @@ LLVM_VERSION = '11.0.0'
 # Update this number each time you want to create a clobber build.  If the
 # clobber_version.txt file in the build dir doesn't match we remove ALL work
 # dirs.  This works like a simpler version of chromium's landmine feature.
-CLOBBER_BUILD_TAG = 17
+CLOBBER_BUILD_TAG = 18
 
 V8_BUILD_SUBDIR = os.path.join('out.gn', 'x64.release')
 
@@ -774,6 +774,9 @@ def CMakeCommandNative(args):
   command.append('-DCMAKE_INSTALL_PREFIX=%s' % GetInstallDir())
   if IsLinux() and host_toolchains.ShouldUseSysroot():
     command.append('-DCMAKE_SYSROOT=%s' % GetPrebuilt(LINUX_SYSROOT))
+    command.extend(['-DCMAKE_%s_LINKER_FLAGS=-static-libstdc++' % l for l in
+                    ['EXE', 'SHARED']])
+
   if host_toolchains.ShouldForceHostClang():
     command.extend(OverrideCMakeCompiler())
     # Goma doesn't have MSVC in its cache, so don't use it in this case
