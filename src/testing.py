@@ -102,7 +102,7 @@ class Tester(object):
 
 
 def parse_exclude_files(fails, config_attributes):
-    """ eturns a sorted list  of exclusions which match the attributes.
+    """Returns a sorted list  of exclusions which match the attributes.
 
     Parse the files containing tests to exclude (i.e. expected fails).
     * Each line may contain a comma-separated list of attributes restricting

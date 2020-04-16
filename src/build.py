@@ -445,14 +445,9 @@ class Filter(object):
 
 class Source(object):
     """Metadata about a sync-able source repo on the waterfall"""
-    def __init__(self,
-                 name,
-                 src_dir,
-                 git_repo,
-                 checkout=RemoteBranch('master'),
-                 depth=None,
-                 custom_sync=None,
-                 os_filter=None):
+    def __init__(self, name, src_dir, git_repo,
+                 checkout=RemoteBranch('master'), depth=None,
+                 custom_sync=None, os_filter=None):
         self.name = name
         self.src_dir = src_dir
         self.git_repo = git_repo
@@ -536,9 +531,7 @@ class Source(object):
         print()
 
 
-def ChromiumFetchSync(name,
-                      work_dir,
-                      git_repo,
+def ChromiumFetchSync(name, work_dir, git_repo,
                       checkout=RemoteBranch('master')):
     """Some Chromium projects want to use gclient for clone and
     dependencies."""
@@ -684,43 +677,27 @@ def AllSources():
                EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp.git'),
         Source('fastcomp-clang', GetSrcDir('emscripten-fastcomp-clang'),
                EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp-clang.git'),
-        Source('gcc',
-               GetSrcDir('gcc'),
+        Source('gcc', GetSrcDir('gcc'),
                GIT_MIRROR_BASE + 'chromiumos/third_party/gcc.git',
-               checkout=GCC_REVISION,
-               depth=GCC_CLONE_DEPTH),
-        Source('v8',
-               work_dirs.GetV8(),
-               GIT_MIRROR_BASE + 'v8/v8.git',
+               checkout=GCC_REVISION, depth=GCC_CLONE_DEPTH),
+        Source('v8', work_dirs.GetV8(), GIT_MIRROR_BASE + 'v8/v8.git',
                custom_sync=ChromiumFetchSync),
-        Source('host-toolchain',
-               work_dirs.GetV8(),
-               '',
+        Source('host-toolchain', work_dirs.GetV8(), '',
                custom_sync=SyncToolchain),
-        Source('cmake',
-               '',
-               '',  # The source and git args are ignored.
+        Source('cmake', '', '',  # The source and git args are ignored.
                custom_sync=SyncPrebuiltCMake),
-        Source('nodejs',
-               '',
-               '',  # The source and git args are ignored.
+        Source('nodejs', '', '',  # The source and git args are ignored.
                custom_sync=SyncPrebuiltNodeJS),
-        Source('gnuwin32',
-               '',
-               '',  # The source and git args are ignored.
+        Source('gnuwin32', '', '',  # The source and git args are ignored.
                custom_sync=SyncGNUWin32),
         Source('wabt', GetSrcDir('wabt'), WASM_GIT_BASE + 'wabt.git'),
         Source('binaryen', GetSrcDir('binaryen'),
                WASM_GIT_BASE + 'binaryen.git'),
         Source('wasi-libc', GetSrcDir('wasi-libc'),
                'https://github.com/CraneStation/wasi-libc.git'),
-        Source('java',
-               '',
-               '',  # The source and git args are ignored.
+        Source('java', '', '',  # The source and git args are ignored.
                custom_sync=SyncPrebuiltJava),
-        Source('sysroot',
-               '',
-               '',  # The source and git args are ignored.
+        Source('sysroot', '', '',  # The source and git args are ignored.
                custom_sync=SyncLinuxSysroot)
     ]
 
@@ -873,9 +850,7 @@ def CopyLLVMTools(build_dir, prefix=''):
             CopyBinaryToArchive(os.path.join(build_dir, 'bin', e), prefix)
 
 
-def BuildEnv(build_dir,
-             use_gnuwin32=False,
-             bin_subdir=False,
+def BuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
              runtime='Release'):
     if not IsWindows():
         return None
@@ -1399,14 +1374,8 @@ def CompileLLVMTortureEmscripten(name, em_config, outdir, fails, opt):
         buildbot.Fail()
 
 
-def LinkLLVMTorture(name,
-                    linker,
-                    fails,
-                    indir,
-                    outdir,
-                    extension,
-                    opt,
-                    args=None):
+def LinkLLVMTorture(name, linker, fails, indir, outdir, extension,
+                    opt, args=None):
     buildbot.Step('Link LLVM Torture (%s, %s)' % (name, opt))
     assert os.path.isfile(linker), 'Cannot find linker at %s' % linker
     Remove(outdir)
@@ -1422,16 +1391,8 @@ def LinkLLVMTorture(name,
         buildbot.Fail()
 
 
-def ExecuteLLVMTorture(name,
-                       runner,
-                       indir,
-                       fails,
-                       attributes,
-                       extension,
-                       opt,
-                       outdir='',
-                       wasmjs='',
-                       extra_files=None,
+def ExecuteLLVMTorture(name, runner, indir, fails, attributes, extension, opt,
+                       outdir='', wasmjs='', extra_files=None,
                        warn_only=False):
     extra_files = [] if extra_files is None else extra_files
 
@@ -1470,13 +1431,8 @@ def ValidateLLVMTorture(indir, ext, opt):
 
 
 class Build(object):
-    def __init__(self,
-                 name_,
-                 runnable_,
-                 os_filter=None,
-                 is_default=True,
-                 *args,
-                 **kwargs):
+    def __init__(self, name_, runnable_, os_filter=None, is_default=True,
+                 *args, **kwargs):
         self.name = name_
         self.runnable = runnable_
         self.os_filter = os_filter
