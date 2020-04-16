@@ -371,8 +371,8 @@ def UploadArchive(name, archive):
 def GitRemoteUrl(cwd, remote):
     """Get the URL of a remote."""
     return proc.check_output(
-        ['git', 'config', '--get',
-         'remote.%s.url' % remote], cwd=cwd).strip()
+        ['git', 'config', '--get', 'remote.%s.url' % remote],
+        cwd=cwd).strip()
 
 
 def RemoteBranch(branch):
