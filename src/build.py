@@ -801,8 +801,8 @@ def CMakeCommandNative(args):
     command.append('-DCMAKE_INSTALL_PREFIX=%s' % GetInstallDir())
     if IsLinux() and host_toolchains.ShouldUseSysroot():
         command.append('-DCMAKE_SYSROOT=%s' % GetPrebuilt(LINUX_SYSROOT))
-        command.extend('-DCMAKE_EXE_LINKER_FLAGS=-static-libstdc++')
-        command.extend('-DCMAKE_SHARED_LINKER_FLAGS=-static-libstdc++')
+        command.append('-DCMAKE_EXE_LINKER_FLAGS=-static-libstdc++')
+        command.append('-DCMAKE_SHARED_LINKER_FLAGS=-static-libstdc++')
 
     if host_toolchains.ShouldForceHostClang():
         command.extend(OverrideCMakeCompiler())
