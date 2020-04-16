@@ -15,7 +15,6 @@
 import os
 import sys
 
-
 failed_steps = []
 warned_steps = []
 current_step = None
@@ -56,98 +55,98 @@ assert BUILDBOT_BUCKET in [None, CI_BUCKET, TRY_BUCKET], \
 
 
 def IsBot():
-  """Return True if we are running on bot, False otherwise."""
-  return BUILDBOT_BUILDNUMBER is not None
+    """Return True if we are running on bot, False otherwise."""
+    return BUILDBOT_BUILDNUMBER is not None
 
 
 def IsEmscriptenReleasesBot():
-  """Return true if running on the emscripten-releases builders,
+    """Return true if running on the emscripten-releases builders,
      False otherwise."""
-  return BUILDBOT_MASTERNAME == EMSCRIPTEN_RELEASES_BOT
+    return BUILDBOT_MASTERNAME == EMSCRIPTEN_RELEASES_BOT
 
 
 def BuildNumber():
-  if IsEmscriptenReleasesBot():
-    return BUILDBOT_REVISION
-  return BUILDBOT_BUILDNUMBER
+    if IsEmscriptenReleasesBot():
+        return BUILDBOT_REVISION
+    return BUILDBOT_BUILDNUMBER
 
 
 def IsUploadingBot():
-  """Return True if this is a bot that should upload builds."""
-  if not IsBot():
-    return False
-  if not IsEmscriptenReleasesBot():
-    # We are on the waterfall bot. None of these upload.
-    return False
-  else:
-    # We are on emscripten-releases. CI bots upload, but not try.
-    return BUILDBOT_BUCKET == CI_BUCKET
+    """Return True if this is a bot that should upload builds."""
+    if not IsBot():
+        return False
+    if not IsEmscriptenReleasesBot():
+        # We are on the waterfall bot. None of these upload.
+        return False
+    else:
+        # We are on emscripten-releases. CI bots upload, but not try.
+        return BUILDBOT_BUCKET == CI_BUCKET
 
 
 def ShouldClobber():
-  return os.environ.get('BUILDBOT_CLOBBER')
+    return os.environ.get('BUILDBOT_CLOBBER')
 
 
 def BuilderName():
-  return BUILDBOT_BUILDERNAME
+    return BUILDBOT_BUILDERNAME
 
 
 def Scheduler():
-  return BUILDBOT_SCHEDULER
+    return BUILDBOT_SCHEDULER
 
 
 # Magic annotations:
 # https://chromium.googlesource.com/chromium/tools/build/+/master/scripts/common/annotator.py
 def Step(name):
-  global current_step
-  current_step = name
-  sys.stdout.flush()
-  sys.stdout.write('\n@@@BUILD_STEP %s@@@\n' % name)
+    global current_step
+    current_step = name
+    sys.stdout.flush()
+    sys.stdout.write('\n@@@BUILD_STEP %s@@@\n' % name)
 
 
 def Link(label, url):
-  sys.stdout.write('@@@STEP_LINK@%s@%s@@@\n' % (label, url))
+    sys.stdout.write('@@@STEP_LINK@%s@%s@@@\n' % (label, url))
 
 
 def Fail():
-  """Mark one step as failing, but keep going."""
-  sys.stdout.flush()
-  sys.stdout.write('\n@@@STEP_FAILURE@@@\n')
-  global failed_steps
-  failed_steps.append(current_step)
+    """Mark one step as failing, but keep going."""
+    sys.stdout.flush()
+    sys.stdout.write('\n@@@STEP_FAILURE@@@\n')
+    global failed_steps
+    failed_steps.append(current_step)
 
 
 def Failed():
-  return len(failed_steps)
+    return len(failed_steps)
 
 
 def FailedList():
-  return list(failed_steps)
+    return list(failed_steps)
 
 
 def Warn():
-  """We mark this step as failing, but this step is flaky so we don't care
+    """We mark this step as failing, but this step is flaky so we don't care
   enough about this to make the bot red."""
-  sys.stdout.flush()
-  sys.stdout.write('\n@@@STEP_WARNINGS@@@\n')
-  global warned_steps
-  warned_steps.append(current_step)
+    sys.stdout.flush()
+    sys.stdout.write('\n@@@STEP_WARNINGS@@@\n')
+    global warned_steps
+    warned_steps.append(current_step)
 
 
 def Warned():
-  return len(warned_steps)
+    return len(warned_steps)
 
 
 def WarnedList():
-  return list(warned_steps)
+    return list(warned_steps)
 
 
 def DidStepFailOrWarn(step):
-  return step in failed_steps or step in warned_steps
+    return step in failed_steps or step in warned_steps
 
 
 def FailUnless(predicate):
-  if predicate():
-    Warn()
-  else:
-    Fail()
+    if predicate():
+        Warn()
+    else:
+        Fail()

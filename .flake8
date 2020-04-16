@@ -1,3 +1,3 @@
 [flake8]
-ignore = W504,E114,E111
+ignore = W504
 exclude = ./debian,./src/work
