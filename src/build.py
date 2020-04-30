@@ -1648,12 +1648,24 @@ def TestEmwasm():
 def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
     buildbot.Step('Execute emscripten testsuite (%s)' % name)
     Mkdir(outdir)
+
+    # Before we can run the tests we prepare the installed emscripten
+    # directory by installing any needed npm packages, and also copying
+    # of some test data which is otherwise excluded by emscripten install
+    # scritpe (tools/install.py).
+    em_install_dir = GetInstallDir('emscripten')
+    proc.check_call(['npm', 'ci'], cwd=em_install_dir)
+    installed_tests = os.path.join(em_install_dir, 'tests', 'third_party')
+    if not os.path.exists(installed_tests):
+        src_dir = GetSrcDir('emscripten', 'tests', 'third_party')
+        print('Copying directory %s to %s' % (src_dir, em_install_dir))
+        shutil.copytree(src_dir, installed_tests)
+
+    cmd = [
+        GetInstallDir('emscripten', 'tests', 'runner.py'),
+        '--em-config', config
+    ] + tests
     try:
-        proc.check_call(['npm', 'ci'], cwd=GetInstallDir('emscripten'))
-        cmd = [
-            GetInstallDir('emscripten', 'tests', 'runner.py'),
-            '--em-config', config
-        ] + tests
         proc.check_call(cmd, cwd=outdir)
     except proc.CalledProcessError:
         buildbot.FailUnless(lambda: warn_only)
