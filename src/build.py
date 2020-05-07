@@ -1652,7 +1652,7 @@ def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
     # Before we can run the tests we prepare the installed emscripten
     # directory by installing any needed npm packages, and also copying
     # of some test data which is otherwise excluded by emscripten install
-    # scritpe (tools/install.py).
+    # script (tools/install.py).
     em_install_dir = GetInstallDir('emscripten')
     proc.check_call(['npm', 'ci'], cwd=em_install_dir)
     installed_tests = os.path.join(em_install_dir, 'tests', 'third_party')
