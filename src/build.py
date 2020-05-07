@@ -311,8 +311,11 @@ def Archive(directory, print_content=False):
     """Create an archive file from directory."""
     # Use the format "native" to the platform
     if IsWindows():
-        return Zip(directory, print_content)
-    return Tar(directory, print_content)
+        archive = Zip(directory, print_content)
+    else:
+        archive = Tar(directory, print_content)
+    print('Archive created: %s [%s]' % (archive, os.path.getsize(archive)))
+    return archive
 
 
 def Tar(directory, print_content=False):
@@ -1295,11 +1298,11 @@ def WasiLibc():
 
 def ArchiveBinaries():
     buildbot.Step('Archive binaries')
+    archive = Archive(GetInstallDir(), print_content=buildbot.IsBot())
     if not buildbot.IsUploadingBot():
         return
     # All relevant binaries were copied to the LLVM directory.
-    UploadArchive('binaries',
-                  Archive(GetInstallDir(), print_content=buildbot.IsBot()))
+    UploadArchive('binaries', archive)
 
 
 def DebianPackage():
@@ -1519,7 +1522,7 @@ def AllBuilds():
 DEFAULT_BUILDS = [
     'llvm', 'v8', 'jsvu', 'wabt', 'binaryen', 'fastcomp',
     'emscripten-upstream', 'emscripten-fastcomp', 'wasi-libc', 'compiler-rt',
-    'libcxx', 'libcxxabi'
+    'libcxx', 'libcxxabi', 'archive'
 ]
 
 
