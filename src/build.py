@@ -1136,21 +1136,12 @@ def Emscripten(variant):
         with open(outfile, 'w') as config:
             config.write(text)
 
-    # We don't bundle every single file in the cache, since there are a lot and
-    # it would bloat our downloads. But some are useful to bundle:
-    #   * libc is large and slow to build (many tiny files).
-    #   * generated_struct_info.json is generated in a boostrapping operation
-    #     that is confusing to debug if the user has a broken setup.
-    #   * optimizer.2.exe takes a while to build and also requires a local
-    #     compiler environment for native executables.
     configs = {
-        'fastcomp': (GetInstallDir(EMSCRIPTEN_CONFIG_FASTCOMP), 'asmjs',
-                     ('libc.bc', 'generated_struct_info.json')),
-        'upstream': (GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM), 'wasm',
-                     ('libc.a', 'generated_struct_info.json'))
+        'fastcomp': (GetInstallDir(EMSCRIPTEN_CONFIG_FASTCOMP), 'asmjs'),
+        'upstream': (GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM), 'wasm')
     }
 
-    config, cache_subdir, cache_libs = configs[variant]
+    config, cache_subdir = configs[variant]
 
     # Set up the emscripten config and compile the libraries for the specified
     # variant
@@ -1176,13 +1167,10 @@ def Emscripten(variant):
     finally:
         del os.environ['EM_CONFIG']
 
-    # Copy the main system libraries so users don't need to themselves.
-    packaging_dir = GetInstallDir('lib', cache_subdir)
-    if not os.path.isdir(packaging_dir):
-        os.makedirs(packaging_dir)
-    for name in cache_libs:
-        shutil.copy2(os.path.join(EMSCRIPTEN_CACHE_DIR, cache_subdir, name),
-                     os.path.join(packaging_dir, name))
+    # Copy prebuilt/cache libraries so users don't need build them.
+    Remove(GetInstallDir('lib', cache_subdir))
+    shutil.copytree(os.path.join(EMSCRIPTEN_CACHE_DIR, cache_subdir),
+                    GetInstallDir('lib', cache_subdir))
 
 
 def CompilerRT():
