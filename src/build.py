@@ -1170,7 +1170,7 @@ def Emscripten(variant):
     # Copy prebuilt/cache libraries so users don't need build them.
     Remove(GetInstallDir('lib', cache_subdir))
 
-    # Newer version of emscripten use an in-tree cache by default.
+    # Newer versions of emscripten use an in-tree cache by default.
     # TODO(sbc): Remove support for old EMSCRIPTEN_CACHE_DIR in $HOME
     in_tree_cache = GetInstallDir('emscripten', 'cache')
     if os.path.exists(in_tree_cache):
