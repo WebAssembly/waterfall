@@ -69,9 +69,6 @@ WASM_STORAGE_BASE = 'https://wasm.storage.googleapis.com/'
 
 GNUWIN32_ZIP = 'gnuwin32.zip'
 
-EMSCRIPTEN_CACHE_DIR = os.path.expanduser(
-    os.path.join('~', '.emscripten_cache'))
-
 # This version is the current LLVM version in development. This needs to be
 # manually updated to the latest x.0.0 version whenever LLVM starts development
 # on a new major version. This is so our manual build of compiler-rt is put
@@ -1094,10 +1091,7 @@ def InstallEmscripten():
 
 
 def BuildEmscriptenOptimizer():
-    # Remove cached library builds (e.g. libc, libc++) to force them to be
-    # rebuilt in the step below.
     buildbot.Step('emscripten (optimizer)')
-    Remove(EMSCRIPTEN_CACHE_DIR)
     src_dir = GetSrcDir('emscripten')
 
     # Manually build the native asm.js optimizer (the cmake build in embuilder
@@ -1136,12 +1130,10 @@ def Emscripten(variant):
         with open(outfile, 'w') as config:
             config.write(text)
 
-    configs = {
-        'fastcomp': (GetInstallDir(EMSCRIPTEN_CONFIG_FASTCOMP), 'asmjs'),
-        'upstream': (GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM), 'wasm')
-    }
-
-    config, cache_subdir = configs[variant]
+    if variant == 'fastcomp':
+        config = GetInstallDir(EMSCRIPTEN_CONFIG_FASTCOMP)
+    else:
+        config = GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM)
 
     # Set up the emscripten config and compile the libraries for the specified
     # variant
@@ -1166,22 +1158,6 @@ def Emscripten(variant):
         buildbot.Fail()
     finally:
         del os.environ['EM_CONFIG']
-
-    # Copy prebuilt/cache libraries so users don't need build them.
-    Remove(GetInstallDir('lib', cache_subdir))
-
-    # Newer versions of emscripten use an in-tree cache by default.
-    # TODO(sbc): Remove support for old EMSCRIPTEN_CACHE_DIR in $HOME
-    in_tree_cache = GetInstallDir('emscripten', 'cache')
-    if os.path.exists(in_tree_cache):
-        cache_root = in_tree_cache
-    else:
-        cache_root = EMSCRIPTEN_CACHE_DIR
-
-    shutil.copytree(os.path.join(cache_root, cache_subdir),
-                    GetInstallDir('lib', cache_subdir))
-
-    Remove(in_tree_cache)
 
 
 def CompilerRT():
