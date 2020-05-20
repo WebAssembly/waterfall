@@ -1023,7 +1023,8 @@ def Wabt():
     Mkdir(out_dir)
     cc_env = BuildEnv(out_dir)
 
-    cmd = CMakeCommandNative([GetSrcDir('wabt'), '-DBUILD_TESTS=OFF'])
+    cmd = CMakeCommandNative([GetSrcDir('wabt'),
+                              '-DBUILD_TESTS=OFF', '-DBUILD_LIBWASM=OFF'])
     proc.check_call(cmd, cwd=out_dir, env=cc_env)
 
     proc.check_call(['ninja', '-v'], cwd=out_dir, env=cc_env)
