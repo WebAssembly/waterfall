@@ -38,7 +38,7 @@ def link(infile, outfile, extras):
     command = [
         linker,
         '--sysroot=%s' % sysroot_dir, '-Wl,-zstack-size=1048576', '-o',
-        outfile, infile, '-lwasi-emulated-mman'
+        outfile, infile, '-lwasi-emulated-mman', '-lwasi-emulated-signal'
     ]
     return command + extras['args']
 

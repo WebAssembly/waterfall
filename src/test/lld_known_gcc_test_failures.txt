@@ -16,7 +16,6 @@ medce-1.c.o O0 # undefined symbol: link_error
 
 asan__interception-test-1.C.o  # Undefined symbol: __interceptor_strtol
 tree-ssa__pr20458.C.o  # Undefined symbol: std::locale::locale
-20101011-1.c.o # Undefined symbol: signal
 pr58419.c.o # Undefined symbol: getpid
 
 # These tests compile but need to actually create threads to run correctly.

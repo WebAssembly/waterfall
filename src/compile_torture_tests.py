@@ -77,8 +77,10 @@ def run(cc, cxx, testsuite, sysroot_dir, fails, exclusions, out, config, opt):
     pre_js = os.path.join(script_dir, 'em_pre.js')
 
     cflags_common = [
-        '-DSTACK_SIZE=524288', '-D_WASI_EMULATED_MMAN', '-w',
-        '-Wno-implicit-function-declaration', '-' + opt
+        '-DSTACK_SIZE=524288',
+        '-D_WASI_EMULATED_MMAN',
+        '-D_WASI_EMULATED_SIGNAL',
+        '-w', '-Wno-implicit-function-declaration', '-' + opt
     ]
     cflags_c = ['--std=gnu89']
     cflags_cxx = []
