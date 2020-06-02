@@ -1640,14 +1640,14 @@ def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
         print('Copying directory %s to %s' % (src_dir, em_install_dir))
         shutil.copytree(src_dir, installed_tests)
 
-    cmd = [
-        GetInstallDir('emscripten', 'tests', 'runner.py'),
-        '--em-config', config
-    ] + tests
+    cmd = [GetInstallDir('emscripten', 'tests', 'runner.py')] + tests
+    os.environ['EM_CONFIG'] = config
     try:
         proc.check_call(cmd, cwd=outdir)
     except proc.CalledProcessError:
         buildbot.FailUnless(lambda: warn_only)
+    finally:
+        del os.environ['EM_CONFIG']
 
 
 def TestEmtest():
