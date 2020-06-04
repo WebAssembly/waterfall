@@ -1027,7 +1027,9 @@ def Wabt():
                               '-DBUILD_TESTS=OFF', '-DBUILD_LIBWASM=OFF'])
     proc.check_call(cmd, cwd=out_dir, env=cc_env)
 
-    proc.check_call(['ninja', '-v'], cwd=out_dir, env=cc_env)
+    proc.check_call(['ninja', '-v'] + host_toolchains.NinjaJobs(),
+                    cwd=out_dir,
+                    env=cc_env)
     proc.check_call(['ninja', 'install'], cwd=out_dir, env=cc_env)
 
 
@@ -1041,7 +1043,9 @@ def Binaryen():
     proc.check_call(CMakeCommandNative([GetSrcDir('binaryen')]),
                     cwd=out_dir,
                     env=cc_env)
-    proc.check_call(['ninja', '-v'], cwd=out_dir, env=cc_env)
+    proc.check_call(['ninja', '-v'] + host_toolchains.NinjaJobs(),
+                    cwd=out_dir,
+                    env=cc_env)
     proc.check_call(['ninja', 'install'], cwd=out_dir, env=cc_env)
 
 
