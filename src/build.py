@@ -1651,7 +1651,7 @@ def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
     try:
         test_env = os.environ.copy()
         if buildbot.IsBot() and IsWindows():
-            test_env['EMTEST_NO_NATIVE_CLANG'] = '1'
+            test_env['EMTEST_LACKS_NATIVE_CLANG'] = '1'
         proc.check_call(cmd, cwd=outdir, env=test_env)
     except proc.CalledProcessError:
         buildbot.FailUnless(lambda: warn_only)
