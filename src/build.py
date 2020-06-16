@@ -487,7 +487,8 @@ class Source(object):
             proc.check_call(['git'] + clone)
 
         GitUpdateRemote(self.src_dir, self.git_repo, WATERFALL_REMOTE)
-        proc.check_call(['git', 'fetch', '--tags', WATERFALL_REMOTE],
+        proc.check_call(['git', 'fetch', '--force', '--prune', '--tags',
+                         WATERFALL_REMOTE],
                         cwd=self.src_dir)
         if not self.checkout.startswith(WATERFALL_REMOTE + '/'):
             sys.stderr.write(
