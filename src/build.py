@@ -788,7 +788,7 @@ def CMakeCommandBase():
     command.append('-DCMAKE_EXPORT_COMPILE_COMMANDS=ON')
     command.append('-DCMAKE_BUILD_TYPE=Release')
     if IsMac():
-        # Target macOS Seirra (10.12)
+        # Target MacOS Sierra (10.12)
         command.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=10.12')
     elif IsWindows():
         # CMake's usual logic fails to find LUCI's git on Windows
@@ -797,13 +797,28 @@ def CMakeCommandBase():
     return command
 
 
-def CMakeCommandNative(args):
+def CMakeCommandNative(args, build_dir):
     command = CMakeCommandBase()
     command.append('-DCMAKE_INSTALL_PREFIX=%s' % GetInstallDir())
     if IsLinux() and host_toolchains.ShouldUseSysroot():
         command.append('-DCMAKE_SYSROOT=%s' % GetPrebuilt(LINUX_SYSROOT))
         command.append('-DCMAKE_EXE_LINKER_FLAGS=-static-libstdc++')
         command.append('-DCMAKE_SHARED_LINKER_FLAGS=-static-libstdc++')
+
+    elif IsMac() and host_toolchains.ShouldUseSysroot():
+        # Get XCode SDK path.
+        xcode_sdk_path = proc.check_output(['xcrun',
+                                            '--show-sdk-path']).strip()
+        # Create relpath symlink if it doesn't exist.
+        # If it does exist, but points to a different location, update it.
+        symlink_path = os.path.join(build_dir, 'xcode_sdk')
+        if os.path.lexists(
+                symlink_path) and os.readlink(symlink_path) != xcode_sdk_path:
+            os.remove(symlink_path)
+        if not os.path.exists(symlink_path):
+            os.symlink(xcode_sdk_path, symlink_path)
+        command.append('-DCMAKE_OSX_SYSROOT=%s' % symlink_path)
+        command.append('-DCMAKE_SYSROOT=%s' % symlink_path)
 
     if host_toolchains.ShouldForceHostClang():
         command.extend(OverrideCMakeCompiler())
@@ -891,7 +906,7 @@ def LLVM():
         # linking libtinfo dynamically causes problems on some linuxes,
         # https://github.com/emscripten-core/emsdk/issues/252
         '-DLLVM_ENABLE_TERMINFO=%d' % (not IsLinux()),
-    ])
+    ], build_dir)
 
     jobs = host_toolchains.NinjaJobs()
 
@@ -1025,7 +1040,8 @@ def Wabt():
     cc_env = BuildEnv(out_dir)
 
     cmd = CMakeCommandNative([GetSrcDir('wabt'),
-                              '-DBUILD_TESTS=OFF', '-DBUILD_LIBWASM=OFF'])
+                              '-DBUILD_TESTS=OFF', '-DBUILD_LIBWASM=OFF'],
+                             out_dir)
     proc.check_call(cmd, cwd=out_dir, env=cc_env)
 
     proc.check_call(['ninja', '-v'] + host_toolchains.NinjaJobs(),
@@ -1041,7 +1057,7 @@ def Binaryen():
     # Currently it's a bad idea to do a non-asserts build of Binaryen
     cc_env = BuildEnv(out_dir, bin_subdir=True, runtime='Debug')
 
-    proc.check_call(CMakeCommandNative([GetSrcDir('binaryen')]),
+    proc.check_call(CMakeCommandNative([GetSrcDir('binaryen')], out_dir),
                     cwd=out_dir,
                     env=cc_env)
     proc.check_call(['ninja', '-v'] + host_toolchains.NinjaJobs(),
@@ -1074,7 +1090,7 @@ def Fastcomp():
         '-DLLVM_ENABLE_TERMINFO=%d' % (not IsLinux()),
         ('-DLLVM_EXTERNAL_CLANG_SOURCE_DIR=%s' %
          GetSrcDir('emscripten-fastcomp-clang'))
-    ])
+    ], build_dir)
 
     proc.check_call(command, cwd=build_dir, env=cc_env)
 
@@ -1108,7 +1124,7 @@ def BuildEmscriptenOptimizer():
     command = CMakeCommandNative([
         os.path.join(src_dir, 'tools', 'optimizer'),
         '-DCMAKE_BUILD_TYPE=Release'
-    ])
+    ], optimizer_out_dir)
     proc.check_call(command, cwd=optimizer_out_dir, env=cc_env)
     proc.check_call(['ninja'] + host_toolchains.NinjaJobs(),
                     cwd=optimizer_out_dir,
