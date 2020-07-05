@@ -1599,7 +1599,15 @@ def TestBare():
                                wasmjs=os.path.join(SCRIPT_DIR, 'wasi.js'))
 
 
+def ActivateEmscripten():
+    em_install_dir = GetInstallDir('emscripten')
+    if not os.path.exists(em_install_dir, 'node_module'):
+        proc.check_call(['npm', 'ci'], cwd=em_install_dir)
+
+
 def TestAsm():
+    ActivateEmscripten()
+
     for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
         CompileLLVMTortureEmscripten('asm2wasm',
                                      GetInstallDir(EMSCRIPTEN_CONFIG_FASTCOMP),
@@ -1624,6 +1632,8 @@ def TestAsm():
 
 
 def TestEmwasm():
+    ActivateEmscripten()
+
     for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
         CompileLLVMTortureEmscripten('emwasm',
                                      GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM),
@@ -1648,13 +1658,12 @@ def TestEmwasm():
 def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
     buildbot.Step('Execute emscripten testsuite (%s)' % name)
     Mkdir(outdir)
+    ActivateEmscripten()
 
     # Before we can run the tests we prepare the installed emscripten
-    # directory by installing any needed npm packages, and also copying
-    # of some test data which is otherwise excluded by emscripten install
-    # script (tools/install.py).
+    # directory by copying of some test data which is otherwise excluded by
+    # emscripten install script (tools/install.py).
     em_install_dir = GetInstallDir('emscripten')
-    proc.check_call(['npm', 'ci'], cwd=em_install_dir)
     installed_tests = os.path.join(em_install_dir, 'tests', 'third_party')
     if not os.path.exists(installed_tests):
         src_dir = GetSrcDir('emscripten', 'tests', 'third_party')
