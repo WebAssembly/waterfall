@@ -1601,7 +1601,7 @@ def TestBare():
 
 def ActivateEmscripten():
     em_install_dir = GetInstallDir('emscripten')
-    if not os.path.exists(em_install_dir, 'node_module'):
+    if not os.path.exists(os.path.join(em_install_dir, 'node_module')):
         proc.check_call(['npm', 'ci'], cwd=em_install_dir)
 
 
