@@ -73,7 +73,7 @@ GNUWIN32_ZIP = 'gnuwin32.zip'
 # manually updated to the latest x.0.0 version whenever LLVM starts development
 # on a new major version. This is so our manual build of compiler-rt is put
 # where LLVM expects it.
-LLVM_VERSION = '11.0.0'
+LLVM_VERSION = '12.0.0'
 
 # Update this number each time you want to create a clobber build.  If the
 # clobber_version.txt file in the build dir doesn't match we remove ALL work
