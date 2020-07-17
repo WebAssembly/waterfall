@@ -1181,7 +1181,7 @@ def Emscripten(variant):
     finally:
         del os.environ['EM_CONFIG']
 
-    # Remove the santiy file.  This means its will get re-generated on first
+    # Remove the sanity file.  This means it will get generated on first
     # use without clearing the cache.
     sanity = GetInstallDir('emscripten', 'cache', 'sanity.txt')
     if os.path.exists(sanity):
