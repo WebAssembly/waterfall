@@ -1181,6 +1181,12 @@ def Emscripten(variant):
     finally:
         del os.environ['EM_CONFIG']
 
+    # Remove the santiy file.  This means its will get re-generated on first
+    # use without clearing the cache.
+    sanity = GetInstallDir('emscripten', 'cache', 'sanity.txt')
+    if os.path.exists(sanity):
+        os.remove(sanity)
+
 
 def CompilerRT():
     # TODO(sbc): Figure out how to do this step as part of the llvm build.
