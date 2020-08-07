@@ -1164,7 +1164,9 @@ def Emscripten(variant):
     src_config = os.path.join(SCRIPT_DIR, os.path.basename(config))
     WriteEmscriptenConfig(src_config, config)
 
-    os.environ['EM_CONFIG'] = config
+    env = os.eviron.copy()
+    env['EM_CONFIG'] = config
+    env['EMCC_ALLOW_FASTCOMP'] = '1'
     try:
         # Use emscripten's embuilder to prebuild the system libraries.
         # This depends on binaryen already being built and installed into the
@@ -1173,13 +1175,11 @@ def Emscripten(variant):
             sys.executable,
             os.path.join(GetInstallDir('emscripten'), 'embuilder.py'), 'build',
             'SYSTEM'
-        ])
+        ], env=env)
 
     except proc.CalledProcessError:
         # Note the failure but allow the build to continue.
         buildbot.Fail()
-    finally:
-        del os.environ['EM_CONFIG']
 
     # Remove the sanity file.  This means it will get generated on first
     # use without clearing the cache.
@@ -1362,11 +1362,12 @@ def CompileLLVMTorture(outdir, opt):
 
 def CompileLLVMTortureEmscripten(name, em_config, outdir, fails, opt):
     buildbot.Step('Compile LLVM Torture (%s, %s)' % (name, opt))
-    os.environ['EM_CONFIG'] = em_config
     cc = Executable(GetInstallDir('emscripten', 'emcc'), '.bat')
     cxx = Executable(GetInstallDir('emscripten', 'em++'), '.bat')
     Remove(outdir)
     Mkdir(outdir)
+    os.environ['EM_CONFIG'] = em_config
+    os.environ['EMCC_ALLOW_FASTCOMP'] = '1'
     unexpected_result_count = compile_torture_tests.run(
         cc=cc,
         cxx=cxx,
@@ -1680,10 +1681,11 @@ def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
         GetInstallDir('emscripten', 'tests', 'runner.py'),
         '--em-config', config
     ] + tests
+    test_env = os.environ.copy()
+    test_env['EMCC_ALLOW_FASTCOMP'] = '1'
+    if buildbot.IsBot() and IsWindows():
+        test_env['EMTEST_LACKS_NATIVE_CLANG'] = '1'
     try:
-        test_env = os.environ.copy()
-        if buildbot.IsBot() and IsWindows():
-            test_env['EMTEST_LACKS_NATIVE_CLANG'] = '1'
         proc.check_call(cmd, cwd=outdir, env=test_env)
     except proc.CalledProcessError:
         buildbot.FailUnless(lambda: warn_only)
