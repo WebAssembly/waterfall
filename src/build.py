@@ -1164,7 +1164,7 @@ def Emscripten(variant):
     src_config = os.path.join(SCRIPT_DIR, os.path.basename(config))
     WriteEmscriptenConfig(src_config, config)
 
-    env = os.eviron.copy()
+    env = os.environ.copy()
     env['EM_CONFIG'] = config
     env['EMCC_ALLOW_FASTCOMP'] = '1'
     try:
