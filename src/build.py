@@ -1524,8 +1524,8 @@ def AllBuilds():
 # For now, just the builds used to test WASI and emscripten torture tests
 # on wasm-stat.us
 DEFAULT_BUILDS = [
-    'llvm', 'v8', 'jsvu', 'wabt', 'binaryen', 'fastcomp',
-    'emscripten-upstream', 'emscripten-fastcomp', 'wasi-libc', 'compiler-rt',
+    'llvm', 'v8', 'jsvu', 'wabt', 'binaryen',
+    'emscripten-upstream', 'wasi-libc', 'compiler-rt',
     'libcxx', 'libcxxabi', 'archive'
 ]
 
