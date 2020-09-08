@@ -1112,34 +1112,12 @@ def InstallEmscripten():
                     cwd=src_dir)
 
 
-def BuildEmscriptenOptimizer():
-    buildbot.Step('emscripten (optimizer)')
-    src_dir = GetSrcDir('emscripten')
-
-    # Manually build the native asm.js optimizer (the cmake build in embuilder
-    # doesn't work on the waterfall)
-    optimizer_out_dir = GetBuildDir('em-optimizer-out')
-    Mkdir(optimizer_out_dir)
-    cc_env = BuildEnv(optimizer_out_dir)
-    command = CMakeCommandNative([
-        os.path.join(src_dir, 'tools', 'optimizer'),
-        '-DCMAKE_BUILD_TYPE=Release'
-    ], optimizer_out_dir)
-    proc.check_call(command, cwd=optimizer_out_dir, env=cc_env)
-    proc.check_call(['ninja'] + host_toolchains.NinjaJobs(),
-                    cwd=optimizer_out_dir,
-                    env=cc_env)
-    CopyBinaryToArchive(
-        Executable(os.path.join(optimizer_out_dir, 'optimizer')))
-
-
 def Emscripten(variant):
     if variant == 'upstream':
         # This work is only done once (not per-variant), so only do it if the
         # variant is 'upstream'. This means that the upstream variant does
         # need to go first.
         InstallEmscripten()
-        BuildEmscriptenOptimizer()
 
     def WriteEmscriptenConfig(infile, outfile):
         with open(infile) as config:
