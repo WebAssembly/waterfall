@@ -47,7 +47,6 @@ JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
 # This file has a special path to avoid warnings about the system being unknown
 CMAKE_TOOLCHAIN_FILE = 'Wasi.cmake'
 
-EMSCRIPTEN_CONFIG_FASTCOMP = 'emscripten_config_fastcomp'
 EMSCRIPTEN_CONFIG_UPSTREAM = 'emscripten_config_upstream'
 
 # Avoid flakes: use cached repositories to avoid relying on external network.
@@ -674,10 +673,6 @@ def AllSources():
                LLVM_MIRROR_BASE + 'llvm-test-suite.git'),
         Source('emscripten', GetSrcDir('emscripten'),
                EMSCRIPTEN_GIT_BASE + 'emscripten.git'),
-        Source('fastcomp', GetSrcDir('emscripten-fastcomp'),
-               EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp.git'),
-        Source('fastcomp-clang', GetSrcDir('emscripten-fastcomp-clang'),
-               EMSCRIPTEN_GIT_BASE + 'emscripten-fastcomp-clang.git'),
         Source('gcc', GetSrcDir('gcc'),
                GIT_MIRROR_BASE + 'chromiumos/third_party/gcc.git',
                checkout=GCC_REVISION, depth=GCC_CLONE_DEPTH),
@@ -1066,43 +1061,6 @@ def Binaryen():
     proc.check_call(['ninja', 'install'], cwd=out_dir, env=cc_env)
 
 
-def Fastcomp():
-    buildbot.Step('fastcomp')
-    build_dir = os.path.join(work_dirs.GetBuild(), 'fastcomp-out')
-    Mkdir(build_dir)
-    install_dir = GetInstallDir('fastcomp')
-    build_dylib = 'ON' if not IsWindows() else 'OFF'
-    cc_env = BuildEnv(build_dir, bin_subdir=True)
-    command = CMakeCommandNative([
-        GetSrcDir('emscripten-fastcomp'),
-        '-DCMAKE_CXX_FLAGS=-Wno-nonportable-include-path',
-        '-DLLVM_ENABLE_LIBXML2=OFF',
-        '-DLLVM_INCLUDE_TESTS=OFF',
-        '-DLLVM_INCLUDE_EXAMPLES=OFF',
-        '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
-        '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
-        '-DCMAKE_INSTALL_PREFIX=%s' % install_dir,
-        '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
-        '-DLLVM_TARGETS_TO_BUILD=X86;JSBackend',
-        '-DLLVM_ENABLE_ASSERTIONS=ON',
-        # linking libtinfo dynamically causes problems on some linuxes,
-        # https://github.com/emscripten-core/emsdk/issues/252
-        '-DLLVM_ENABLE_TERMINFO=%d' % (not IsLinux()),
-        ('-DLLVM_EXTERNAL_CLANG_SOURCE_DIR=%s' %
-         GetSrcDir('emscripten-fastcomp-clang'))
-    ], build_dir)
-
-    proc.check_call(command, cwd=build_dir, env=cc_env)
-
-    proc.check_call(['ninja', '-v'] + host_toolchains.NinjaJobs(),
-                    cwd=build_dir,
-                    env=cc_env)
-    proc.check_call(['ninja', 'install'], cwd=build_dir, env=cc_env)
-    # Fastcomp has a different install location than the rest of the tools
-    BuildEnv(install_dir, bin_subdir=True)
-    CopyLLVMTools(build_dir, 'fastcomp')
-
-
 def InstallEmscripten():
     src_dir = GetSrcDir('emscripten')
     em_install_dir = GetInstallDir('emscripten')
@@ -1112,12 +1070,8 @@ def InstallEmscripten():
                     cwd=src_dir)
 
 
-def Emscripten(variant):
-    if variant == 'upstream':
-        # This work is only done once (not per-variant), so only do it if the
-        # variant is 'upstream'. This means that the upstream variant does
-        # need to go first.
-        InstallEmscripten()
+def Emscripten():
+    InstallEmscripten()
 
     def WriteEmscriptenConfig(infile, outfile):
         with open(infile) as config:
@@ -1130,21 +1084,15 @@ def Emscripten(variant):
         with open(outfile, 'w') as config:
             config.write(text)
 
-    if variant == 'fastcomp':
-        config = GetInstallDir(EMSCRIPTEN_CONFIG_FASTCOMP)
-    else:
-        config = GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM)
-
-    # Set up the emscripten config and compile the libraries for the specified
-    # variant
-    buildbot.Step('emscripten (%s)' % variant)
+    # Set up the emscripten config and compile the libraries
+    buildbot.Step('emscripten')
+    config = GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM)
     print('Config file: ', config)
     src_config = os.path.join(SCRIPT_DIR, os.path.basename(config))
     WriteEmscriptenConfig(src_config, config)
 
     env = os.environ.copy()
     env['EM_CONFIG'] = config
-    env['EMCC_ALLOW_FASTCOMP'] = '1'
     try:
         # Use emscripten's embuilder to prebuild the system libraries.
         # This depends on binaryen already being built and installed into the
@@ -1345,7 +1293,6 @@ def CompileLLVMTortureEmscripten(name, em_config, outdir, fails, opt):
     Remove(outdir)
     Mkdir(outdir)
     os.environ['EM_CONFIG'] = em_config
-    os.environ['EMCC_ALLOW_FASTCOMP'] = '1'
     unexpected_result_count = compile_torture_tests.run(
         cc=cc,
         cxx=cxx,
@@ -1483,9 +1430,7 @@ def AllBuilds():
         Build('jsvu', Jsvu, os_filter=Filter(exclude=['windows'])),
         Build('wabt', Wabt),
         Build('binaryen', Binaryen),
-        Build('fastcomp', Fastcomp),
-        Build('emscripten-upstream', Emscripten, None, True, 'upstream'),
-        Build('emscripten-fastcomp', Emscripten, None, True, 'fastcomp'),
+        Build('emscripten', Emscripten),
         # Target libs
         # TODO: re-enable wasi on windows, see #517
         Build('wasi-libc', WasiLibc, os_filter=Filter(exclude=['windows'])),
@@ -1590,32 +1535,6 @@ def ActivateEmscripten():
         proc.check_call(['npm', 'ci'], cwd=em_install_dir)
 
 
-def TestAsm():
-    ActivateEmscripten()
-
-    for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
-        CompileLLVMTortureEmscripten('asm2wasm',
-                                     GetInstallDir(EMSCRIPTEN_CONFIG_FASTCOMP),
-                                     GetTortureDir('asm2wasm', opt),
-                                     ASM2WASM_KNOWN_TORTURE_COMPILE_FAILURES,
-                                     opt)
-
-    # Avoid d8 execution on windows because of flakiness,
-    # https://bugs.chromium.org/p/v8/issues/detail?id=8211
-    if not IsWindows():
-        for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
-            ExecuteLLVMTorture(
-                name='asm2wasm',
-                runner=D8Bin(),
-                indir=GetTortureDir('asm2wasm', opt),
-                fails=RUN_KNOWN_TORTURE_FAILURES,
-                attributes=['asm2wasm', 'd8'],
-                extension='c.js',
-                opt=opt,
-                # emscripten's wasm.js expects all files in cwd.
-                outdir=GetTortureDir('asm2wasm', opt))
-
-
 def TestEmwasm():
     ActivateEmscripten()
 
@@ -1660,7 +1579,6 @@ def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
         '--em-config', config
     ] + tests
     test_env = os.environ.copy()
-    test_env['EMCC_ALLOW_FASTCOMP'] = '1'
     if buildbot.IsBot() and IsWindows():
         test_env['EMTEST_LACKS_NATIVE_CLANG'] = '1'
     try:
@@ -1676,15 +1594,8 @@ def TestEmtest():
                                os.path.join(work_dirs.GetTest(), 'emtest-out'))
 
 
-def TestEmtestAsm2Wasm():
-    tests = options.test_params if options.test_params else ['wasm2']
-    ExecuteEmscriptenTestSuite(
-        'asm2wasm', tests, GetInstallDir(EMSCRIPTEN_CONFIG_FASTCOMP),
-        os.path.join(work_dirs.GetTest(), 'emtest-asm2wasm-out'))
-
-
 def TestLLVMTestSuite():
-    buildbot.Step('Execute LLVM TestSuite (emwasm)')
+    buildbot.Step('Execute LLVM TestSuite')
 
     outdir = GetBuildDir('llvmtest-out')
     # The compiler changes on every run, so incremental builds don't make
@@ -1751,14 +1662,10 @@ ALL_TESTS = [
     Test('llvm-regression', TestLLVMRegression),
     # TODO: re-enable wasi on windows, see #517
     Test('bare', TestBare, Filter(exclude=['windows'])),
-    # The windows/mac exclusions here are just to reduce the test matrix, since
-    # these tests only test codegen, which should be the same on all OSes
-    Test('asm', TestAsm, Filter(exclude=['windows', 'mac'])),
     Test('emwasm', TestEmwasm, Filter(exclude=['mac'])),
     # These tests do have interesting differences on OSes (especially the
     # 'other' tests) and eventually should run everywhere.
     Test('emtest', TestEmtest),
-    Test('emtest-asm', TestEmtestAsm2Wasm, Filter(exclude=['mac', 'windows'])),
     Test('llvmtest', TestLLVMTestSuite, Filter(include=['linux'])),
 ]
 
