@@ -1430,7 +1430,7 @@ def AllBuilds():
         Build('jsvu', Jsvu, os_filter=Filter(exclude=['windows'])),
         Build('wabt', Wabt),
         Build('binaryen', Binaryen),
-        Build('emscripten', Emscripten),
+        Build('emscripten-upstream', Emscripten),
         # Target libs
         # TODO: re-enable wasi on windows, see #517
         Build('wasi-libc', WasiLibc, os_filter=Filter(exclude=['windows'])),
