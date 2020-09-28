@@ -50,15 +50,12 @@ CMAKE_TOOLCHAIN_FILE = 'Wasi.cmake'
 EMSCRIPTEN_CONFIG_UPSTREAM = 'emscripten_config_upstream'
 
 # Avoid flakes: use cached repositories to avoid relying on external network.
-GITHUB_REMOTE = 'github'
-GITHUB_SSH = 'git@github.com:'
 GIT_MIRROR_BASE = 'https://chromium.googlesource.com/'
 LLVM_MIRROR_BASE = 'https://llvm.googlesource.com/'
 GITHUB_MIRROR_BASE = GIT_MIRROR_BASE + 'external/github.com/'
 WASM_GIT_BASE = GITHUB_MIRROR_BASE + 'WebAssembly/'
 EMSCRIPTEN_GIT_BASE = 'https://github.com/emscripten-core/'
 LLVM_GIT_BASE = 'https://github.com/llvm/'
-MUSL_GIT_BASE = 'https://github.com/jfbastien/'
 
 # Name of remote for build script to use. Don't touch origin to avoid
 # clobbering any local development.
