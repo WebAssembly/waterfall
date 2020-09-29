@@ -51,7 +51,6 @@ EMSCRIPTEN_CONFIG_UPSTREAM = 'emscripten_config_upstream'
 
 # Avoid flakes: use cached repositories to avoid relying on external network.
 GIT_MIRROR_BASE = 'https://chromium.googlesource.com/'
-LLVM_MIRROR_BASE = 'https://llvm.googlesource.com/'
 GITHUB_MIRROR_BASE = GIT_MIRROR_BASE + 'external/github.com/'
 WASM_GIT_BASE = GITHUB_MIRROR_BASE + 'WebAssembly/'
 EMSCRIPTEN_GIT_BASE = 'https://github.com/emscripten-core/'
@@ -667,7 +666,7 @@ def AllSources():
         Source('llvm', GetSrcDir('llvm-project'),
                LLVM_GIT_BASE + 'llvm-project.git'),
         Source('llvm-test-suite', GetSrcDir('llvm-test-suite'),
-               LLVM_MIRROR_BASE + 'llvm-test-suite.git'),
+               LLVM_GIT_BASE + 'llvm-test-suite.git'),
         Source('emscripten', GetSrcDir('emscripten'),
                EMSCRIPTEN_GIT_BASE + 'emscripten.git'),
         Source('gcc', GetSrcDir('gcc'),
