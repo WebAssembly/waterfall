@@ -233,10 +233,9 @@ def similarity(results, cutoff):
 def make_blocking(fileno):
     try:
         from fcntl import fcntl, F_GETFL, F_SETFL
-        fd = sys.stdout.fileno()
-        flags = fcntl(fd, F_GETFL)
+        flags = fcntl(fileno, F_GETFL)
         if flags & os.O_NONBLOCK:
-            fcntl(fd, F_SETFL, flags & ~os.O_NONBLOCK)
+            fcntl(fileno, F_SETFL, flags & ~os.O_NONBLOCK)
         print('make_blocking old flags %s' % hex(flags))
     except ImportError:
         pass
