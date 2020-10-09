@@ -1077,7 +1077,7 @@ def InstallEmscripten():
     #   2. A bug with the native compiler has bloated the packages from
     #      30MB to almost 300MB
     #      https://github.com/google/closure-compiler-npm/issues/186
-    # If either of these bugs are fixed we could consdider removing this
+    # If either of these bugs are fixed we could consider removing this
     # hack.
     native = None
     if IsMac():
