@@ -551,7 +551,7 @@ def SyncToolchain(name, src_dir, git_repo):
     if IsWindows():
         host_toolchains.SyncWinToolchain()
     else:
-        host_toolchains.SyncPrebuiltClang(name, src_dir)
+        host_toolchains.SyncPrebuiltClang(src_dir)
         cc = GetPrebuiltClang('clang')
         cxx = GetPrebuiltClang('clang++')
         assert os.path.isfile(cc), 'Expect clang at %s' % cc

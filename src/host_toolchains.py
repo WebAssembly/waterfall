@@ -46,7 +46,7 @@ def WinToolchainJson():
     return os.path.join(work_dirs.GetV8(), 'build', 'win_toolchain.json')
 
 
-def SyncPrebuiltClang(name, src_dir):
+def SyncPrebuiltClang(src_dir):
     """Update the prebuilt clang toolchain used by chromium bots"""
     tools_clang = os.path.join(src_dir, 'tools', 'clang')
     assert os.path.isdir(tools_clang)
