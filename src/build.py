@@ -1065,6 +1065,29 @@ def InstallEmscripten():
     proc.check_call([os.path.join('tools', 'install.py'), em_install_dir],
                     cwd=src_dir)
 
+    print('Running npm install ...')
+    proc.check_call(['npm', 'ci', '--no-optional'], cwd=em_install_dir)
+
+    # Manually install the appropriate native Closure Compiler package
+    # This is currently needed because npm ci will install the packages
+    # for Closure for all platforms, adding 180MB to the download size
+    # There are two problems here:
+    #   1. npm ci does not consider the platform of optional dependencies
+    #      https://github.com/npm/cli/issues/558
+    #   2. A bug with the native compiler has bloated the packages from
+    #      30MB to almost 300MB
+    #      https://github.com/google/closure-compiler-npm/issues/186
+    # If either of these bugs are fixed we could consider removing this
+    # hack.
+    native = None
+    if IsMac():
+        native = 'google-closure-compiler-osx'
+    elif IsWindows():
+        native = 'google-closure-compiler-windows'
+    elif IsLinux():
+        native = 'google-closure-compiler-linux'
+    proc.check_call(['npm', 'install', native], cwd=em_install_dir)
+
 
 def Emscripten():
     InstallEmscripten()
@@ -1525,15 +1548,7 @@ def TestBare():
                                wasmjs=os.path.join(SCRIPT_DIR, 'wasi.js'))
 
 
-def ActivateEmscripten():
-    em_install_dir = GetInstallDir('emscripten')
-    if not os.path.exists(os.path.join(em_install_dir, 'node_module')):
-        proc.check_call(['npm', 'ci'], cwd=em_install_dir)
-
-
 def TestEmwasm():
-    ActivateEmscripten()
-
     for opt in EMSCRIPTEN_TEST_OPT_FLAGS:
         CompileLLVMTortureEmscripten('emwasm',
                                      GetInstallDir(EMSCRIPTEN_CONFIG_UPSTREAM),
@@ -1558,7 +1573,6 @@ def TestEmwasm():
 def ExecuteEmscriptenTestSuite(name, tests, config, outdir, warn_only=False):
     buildbot.Step('Execute emscripten testsuite (%s)' % name)
     Mkdir(outdir)
-    ActivateEmscripten()
 
     # Before we can run the tests we prepare the installed emscripten
     # directory by copying of some test data which is otherwise excluded by
