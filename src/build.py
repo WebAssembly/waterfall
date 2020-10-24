@@ -77,11 +77,8 @@ CLOBBER_BUILD_TAG = 19
 
 V8_BUILD_SUBDIR = os.path.join('out.gn', 'x64.release')
 
-LINUX_SYSROOT = 'debian_stretch_amd64_sysroot'
-LINUX_SYSROOT_URL = ('https://commondatastorage.googleapis.com/' +
-                     'chrome-linux-sysroot/toolchain/' +
-                     '3c248ba4290a5ad07085b7af07e6785bf1ae5b66/' +
-                     LINUX_SYSROOT + '.tar.xz')
+LINUX_SYSROOT = 'sysroot_debian_stretch_amd64'
+LINUX_SYSROOT_URL = WASM_STORAGE_BASE + LINUX_SYSROOT + '.tar.xz'
 
 options = None
 
