@@ -595,7 +595,7 @@ def SyncArchive(out_dir, name, url, create_out_dir=False):
                 with zipfile.ZipFile(t, 'r') as zip:
                     zip.extractall(path=work_dir)
             elif ext == '.xz':
-                proc.check_call(['tar', '-xvf', t.name], cwd=work_dir)
+                proc.check_call(['tar', '-xf', t.name], cwd=work_dir)
             else:
                 tarfile.open(fileobj=t).extractall(path=work_dir)
     except URLError as e:
