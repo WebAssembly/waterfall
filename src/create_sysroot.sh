@@ -27,6 +27,6 @@ for d in dev proc tmp home run var boot media sys srv mnt; do
   rm -rf $TARGET_DIR/$d
 done
 
-tar cJf sysroot_debian_${SUITE}_amd64.tar.xz $TARGET_DIR
+tar cJf sysroot_debian_${SUITE}_amd64.tar.xz -C $TARGET_DIR .
 
 gsutil cp sysroot_debian_${SUITE}_amd64.tar.xz gs://wasm/
