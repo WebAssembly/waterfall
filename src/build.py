@@ -77,8 +77,8 @@ CLOBBER_BUILD_TAG = 20
 
 V8_BUILD_SUBDIR = os.path.join('out.gn', 'x64.release')
 
-LINUX_SYSROOT = 'sysroot_debian_stretch_amd64'
-LINUX_SYSROOT_URL = WASM_STORAGE_BASE + LINUX_SYSROOT + '_v2.tar.xz'
+LINUX_SYSROOT = 'sysroot_ubuntu_bionic_amd64'
+LINUX_SYSROOT_URL = WASM_STORAGE_BASE + LINUX_SYSROOT + '_v1.tar.xz'
 
 options = None
 
