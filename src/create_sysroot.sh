@@ -5,8 +5,12 @@
 # when compiling linux binaries.
 #
 # See https://xw.is/wiki/Create_Debian_sysroots
+#
+# Once created the sysroot should be uploaded to google storage.
+# e.g:
+#  gsutil cp sysroot_debian_stretch_amd64.tar.xz gs://wasm/
 
-set -e
+set -o errexit
 
 SUITE=stretch
 TARGET_DIR=sysroot_debian_${SUITE}_amd64
