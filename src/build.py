@@ -661,7 +661,8 @@ def AllSources():
     return [
         Source('waterfall', SCRIPT_DIR, None, custom_sync=NoSync),
         Source('llvm', GetSrcDir('llvm-project'),
-               LLVM_GIT_BASE + 'llvm-project.git'),
+               LLVM_GIT_BASE + 'llvm-project.git',
+               checkout=RemoteBranch('main')),
         Source('llvm-test-suite', GetSrcDir('llvm-test-suite'),
                LLVM_GIT_BASE + 'llvm-test-suite.git'),
         Source('emscripten', GetSrcDir('emscripten'),
