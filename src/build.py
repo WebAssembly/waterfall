@@ -886,6 +886,7 @@ def LLVM():
         '-DCOMPILER_RT_ENABLE_IOS=OFF',
         '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
         '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
+        '-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON',
         # Our mac bot's toolchain's ld64 is too old for trunk libLTO.
         '-DLLVM_TOOL_LTO_BUILD=OFF',
         '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
