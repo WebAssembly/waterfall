@@ -875,7 +875,7 @@ def LLVM():
     build_dir = os.path.join(work_dirs.GetBuild(), 'llvm-out')
     Mkdir(build_dir)
     cc_env = BuildEnv(build_dir, bin_subdir=True)
-    build_dylib = 'ON' if not IsWindows() else 'OFF'
+    build_dylib = 'ON' if not IsWindows() and not options.extraopt else 'OFF'
     command = CMakeCommandNative([
         GetLLVMSrcDir('llvm'),
         '-DCMAKE_CXX_FLAGS=-Wno-nonportable-include-path',
@@ -890,13 +890,20 @@ def LLVM():
         # Our mac bot's toolchain's ld64 is too old for trunk libLTO.
         '-DLLVM_TOOL_LTO_BUILD=OFF',
         '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
-        '-DLLVM_ENABLE_ASSERTIONS=ON',
         '-DLLVM_TARGETS_TO_BUILD=X86;WebAssembly',
         '-DLLVM_ENABLE_PROJECTS=lld;clang',
         # linking libtinfo dynamically causes problems on some linuxes,
         # https://github.com/emscripten-core/emsdk/issues/252
         '-DLLVM_ENABLE_TERMINFO=%d' % (not IsLinux()),
     ], build_dir)
+
+    if options.extraopt:
+        command.extend(['-DLLVM_ENABLE_ASSERTIONS=OFF',
+                        '-DLLVM_ENABLE_LTO=Full',
+                        '-DLLVM_ENABLE_LLD=ON'])
+    else:
+        command.extend(['-DLLVM_ENABLE_ASSERTIONS=ON'])
+
 
     jobs = host_toolchains.NinjaJobs()
 
@@ -1047,7 +1054,11 @@ def Binaryen():
     # Currently it's a bad idea to do a non-asserts build of Binaryen
     cc_env = BuildEnv(out_dir, bin_subdir=True, runtime='Debug')
 
-    proc.check_call(CMakeCommandNative([GetSrcDir('binaryen')], out_dir),
+    cmake_command = CMakeCommandNative([GetSrcDir('binaryen')], out_dir)
+    if options.extraopt:
+        cmake_command.append('-DBYN_ENABLE_LTO=ON')
+        cmake_command.append('-DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld')
+    proc.check_call(cmake_command,
                     cwd=out_dir,
                     env=cc_env)
     proc.check_call(['ninja', '-v'] + host_toolchains.NinjaJobs(),
@@ -1785,6 +1796,9 @@ def ParseArgs():
     parser.add_argument(
         '--clobber', dest='clobber', default=False, action='store_true',
         help="Delete working directories, forcing a clean build")
+    parser.add_argument(
+        '--extraopt', dest='extraopt', default=False, action='store_true',
+        help='Extra optimization for host binaries')
 
     return parser.parse_args()
 
