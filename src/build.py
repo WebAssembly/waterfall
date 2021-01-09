@@ -899,7 +899,9 @@ def LLVM():
 
     if options.extraopt:
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=OFF',
-                        '-DLLVM_ENABLE_LTO=Full',
+                        '-DLLVM_BUILD_TESTS=OFF',
+                        '-DLLVM_INCLUDE_TESTS=OFF',
+                        '-DLLVM_ENABLE_LTO=Thin',
                         '-DLLVM_ENABLE_LLD=ON'])
     else:
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=ON'])
