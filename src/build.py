@@ -764,11 +764,14 @@ def OverrideCMakeCompiler():
         return []
     cc = 'clang-cl' if IsWindows() else 'clang'
     cxx = 'clang-cl' if IsWindows() else 'clang++'
-    return [
+    tools = [
         '-DCMAKE_C_COMPILER=' + Executable(GetPrebuiltClang(cc)),
-        '-DCMAKE_CXX_COMPILER=' + Executable(GetPrebuiltClang(cxx))
+        '-DCMAKE_CXX_COMPILER=' + Executable(GetPrebuiltClang(cxx)),
     ]
+    if IsWindows():
+        tools.append('-DCMAKE_LINKER=' +  Executable(GetPrebuiltClang('lld-link')))
 
+    return tools
 
 def CMakeCommandBase():
     command = [PrebuiltCMakeBin(), '-G', 'Ninja']
