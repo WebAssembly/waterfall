@@ -1062,7 +1062,6 @@ def Binaryen():
     cmake_command = CMakeCommandNative([GetSrcDir('binaryen')], out_dir)
     if options.extraopt:
         cmake_command.append('-DBYN_ENABLE_LTO=ON')
-        cmake_command.append('-DCMAKE_EXE_LINKER_FLAGS=-fuse-ld=lld')
     proc.check_call(cmake_command,
                     cwd=out_dir,
                     env=cc_env)
