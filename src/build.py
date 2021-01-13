@@ -769,9 +769,11 @@ def OverrideCMakeCompiler():
         '-DCMAKE_CXX_COMPILER=' + Executable(GetPrebuiltClang(cxx)),
     ]
     if IsWindows():
-        tools.append('-DCMAKE_LINKER=' +  Executable(GetPrebuiltClang('lld-link')))
+        tools.append('-DCMAKE_LINKER=' +
+                     Executable(GetPrebuiltClang('lld-link')))
 
     return tools
+
 
 def CMakeCommandBase():
     command = [PrebuiltCMakeBin(), '-G', 'Ninja']
@@ -908,7 +910,6 @@ def LLVM():
                         '-DLLVM_ENABLE_LLD=ON'])
     else:
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=ON'])
-
 
     jobs = host_toolchains.NinjaJobs()
 
