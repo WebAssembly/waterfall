@@ -878,7 +878,7 @@ def LLVM():
     build_dir = os.path.join(work_dirs.GetBuild(), 'llvm-out')
     Mkdir(build_dir)
     cc_env = BuildEnv(build_dir, bin_subdir=True)
-    build_dylib = 'ON' if not IsWindows() and not options.extraopt else 'OFF'
+    build_dylib = 'ON' if not IsWindows() and not options.use_lto else 'OFF'
     command = CMakeCommandNative([
         GetLLVMSrcDir('llvm'),
         '-DCMAKE_CXX_FLAGS=-Wno-nonportable-include-path',
@@ -900,7 +900,7 @@ def LLVM():
         '-DLLVM_ENABLE_TERMINFO=%d' % (not IsLinux()),
     ], build_dir)
 
-    if options.extraopt:
+    if options.use_lto:
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=OFF',
                         '-DLLVM_BUILD_TESTS=OFF',
                         '-DLLVM_INCLUDE_TESTS=OFF',
@@ -1060,7 +1060,7 @@ def Binaryen():
     cc_env = BuildEnv(out_dir, bin_subdir=True, runtime='Debug')
 
     cmake_command = CMakeCommandNative([GetSrcDir('binaryen')], out_dir)
-    if options.extraopt:
+    if options.use_lto:
         cmake_command.append('-DBYN_ENABLE_LTO=ON')
     proc.check_call(cmake_command,
                     cwd=out_dir,
@@ -1801,8 +1801,8 @@ def ParseArgs():
         '--clobber', dest='clobber', default=False, action='store_true',
         help="Delete working directories, forcing a clean build")
     parser.add_argument(
-        '--extraopt', dest='extraopt', default=False, action='store_true',
-        help='Extra optimization for host binaries')
+        '--use-lto', dest='use_lto', default=False, action='store_true',
+        help='Use extra optimization for host binaries')
 
     return parser.parse_args()
 
