@@ -764,10 +764,15 @@ def OverrideCMakeCompiler():
         return []
     cc = 'clang-cl' if IsWindows() else 'clang'
     cxx = 'clang-cl' if IsWindows() else 'clang++'
-    return [
+    tools = [
         '-DCMAKE_C_COMPILER=' + Executable(GetPrebuiltClang(cc)),
-        '-DCMAKE_CXX_COMPILER=' + Executable(GetPrebuiltClang(cxx))
+        '-DCMAKE_CXX_COMPILER=' + Executable(GetPrebuiltClang(cxx)),
     ]
+    if IsWindows():
+        tools.append('-DCMAKE_LINKER=' +
+                     Executable(GetPrebuiltClang('lld-link')))
+
+    return tools
 
 
 def CMakeCommandBase():
@@ -875,7 +880,7 @@ def LLVM():
     build_dir = os.path.join(work_dirs.GetBuild(), 'llvm-out')
     Mkdir(build_dir)
     cc_env = BuildEnv(build_dir, bin_subdir=True)
-    build_dylib = 'ON' if not IsWindows() else 'OFF'
+    build_dylib = 'ON' if not IsWindows() and not options.use_lto else 'OFF'
     command = CMakeCommandNative([
         GetLLVMSrcDir('llvm'),
         '-DCMAKE_CXX_FLAGS=-Wno-nonportable-include-path',
@@ -890,13 +895,21 @@ def LLVM():
         # Our mac bot's toolchain's ld64 is too old for trunk libLTO.
         '-DLLVM_TOOL_LTO_BUILD=OFF',
         '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
-        '-DLLVM_ENABLE_ASSERTIONS=ON',
         '-DLLVM_TARGETS_TO_BUILD=X86;WebAssembly',
         '-DLLVM_ENABLE_PROJECTS=lld;clang',
         # linking libtinfo dynamically causes problems on some linuxes,
         # https://github.com/emscripten-core/emsdk/issues/252
         '-DLLVM_ENABLE_TERMINFO=%d' % (not IsLinux()),
     ], build_dir)
+
+    if options.use_lto:
+        command.extend(['-DLLVM_ENABLE_ASSERTIONS=OFF',
+                        '-DLLVM_BUILD_TESTS=OFF',
+                        '-DLLVM_INCLUDE_TESTS=OFF',
+                        '-DLLVM_ENABLE_LTO=Thin',
+                        '-DLLVM_ENABLE_LLD=ON'])
+    else:
+        command.extend(['-DLLVM_ENABLE_ASSERTIONS=ON'])
 
     jobs = host_toolchains.NinjaJobs()
 
@@ -1047,7 +1060,10 @@ def Binaryen():
     # Currently it's a bad idea to do a non-asserts build of Binaryen
     cc_env = BuildEnv(out_dir, bin_subdir=True, runtime='Debug')
 
-    proc.check_call(CMakeCommandNative([GetSrcDir('binaryen')], out_dir),
+    cmake_command = CMakeCommandNative([GetSrcDir('binaryen')], out_dir)
+    if options.use_lto:
+        cmake_command.append('-DBYN_ENABLE_LTO=ON')
+    proc.check_call(cmake_command,
                     cwd=out_dir,
                     env=cc_env)
     proc.check_call(['ninja', '-v'] + host_toolchains.NinjaJobs(),
@@ -1785,6 +1801,9 @@ def ParseArgs():
     parser.add_argument(
         '--clobber', dest='clobber', default=False, action='store_true',
         help="Delete working directories, forcing a clean build")
+    parser.add_argument(
+        '--use-lto', dest='use_lto', default=False, action='store_true',
+        help='Use extra optimization for host binaries')
 
     return parser.parse_args()
 
