@@ -272,6 +272,12 @@ GCC_REVISION = 'b6125c702850488ac3bfb1079ae5c9db89989406'
 GCC_CLONE_DEPTH = 1000
 
 
+def ShouldUseLTO():
+    if options.use_lto == "tagged":
+        return IsTaggedRevision(GetSrcDir('emscripten'))
+    return options.use_lto == 'true'
+
+
 def CopyBinaryToArchive(binary, prefix=''):
     """All binaries are archived in the same tar file."""
     install_bin = GetInstallDir(prefix, 'bin')
@@ -524,6 +530,15 @@ class Source(object):
         print()
 
 
+def IsTaggedRevision(src_dir):
+    try:
+        proc.check_call(['git', 'describe', '--exact-match', '--tags'],
+                        cwd=src_dir)
+    except proc.CalledProcessError:
+        return False
+    return True
+
+
 def ChromiumFetchSync(name, work_dir, git_repo,
                       checkout=RemoteBranch('master')):
     """Some Chromium projects want to use gclient for clone and
@@ -693,6 +708,12 @@ def AllSources():
     ]
 
 
+def ClobberOneDir(work_dir):
+    if not buildbot.IsBot():
+        Remove(work_dir)
+        Mkdir(work_dir)
+
+
 def Clobber():
     # Don't automatically clobber non-bot (local) work directories
     if not buildbot.IsBot() and not options.clobber:
@@ -722,8 +743,7 @@ def Clobber():
     else:
         dirs = work_dirs.GetAll()
     for work_dir in dirs:
-        Remove(work_dir)
-        Mkdir(work_dir)
+        ClobberOneDir(work_dir)
     # Also clobber v8
     v8_dir = os.path.join(work_dirs.GetV8(), V8_BUILD_SUBDIR)
     Remove(v8_dir)
@@ -880,9 +900,13 @@ def BuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
 def LLVM():
     buildbot.Step('LLVM')
     build_dir = os.path.join(work_dirs.GetBuild(), 'llvm-out')
+    should_use_lto = ShouldUseLTO()
+    if should_use_lto:
+        # Always start and end with a clobber when using LTO
+        ClobberOneDir(build_dir)
     Mkdir(build_dir)
     cc_env = BuildEnv(build_dir, bin_subdir=True)
-    build_dylib = 'ON' if not IsWindows() and not options.use_lto else 'OFF'
+    build_dylib = 'ON' if not IsWindows() and not should_use_lto else 'OFF'
     command = CMakeCommandNative([
         GetLLVMSrcDir('llvm'),
         '-DCMAKE_CXX_FLAGS=-Wno-nonportable-include-path',
@@ -904,7 +928,7 @@ def LLVM():
         '-DLLVM_ENABLE_TERMINFO=%d' % (not IsLinux()),
     ], build_dir)
 
-    if options.use_lto:
+    if should_use_lto:
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=OFF',
                         '-DLLVM_BUILD_TESTS=OFF',
                         '-DLLVM_INCLUDE_TESTS=OFF',
@@ -934,6 +958,9 @@ def LLVM():
                 # it as wasm32-wasi-clang
                 shutil.copy2(Executable(os.path.join(install_bin, target)),
                              Executable(link))
+
+    if should_use_lto:
+        ClobberOneDir(build_dir)
 
 
 def LLVMTestDepends():
@@ -1060,12 +1087,16 @@ def Wabt():
 def Binaryen():
     buildbot.Step('binaryen')
     out_dir = os.path.join(work_dirs.GetBuild(), 'binaryen-out')
+    should_use_lto = ShouldUseLTO()
+    if should_use_lto:
+        # Always start and end with a clobber when using LTO
+        ClobberOneDir(out_dir)
     Mkdir(out_dir)
     # Currently it's a bad idea to do a non-asserts build of Binaryen
     cc_env = BuildEnv(out_dir, bin_subdir=True, runtime='Debug')
 
     cmake_command = CMakeCommandNative([GetSrcDir('binaryen')], out_dir)
-    if options.use_lto:
+    if should_use_lto:
         cmake_command.append('-DBYN_ENABLE_LTO=ON')
     proc.check_call(cmake_command,
                     cwd=out_dir,
@@ -1074,6 +1105,8 @@ def Binaryen():
                     cwd=out_dir,
                     env=cc_env)
     proc.check_call(['ninja', 'install'], cwd=out_dir, env=cc_env)
+    if should_use_lto:
+        ClobberOneDir(out_dir)
 
 
 def InstallEmscripten():
@@ -1138,7 +1171,7 @@ def Emscripten():
         proc.check_call([
             sys.executable,
             os.path.join(GetInstallDir('emscripten'), 'embuilder.py'), 'build',
-            'SYSTEM'
+            'MINIMAL'
         ], env=env)
 
     except proc.CalledProcessError:
@@ -1806,8 +1839,10 @@ def ParseArgs():
         '--clobber', dest='clobber', default=False, action='store_true',
         help="Delete working directories, forcing a clean build")
     parser.add_argument(
-        '--use-lto', dest='use_lto', default=False, action='store_true',
-        help='Use extra optimization for host binaries')
+        '--use-lto', dest='use_lto', default='false', action='store',
+        choices=['true', 'false', 'tagged'],
+        help='Use extra optimization for host binaries. Force to true or false,' +
+        'or use when the emscripten revision is tagged')
 
     return parser.parse_args()
 
