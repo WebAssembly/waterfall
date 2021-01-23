@@ -682,7 +682,8 @@ def AllSources():
                custom_sync=SyncGNUWin32),
         Source('wabt', GetSrcDir('wabt'), WASM_GIT_BASE + 'wabt.git'),
         Source('binaryen', GetSrcDir('binaryen'),
-               WASM_GIT_BASE + 'binaryen.git'),
+               WASM_GIT_BASE + 'binaryen.git',
+               checkout=RemoteBranch('main')),
         Source('wasi-libc', GetSrcDir('wasi-libc'),
                'https://github.com/CraneStation/wasi-libc.git'),
         Source('java', '', '',  # The source and git args are ignored.
@@ -1896,7 +1897,7 @@ def main():
         host_toolchains.SetUseSysroot(False)
 
     if options.use_lto and IsMac():
-        # The prebuilt clang on mac doesn't include libLTO, so use the SDK version
+        # The prebuilt clang on mac doesn't include libLTO, so use the SDK
         host_toolchains.SetForceHostClang(False)
 
     sync_include = options.sync_include if options.sync else []
