@@ -816,7 +816,8 @@ def CMakeCommandNative(args, build_dir):
 
     if host_toolchains.ShouldForceHostClang():
         command.extend(OverrideCMakeCompiler())
-        # Goma doesn't have MSVC in its cache, so don't use it in this case
+        # Goma doesn't have the "default" SDK compilers in its cache, so only
+        # use Goma when using our prebuilt Clang.
         command.extend(host_toolchains.CMakeLauncherFlags())
     command.extend(args)
     # On Windows, CMake chokes on paths containing backslashes that come from
@@ -906,8 +907,10 @@ def LLVM():
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=OFF',
                         '-DLLVM_BUILD_TESTS=OFF',
                         '-DLLVM_INCLUDE_TESTS=OFF',
-                        '-DLLVM_ENABLE_LTO=Thin',
-                        '-DLLVM_ENABLE_LLD=ON'])
+                        '-DLLVM_ENABLE_LTO=Thin'])
+        if not IsMac():
+            # LLD isn't fully baked on mac yet.
+            command.append('-DLLVM_ENABLE_LLD=ON')
     else:
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=ON'])
 
@@ -1891,6 +1894,10 @@ def main():
         host_toolchains.SetForceHostClang(False)
     if not options.use_sysroot:
         host_toolchains.SetUseSysroot(False)
+
+    if options.use_lto and IsMac():
+        # The prebuilt clang on mac doesn't include libLTO, so use the SDK version
+        host_toolchains.SetForceHostClang(False)
 
     sync_include = options.sync_include if options.sync else []
     sync_filter = Filter('sync', sync_include, options.sync_exclude)
