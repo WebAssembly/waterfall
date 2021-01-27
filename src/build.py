@@ -904,7 +904,6 @@ def LLVM():
         '-DCLANG_ENABLE_STATIC_ANALYZER=OFF',
     ], build_dir)
 
-
     if not IsMac():
         # LLD isn't fully baked on mac yet.
         command.append('-DLLVM_ENABLE_LLD=ON')
@@ -916,11 +915,11 @@ def LLVM():
                    'llvm-objdump', 'llvm-ranlib', 'llvm-readobj', 'llvm-size',
                    'llvm-strings', 'llvm-symbolizer']
         ninja_targets = ('distribution', 'install-distribution')
-        targets.extend(['llc', 'opt']) # TODO: remove uses of these upstream
+        targets.extend(['llc', 'opt'])  # TODO: remove uses of these upstream
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=OFF',
                         '-DLLVM_INCLUDE_TESTS=OFF',
-                        '-DLLVM_TOOLCHAIN_TOOLS='+';'.join(targets),
-                        '-DLLVM_DISTRIBUTION_COMPONENTS='+';'.join(targets),
+                        '-DLLVM_TOOLCHAIN_TOOLS=' + ';'.join(targets),
+                        '-DLLVM_DISTRIBUTION_COMPONENTS=' + ';'.join(targets),
                         '-DLLVM_ENABLE_LTO=Thin'])
 
     else:
@@ -930,9 +929,9 @@ def LLVM():
 
     proc.check_call(command, cwd=build_dir, env=cc_env)
     proc.check_call(['ninja', '-v', ninja_targets[0]] + jobs,
-                     cwd=build_dir, env=cc_env)
+                    cwd=build_dir, env=cc_env)
     proc.check_call(['ninja', ninja_targets[1]] + jobs,
-                     cwd=build_dir, env=cc_env)
+                    cwd=build_dir, env=cc_env)
     CopyLLVMTools(build_dir)
     install_bin = GetInstallDir('bin')
     for target in ('clang', 'clang++'):
