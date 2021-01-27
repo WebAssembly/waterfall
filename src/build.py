@@ -909,25 +909,19 @@ def LLVM():
         # LLD isn't fully baked on mac yet.
         command.append('-DLLVM_ENABLE_LLD=ON')
 
+    ninja_targets = ('all', 'install')
     if options.use_lto:
-        targets = ['clang', 'lld', 'llvm-ar', 'llvm-objcopy',  'llvm-symbolizer', 'llvm-cxxfilt',  'llvm-nm', 'llvm-objdump', 'llvm-strings', 'llvm-dwarfdump', 'llvm-dwp', 'llvm-readobj']
-        # 'llvm-dwarfdump','llvm-readobj',
+        targets = ['clang', 'lld', 'llvm-ar', 'llvm-addr2line', 'llvm-cxxfilt',
+                   'llvm-dwarfdump', 'llvm-dwp', 'llvm-nm', 'llvm-objcopy',
+                   'llvm-objdump', 'llvm-ranlib', 'llvm-readobj', 'llvm-size',
+                   'llvm-strings', 'llvm-symbolizer']
+        ninja_targets = ('distribution', 'install-distribution')
+        targets.extend(['llc', 'opt']) # TODO: remove uses of these upstream
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=OFF',
                         '-DLLVM_INCLUDE_TESTS=OFF',
-                        #'-DLLVM_BUILD_TOOLS=OFF',
-                        #'-DCLANG_BUILD_TOOLS=OFF',
-                        #'-DLLVM_BUILD_UTILS=OFF',
                         '-DLLVM_TOOLCHAIN_TOOLS='+';'.join(targets),
                         '-DLLVM_DISTRIBUTION_COMPONENTS='+';'.join(targets),
                         '-DLLVM_ENABLE_LTO=Thin'])
-        # For some reason these get built anyway despite DCLANG_BUILD_TOOLS=OFF
-        #for t in ('CLANG_DIFF', 'CLANG_IMPORT_TEST', 'C_INDEX_TEST',
-        #          'APINOTES_TEST'):
-        #    command.append('-DCLANG_TOOL_%s_BUILD=OFF' % t)
-        #for t in ('ISEL', 'ITANIUM_DEMANGLE', 'MICROSOFT_DEMANGLE', 'OPT',
-        #          'SPECIAL_CASE_LIST', 'YAML_PARSER', 'YAML_NUMERIC_PARSER'):
-        #    command.append('-DLLVM_TOOL_LLVM_%s_FUZZER_BUILD=OFF' % t)
-        # Since we've disabled tools builds as part of 'all', add them explicitly
 
     else:
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=ON'])
@@ -936,8 +930,10 @@ def LLVM():
     jobs = host_toolchains.NinjaJobs()
 
     proc.check_call(command, cwd=build_dir, env=cc_env)
-    proc.check_call(['ninja', '-v', 'distribution'] + jobs + targets, cwd=build_dir, env=cc_env)
-    proc.check_call(['ninja', 'install-distribution'] + jobs, cwd=build_dir, env=cc_env)
+    proc.check_call(['ninja', '-v', ninja_targets[0] + jobs,
+                     cwd=build_dir, env=cc_env)
+    proc.check_call(['ninja', nninja_targets[1] + jobs,
+                     cwd=build_dir, env=cc_env)
     CopyLLVMTools(build_dir)
     install_bin = GetInstallDir('bin')
     for target in ('clang', 'clang++'):
