@@ -925,7 +925,6 @@ def LLVM():
 
     else:
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=ON'])
-        targets = []
 
     jobs = host_toolchains.NinjaJobs()
 
