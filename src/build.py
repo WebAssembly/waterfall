@@ -888,9 +888,6 @@ def LLVM():
         '-DCMAKE_CXX_FLAGS=-Wno-nonportable-include-path',
         '-DLLVM_ENABLE_LIBXML2=OFF',
         '-DLLVM_INCLUDE_EXAMPLES=OFF',
-        '-DCOMPILER_RT_BUILD_XRAY=OFF',
-        '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
-        '-DCOMPILER_RT_ENABLE_IOS=OFF',
         '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
         '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
         '-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON',
@@ -913,21 +910,25 @@ def LLVM():
         command.append('-DLLVM_ENABLE_LLD=ON')
 
     if options.use_lto:
+        targets = ['clang', 'lld', 'llvm-ar', 'llvm-objcopy',  'llvm-symbolizer', 'llvm-cxxfilt',  'llvm-nm', 'llvm-objdump', 'llvm-strings', 'llvm-dwarfdump', 'llvm-dwp', 'llvm-readobj']
+        # 'llvm-dwarfdump','llvm-readobj',
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=OFF',
                         '-DLLVM_INCLUDE_TESTS=OFF',
-                        '-DLLVM_BUILD_TOOLS=OFF',
-                        '-DCLANG_BUILD_TOOLS=OFF',
-                        '-DLLVM_BUILD_UTILS=OFF',
+                        #'-DLLVM_BUILD_TOOLS=OFF',
+                        #'-DCLANG_BUILD_TOOLS=OFF',
+                        #'-DLLVM_BUILD_UTILS=OFF',
+                        '-DLLVM_TOOLCHAIN_TOOLS='+';'.join(targets),
+                        '-DLLVM_DISTRIBUTION_COMPONENTS='+';'.join(targets),
                         '-DLLVM_ENABLE_LTO=Thin'])
         # For some reason these get built anyway despite DCLANG_BUILD_TOOLS=OFF
-        for t in ('CLANG_DIFF', 'CLANG_IMPORT_TEST', 'C_INDEX_TEST',
-                  'APINOTES_TEST'):
-            command.append('-DCLANG_TOOL_%s_BUILD=OFF' % t)
-        for t in ('ISEL', 'ITANIUM_DEMANGLE', 'MICROSOFT_DEMANGLE', 'OPT',
-                  'SPECIAL_CASE_LIST', 'YAML_PARSER', 'YAML_NUMERIC_PARSER'):
-            command.append('-DLLVM_TOOL_LLVM_%s_FUZZER_BUILD=OFF' % t)
+        #for t in ('CLANG_DIFF', 'CLANG_IMPORT_TEST', 'C_INDEX_TEST',
+        #          'APINOTES_TEST'):
+        #    command.append('-DCLANG_TOOL_%s_BUILD=OFF' % t)
+        #for t in ('ISEL', 'ITANIUM_DEMANGLE', 'MICROSOFT_DEMANGLE', 'OPT',
+        #          'SPECIAL_CASE_LIST', 'YAML_PARSER', 'YAML_NUMERIC_PARSER'):
+        #    command.append('-DLLVM_TOOL_LLVM_%s_FUZZER_BUILD=OFF' % t)
         # Since we've disabled tools builds as part of 'all', add them explicitly
-        targets = ['clang', 'lld', 'llvm-ar', 'llvm-objcopy', 'llvm-readobj', 'llvm-symbolizer', 'llvm-cxxfilt', 'llvm-dwarfdump', 'llvm-nm', 'llvm-objdump', 'llvm-strings']
+
     else:
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=ON'])
         targets = []
@@ -935,8 +936,8 @@ def LLVM():
     jobs = host_toolchains.NinjaJobs()
 
     proc.check_call(command, cwd=build_dir, env=cc_env)
-    proc.check_call(['ninja', '-v'] + jobs + targets, cwd=build_dir, env=cc_env)
-    proc.check_call(['ninja', 'install'] + jobs, cwd=build_dir, env=cc_env)
+    proc.check_call(['ninja', '-v', 'distribution'] + jobs + targets, cwd=build_dir, env=cc_env)
+    proc.check_call(['ninja', 'install-distribution'] + jobs, cwd=build_dir, env=cc_env)
     CopyLLVMTools(build_dir)
     install_bin = GetInstallDir('bin')
     for target in ('clang', 'clang++'):
