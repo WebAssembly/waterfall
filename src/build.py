@@ -73,7 +73,7 @@ LLVM_VERSION = '12.0.0'
 # Update this number each time you want to create a clobber build.  If the
 # clobber_version.txt file in the build dir doesn't match we remove ALL work
 # dirs.  This works like a simpler version of chromium's landmine feature.
-CLOBBER_BUILD_TAG = 21
+CLOBBER_BUILD_TAG = 22
 
 V8_BUILD_SUBDIR = os.path.join('out.gn', 'x64.release')
 
@@ -888,12 +888,10 @@ def LLVM():
         '-DCMAKE_CXX_FLAGS=-Wno-nonportable-include-path',
         '-DLLVM_ENABLE_LIBXML2=OFF',
         '-DLLVM_INCLUDE_EXAMPLES=OFF',
-        '-DCOMPILER_RT_BUILD_XRAY=OFF',
-        '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
-        '-DCOMPILER_RT_ENABLE_IOS=OFF',
         '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
         '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
         '-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON',
+        '-DLLVM_ENABLE_BINDINGS=OFF',
         # Our mac bot's toolchain's ld64 is too old for trunk libLTO.
         '-DLLVM_TOOL_LTO_BUILD=OFF',
         '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
@@ -902,24 +900,38 @@ def LLVM():
         # linking libtinfo dynamically causes problems on some linuxes,
         # https://github.com/emscripten-core/emsdk/issues/252
         '-DLLVM_ENABLE_TERMINFO=%d' % (not IsLinux()),
+        '-DCLANG_ENABLE_ARCMT=OFF',
+        '-DCLANG_ENABLE_STATIC_ANALYZER=OFF',
     ], build_dir)
 
+    if not IsMac():
+        # LLD isn't fully baked on mac yet.
+        command.append('-DLLVM_ENABLE_LLD=ON')
+
+    ninja_targets = ('all', 'install')
     if options.use_lto:
+        targets = ['clang', 'lld', 'llvm-ar', 'llvm-addr2line', 'llvm-cxxfilt',
+                   'llvm-dwarfdump', 'llvm-dwp', 'llvm-nm', 'llvm-objcopy',
+                   'llvm-objdump', 'llvm-ranlib', 'llvm-readobj', 'llvm-size',
+                   'llvm-strings', 'llvm-symbolizer']
+        ninja_targets = ('distribution', 'install-distribution')
+        targets.extend(['llc', 'opt'])  # TODO: remove uses of these upstream
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=OFF',
-                        '-DLLVM_BUILD_TESTS=OFF',
                         '-DLLVM_INCLUDE_TESTS=OFF',
+                        '-DLLVM_TOOLCHAIN_TOOLS=' + ';'.join(targets),
+                        '-DLLVM_DISTRIBUTION_COMPONENTS=' + ';'.join(targets),
                         '-DLLVM_ENABLE_LTO=Thin'])
-        if not IsMac():
-            # LLD isn't fully baked on mac yet.
-            command.append('-DLLVM_ENABLE_LLD=ON')
+
     else:
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=ON'])
 
     jobs = host_toolchains.NinjaJobs()
 
     proc.check_call(command, cwd=build_dir, env=cc_env)
-    proc.check_call(['ninja', '-v'] + jobs, cwd=build_dir, env=cc_env)
-    proc.check_call(['ninja', 'install'] + jobs, cwd=build_dir, env=cc_env)
+    proc.check_call(['ninja', '-v', ninja_targets[0]] + jobs,
+                    cwd=build_dir, env=cc_env)
+    proc.check_call(['ninja', ninja_targets[1]] + jobs,
+                    cwd=build_dir, env=cc_env)
     CopyLLVMTools(build_dir)
     install_bin = GetInstallDir('bin')
     for target in ('clang', 'clang++'):
