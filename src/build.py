@@ -73,7 +73,7 @@ LLVM_VERSION = '12.0.0'
 # Update this number each time you want to create a clobber build.  If the
 # clobber_version.txt file in the build dir doesn't match we remove ALL work
 # dirs.  This works like a simpler version of chromium's landmine feature.
-CLOBBER_BUILD_TAG = 21
+CLOBBER_BUILD_TAG = 22
 
 V8_BUILD_SUBDIR = os.path.join('out.gn', 'x64.release')
 
@@ -270,12 +270,6 @@ if IsMac():
 # should be manually updated when convenient.
 GCC_REVISION = 'b6125c702850488ac3bfb1079ae5c9db89989406'
 GCC_CLONE_DEPTH = 1000
-
-
-def ShouldUseLTO():
-    if options.use_lto == "tagged":
-        return IsTaggedRevision(GetSrcDir('emscripten'))
-    return options.use_lto == 'true'
 
 
 def CopyBinaryToArchive(binary, prefix=''):
@@ -530,15 +524,6 @@ class Source(object):
         print()
 
 
-def IsTaggedRevision(src_dir):
-    try:
-        proc.check_call(['git', 'describe', '--exact-match', '--tags'],
-                        cwd=src_dir)
-    except proc.CalledProcessError:
-        return False
-    return True
-
-
 def ChromiumFetchSync(name, work_dir, git_repo,
                       checkout=RemoteBranch('master')):
     """Some Chromium projects want to use gclient for clone and
@@ -709,7 +694,7 @@ def AllSources():
 
 
 def ClobberOneDir(work_dir):
-    if not buildbot.IsBot():
+    if buildbot.IsBot():
         Remove(work_dir)
         Mkdir(work_dir)
 
@@ -900,24 +885,18 @@ def BuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
 def LLVM():
     buildbot.Step('LLVM')
     build_dir = os.path.join(work_dirs.GetBuild(), 'llvm-out')
-    should_use_lto = ShouldUseLTO()
-    if should_use_lto:
-        # Always start and end with a clobber when using LTO
-        ClobberOneDir(build_dir)
     Mkdir(build_dir)
     cc_env = BuildEnv(build_dir, bin_subdir=True)
-    build_dylib = 'ON' if not IsWindows() and not should_use_lto else 'OFF'
+    build_dylib = 'ON' if not IsWindows() and not options.use_lto else 'OFF'
     command = CMakeCommandNative([
         GetLLVMSrcDir('llvm'),
         '-DCMAKE_CXX_FLAGS=-Wno-nonportable-include-path',
         '-DLLVM_ENABLE_LIBXML2=OFF',
         '-DLLVM_INCLUDE_EXAMPLES=OFF',
-        '-DCOMPILER_RT_BUILD_XRAY=OFF',
-        '-DCOMPILER_RT_INCLUDE_TESTS=OFF',
-        '-DCOMPILER_RT_ENABLE_IOS=OFF',
         '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
         '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
         '-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON',
+        '-DLLVM_ENABLE_BINDINGS=OFF',
         # Our mac bot's toolchain's ld64 is too old for trunk libLTO.
         '-DLLVM_TOOL_LTO_BUILD=OFF',
         '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
@@ -926,24 +905,43 @@ def LLVM():
         # linking libtinfo dynamically causes problems on some linuxes,
         # https://github.com/emscripten-core/emsdk/issues/252
         '-DLLVM_ENABLE_TERMINFO=%d' % (not IsLinux()),
+        '-DCLANG_ENABLE_ARCMT=OFF',
+        '-DCLANG_ENABLE_STATIC_ANALYZER=OFF',
     ], build_dir)
 
-    if should_use_lto:
+    if not IsMac():
+        # LLD isn't fully baked on mac yet.
+        command.append('-DLLVM_ENABLE_LLD=ON')
+
+    ninja_targets = ('all', 'install')
+    if options.use_lto:
+        targets = ['clang', 'lld', 'llvm-ar', 'llvm-addr2line', 'llvm-cxxfilt',
+                   'llvm-dwarfdump', 'llvm-dwp', 'llvm-nm', 'llvm-objcopy',
+                   'llvm-objdump', 'llvm-ranlib', 'llvm-readobj', 'llvm-size',
+                   'llvm-strings', 'llvm-symbolizer']
+        ninja_targets = ('distribution', 'install-distribution')
+        targets.extend(['llc', 'opt'])  # TODO: remove uses of these upstream
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=OFF',
-                        '-DLLVM_BUILD_TESTS=OFF',
                         '-DLLVM_INCLUDE_TESTS=OFF',
+                        '-DLLVM_TOOLCHAIN_TOOLS=' + ';'.join(targets),
+                        '-DLLVM_DISTRIBUTION_COMPONENTS=' + ';'.join(targets),
                         '-DLLVM_ENABLE_LTO=Thin'])
-        if not IsMac():
-            # LLD isn't fully baked on mac yet.
-            command.append('-DLLVM_ENABLE_LLD=ON')
+
     else:
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=ON'])
 
     jobs = host_toolchains.NinjaJobs()
 
-    proc.check_call(command, cwd=build_dir, env=cc_env)
-    proc.check_call(['ninja', '-v'] + jobs, cwd=build_dir, env=cc_env)
-    proc.check_call(['ninja', 'install'] + jobs, cwd=build_dir, env=cc_env)
+    try:
+        proc.check_call(command, cwd=build_dir, env=cc_env)
+        proc.check_call(['ninja', '-v', ninja_targets[0]] + jobs,
+                        cwd=build_dir, env=cc_env)
+        proc.check_call(['ninja', ninja_targets[1]] + jobs,
+                        cwd=build_dir, env=cc_env)
+    except:
+        ClobberOneDir(build_dir)
+        raise
+
     CopyLLVMTools(build_dir)
     install_bin = GetInstallDir('bin')
     for target in ('clang', 'clang++'):
@@ -958,9 +956,6 @@ def LLVM():
                 # it as wasm32-wasi-clang
                 shutil.copy2(Executable(os.path.join(install_bin, target)),
                              Executable(link))
-
-    if should_use_lto:
-        ClobberOneDir(build_dir)
 
 
 def LLVMTestDepends():
@@ -1087,25 +1082,19 @@ def Wabt():
 def Binaryen():
     buildbot.Step('binaryen')
     out_dir = os.path.join(work_dirs.GetBuild(), 'binaryen-out')
-    should_use_lto = ShouldUseLTO()
-    if should_use_lto:
-        # Always start and end with a clobber when using LTO
-        ClobberOneDir(out_dir)
     Mkdir(out_dir)
     # Currently it's a bad idea to do a non-asserts build of Binaryen
     cc_env = BuildEnv(out_dir, bin_subdir=True, runtime='Debug')
 
     cmake_command = CMakeCommandNative([GetSrcDir('binaryen')], out_dir)
-    if should_use_lto:
+    if options.use_lto:
         cmake_command.append('-DBYN_ENABLE_LTO=ON')
-    proc.check_call(cmake_command,
-                    cwd=out_dir,
-                    env=cc_env)
-    proc.check_call(['ninja', '-v'] + host_toolchains.NinjaJobs(),
-                    cwd=out_dir,
-                    env=cc_env)
-    proc.check_call(['ninja', 'install'], cwd=out_dir, env=cc_env)
-    if should_use_lto:
+    try:
+        proc.check_call(cmake_command, cwd=out_dir, env=cc_env)
+        proc.check_call(['ninja', '-v'] + host_toolchains.NinjaJobs(),
+                        cwd=out_dir, env=cc_env)
+        proc.check_call(['ninja', 'install'], cwd=out_dir, env=cc_env)
+    except:
         ClobberOneDir(out_dir)
 
 
@@ -1171,7 +1160,7 @@ def Emscripten():
         proc.check_call([
             sys.executable,
             os.path.join(GetInstallDir('emscripten'), 'embuilder.py'), 'build',
-            'MINIMAL'
+            'SYSTEM'
         ], env=env)
 
     except proc.CalledProcessError:
@@ -1839,10 +1828,8 @@ def ParseArgs():
         '--clobber', dest='clobber', default=False, action='store_true',
         help="Delete working directories, forcing a clean build")
     parser.add_argument(
-        '--use-lto', dest='use_lto', default='false', action='store',
-        choices=['true', 'false', 'tagged'],
-        help='Use extra optimization for host binaries. Force to true or false,' +
-        'or use when the emscripten revision is tagged')
+        '--use-lto', dest='use_lto', default=False, action='store_true',
+        help='Use extra optimization for host binaries')
 
     return parser.parse_args()
 
