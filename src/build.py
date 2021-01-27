@@ -894,6 +894,7 @@ def LLVM():
         '-DLLVM_BUILD_LLVM_DYLIB=%s' % build_dylib,
         '-DLLVM_LINK_LLVM_DYLIB=%s' % build_dylib,
         '-DCMAKE_BUILD_WITH_INSTALL_RPATH=ON',
+        '-DLLVM_ENABLE_BINDINGS=OFF',
         # Our mac bot's toolchain's ld64 is too old for trunk libLTO.
         '-DLLVM_TOOL_LTO_BUILD=OFF',
         '-DLLVM_INSTALL_TOOLCHAIN_ONLY=ON',
@@ -902,23 +903,39 @@ def LLVM():
         # linking libtinfo dynamically causes problems on some linuxes,
         # https://github.com/emscripten-core/emsdk/issues/252
         '-DLLVM_ENABLE_TERMINFO=%d' % (not IsLinux()),
+        '-DCLANG_ENABLE_ARCMT=OFF',
+        '-DCLANG_ENABLE_STATIC_ANALYZER=OFF',
     ], build_dir)
+
+
+    if not IsMac():
+        # LLD isn't fully baked on mac yet.
+        command.append('-DLLVM_ENABLE_LLD=ON')
 
     if options.use_lto:
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=OFF',
-                        '-DLLVM_BUILD_TESTS=OFF',
                         '-DLLVM_INCLUDE_TESTS=OFF',
+                        '-DLLVM_BUILD_TOOLS=OFF',
+                        '-DCLANG_BUILD_TOOLS=OFF',
+                        '-DLLVM_BUILD_UTILS=OFF',
                         '-DLLVM_ENABLE_LTO=Thin'])
-        if not IsMac():
-            # LLD isn't fully baked on mac yet.
-            command.append('-DLLVM_ENABLE_LLD=ON')
+        # For some reason these get built anyway despite DCLANG_BUILD_TOOLS=OFF
+        for t in ('CLANG_DIFF', 'CLANG_IMPORT_TEST', 'C_INDEX_TEST',
+                  'APINOTES_TEST'):
+            command.append('-DCLANG_TOOL_%s_BUILD=OFF' % t)
+        for t in ('ISEL', 'ITANIUM_DEMANGLE', 'MICROSOFT_DEMANGLE', 'OPT',
+                  'SPECIAL_CASE_LIST', 'YAML_PARSER', 'YAML_NUMERIC_PARSER'):
+            command.append('-DLLVM_TOOL_LLVM_%s_FUZZER_BUILD=OFF' % t)
+        # Since we've disabled tools builds as part of 'all', add them explicitly
+        targets = ['clang', 'lld', 'llvm-ar', 'llvm-objcopy', 'llvm-readobj', 'llvm-symbolizer', 'llvm-cxxfilt', 'llvm-dwarfdump', 'llvm-nm', 'llvm-objdump', 'llvm-strings']
     else:
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=ON'])
+        targets = []
 
     jobs = host_toolchains.NinjaJobs()
 
     proc.check_call(command, cwd=build_dir, env=cc_env)
-    proc.check_call(['ninja', '-v'] + jobs, cwd=build_dir, env=cc_env)
+    proc.check_call(['ninja', '-v'] + jobs + targets, cwd=build_dir, env=cc_env)
     proc.check_call(['ninja', 'install'] + jobs, cwd=build_dir, env=cc_env)
     CopyLLVMTools(build_dir)
     install_bin = GetInstallDir('bin')
