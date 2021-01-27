@@ -930,9 +930,9 @@ def LLVM():
     jobs = host_toolchains.NinjaJobs()
 
     proc.check_call(command, cwd=build_dir, env=cc_env)
-    proc.check_call(['ninja', '-v', ninja_targets[0] + jobs,
+    proc.check_call(['ninja', '-v', ninja_targets[0]] + jobs,
                      cwd=build_dir, env=cc_env)
-    proc.check_call(['ninja', nninja_targets[1] + jobs,
+    proc.check_call(['ninja', ninja_targets[1]] + jobs,
                      cwd=build_dir, env=cc_env)
     CopyLLVMTools(build_dir)
     install_bin = GetInstallDir('bin')
