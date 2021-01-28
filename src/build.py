@@ -728,6 +728,7 @@ def Clobber():
         dirs = work_dirs.GetAll()
     for work_dir in dirs:
         RemoveIfBot(work_dir)
+        Mkdir(work_dir)
     # Also clobber v8
     v8_dir = os.path.join(work_dirs.GetV8(), V8_BUILD_SUBDIR)
     Remove(v8_dir)
