@@ -693,10 +693,9 @@ def AllSources():
     ]
 
 
-def ClobberOneDir(work_dir):
+def RemoveIfBot(work_dir):
     if buildbot.IsBot():
         Remove(work_dir)
-        Mkdir(work_dir)
 
 
 def Clobber():
@@ -728,7 +727,7 @@ def Clobber():
     else:
         dirs = work_dirs.GetAll()
     for work_dir in dirs:
-        ClobberOneDir(work_dir)
+        RemoveIfBot(work_dir)
     # Also clobber v8
     v8_dir = os.path.join(work_dirs.GetV8(), V8_BUILD_SUBDIR)
     Remove(v8_dir)
@@ -1438,19 +1437,19 @@ class Build(object):
             # When using LTO we always want a clean build (the previous
             # build was non-LTO)
             if self.incremental_build_dir and options.use_lto:
-                ClobberOneDir(self.incremental_build_dir)
+                RemoveIfBot(self.incremental_build_dir)
             self.runnable(*self.args, **self.kwargs)
         except Exception:
             # If the build fails (even non-LTO), a possible cause is a build
             # config change, so clobber the work dir for next time.
             if self.incremental_build_dir:
-                ClobberOneDir(self.incremental_build_dir)
+                RemoveIfBot(self.incremental_build_dir)
             raise
         finally:
             # When using LTO we want to always clean up afterward,
             # (the next build will be non-LTO.
             if self.incremental_build_dir and options.use_lto:
-                ClobberOneDir(self.incremental_build_dir)
+                RemoveIfBot(self.incremental_build_dir)
 
 
 def Summary():
