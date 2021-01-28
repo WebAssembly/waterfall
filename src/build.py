@@ -693,6 +693,11 @@ def AllSources():
     ]
 
 
+def RemoveIfBot(work_dir):
+    if buildbot.IsBot():
+        Remove(work_dir)
+
+
 def Clobber():
     # Don't automatically clobber non-bot (local) work directories
     if not buildbot.IsBot() and not options.clobber:
@@ -722,8 +727,7 @@ def Clobber():
     else:
         dirs = work_dirs.GetAll()
     for work_dir in dirs:
-        Remove(work_dir)
-        Mkdir(work_dir)
+        RemoveIfBot(work_dir)
     # Also clobber v8
     v8_dir = os.path.join(work_dirs.GetV8(), V8_BUILD_SUBDIR)
     Remove(v8_dir)
@@ -877,9 +881,8 @@ def BuildEnv(build_dir, use_gnuwin32=False, bin_subdir=False,
     return cc_env
 
 
-def LLVM():
+def LLVM(build_dir):
     buildbot.Step('LLVM')
-    build_dir = os.path.join(work_dirs.GetBuild(), 'llvm-out')
     Mkdir(build_dir)
     cc_env = BuildEnv(build_dir, bin_subdir=True)
     build_dylib = 'ON' if not IsWindows() and not options.use_lto else 'OFF'
@@ -932,6 +935,7 @@ def LLVM():
                     cwd=build_dir, env=cc_env)
     proc.check_call(['ninja', ninja_targets[1]] + jobs,
                     cwd=build_dir, env=cc_env)
+
     CopyLLVMTools(build_dir)
     install_bin = GetInstallDir('bin')
     for target in ('clang', 'clang++'):
@@ -1052,40 +1056,36 @@ def Jsvu():
         buildbot.Warn()
 
 
-def Wabt():
+def Wabt(build_dir):
     buildbot.Step('WABT')
-    out_dir = os.path.join(work_dirs.GetBuild(), 'wabt-out')
-    Mkdir(out_dir)
-    cc_env = BuildEnv(out_dir)
+    Mkdir(build_dir)
+    cc_env = BuildEnv(build_dir)
 
     cmd = CMakeCommandNative([GetSrcDir('wabt'),
                               '-DBUILD_TESTS=OFF', '-DBUILD_LIBWASM=OFF'],
-                             out_dir)
-    proc.check_call(cmd, cwd=out_dir, env=cc_env)
+                             build_dir)
+    proc.check_call(cmd, cwd=build_dir, env=cc_env)
 
     proc.check_call(['ninja', '-v'] + host_toolchains.NinjaJobs(),
-                    cwd=out_dir,
+                    cwd=build_dir,
                     env=cc_env)
-    proc.check_call(['ninja', 'install'], cwd=out_dir, env=cc_env)
+    proc.check_call(['ninja', 'install'], cwd=build_dir, env=cc_env)
 
 
-def Binaryen():
+def Binaryen(build_dir):
     buildbot.Step('binaryen')
-    out_dir = os.path.join(work_dirs.GetBuild(), 'binaryen-out')
-    Mkdir(out_dir)
+    Mkdir(build_dir)
     # Currently it's a bad idea to do a non-asserts build of Binaryen
-    cc_env = BuildEnv(out_dir, bin_subdir=True, runtime='Debug')
+    cc_env = BuildEnv(build_dir, bin_subdir=True, runtime='Debug')
 
-    cmake_command = CMakeCommandNative([GetSrcDir('binaryen')], out_dir)
+    cmake_command = CMakeCommandNative([GetSrcDir('binaryen')], build_dir)
     if options.use_lto:
         cmake_command.append('-DBYN_ENABLE_LTO=ON')
-    proc.check_call(cmake_command,
-                    cwd=out_dir,
-                    env=cc_env)
+
+    proc.check_call(cmake_command, cwd=build_dir, env=cc_env)
     proc.check_call(['ninja', '-v'] + host_toolchains.NinjaJobs(),
-                    cwd=out_dir,
-                    env=cc_env)
-    proc.check_call(['ninja', 'install'], cwd=out_dir, env=cc_env)
+                    cwd=build_dir, env=cc_env)
+    proc.check_call(['ninja', 'install'], cwd=build_dir, env=cc_env)
 
 
 def InstallEmscripten():
@@ -1415,21 +1415,41 @@ def ValidateLLVMTorture(indir, ext, opt):
 
 
 class Build(object):
-    def __init__(self, name_, runnable_, os_filter=None, is_default=True,
-                 *args, **kwargs):
+    def __init__(self, name_, runnable_, os_filter=None,
+                 incremental_build_dir=None, *args, **kwargs):
         self.name = name_
         self.runnable = runnable_
         self.os_filter = os_filter
-        self.is_deafult = is_default
+        self.incremental_build_dir = incremental_build_dir
         self.args = args
         self.kwargs = kwargs
+
+        if incremental_build_dir:
+            self.kwargs['build_dir'] = incremental_build_dir
 
     def Run(self):
         if self.os_filter and not self.os_filter.Check(BuilderPlatformName()):
             print("Skipping %s: Doesn't work on %s" %
                   (self.runnable.__name__, BuilderPlatformName()))
             return
-        self.runnable(*self.args, **self.kwargs)
+
+        # When using LTO we always want a clean build (the previous
+        # build was non-LTO)
+        if self.incremental_build_dir and options.use_lto:
+            RemoveIfBot(self.incremental_build_dir)
+        try:
+            self.runnable(*self.args, **self.kwargs)
+        except Exception:
+            # If the build fails (even non-LTO), a possible cause is a build
+            # config change, so clobber the work dir for next time.
+            if self.incremental_build_dir:
+                RemoveIfBot(self.incremental_build_dir)
+            raise
+        finally:
+            # When using LTO we want to always clean up afterward,
+            # (the next build will be non-LTO).
+            if self.incremental_build_dir and options.use_lto:
+                RemoveIfBot(self.incremental_build_dir)
 
 
 def Summary():
@@ -1474,12 +1494,18 @@ def Summary():
 def AllBuilds():
     return [
         # Host tools
-        Build('llvm', LLVM),
+        Build('llvm', LLVM,
+              incremental_build_dir=os.path.join(
+                  work_dirs.GetBuild(), 'llvm-out')),
         Build('llvm-test-depends', LLVMTestDepends),
         Build('v8', V8, os_filter=Filter(exclude=['mac'])),
         Build('jsvu', Jsvu, os_filter=Filter(exclude=['windows'])),
-        Build('wabt', Wabt),
-        Build('binaryen', Binaryen),
+        Build('wabt', Wabt,
+              incremental_build_dir=os.path.join(
+                  work_dirs.GetBuild(), 'wabt-out')),
+        Build('binaryen', Binaryen,
+              incremental_build_dir=os.path.join(
+                  work_dirs.GetBuild(), 'binaryen-out')),
         Build('emscripten-upstream', Emscripten),
         # Target libs
         # TODO: re-enable wasi on windows, see #517
