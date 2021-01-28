@@ -1415,7 +1415,7 @@ def ValidateLLVMTorture(indir, ext, opt):
 
 
 class Build(object):
-    def __init__(self, name_, runnable_, os_filter=None, is_default=True,
+    def __init__(self, name_, runnable_, os_filter=None,
                  incremental_build_dir=None, *args, **kwargs):
         self.name = name_
         self.runnable = runnable_
@@ -1433,11 +1433,11 @@ class Build(object):
                   (self.runnable.__name__, BuilderPlatformName()))
             return
 
+        # When using LTO we always want a clean build (the previous
+        # build was non-LTO)
+        if self.incremental_build_dir and options.use_lto:
+            RemoveIfBot(self.incremental_build_dir)
         try:
-            # When using LTO we always want a clean build (the previous
-            # build was non-LTO)
-            if self.incremental_build_dir and options.use_lto:
-                RemoveIfBot(self.incremental_build_dir)
             self.runnable(*self.args, **self.kwargs)
         except Exception:
             # If the build fails (even non-LTO), a possible cause is a build
@@ -1447,7 +1447,7 @@ class Build(object):
             raise
         finally:
             # When using LTO we want to always clean up afterward,
-            # (the next build will be non-LTO.
+            # (the next build will be non-LTO).
             if self.incremental_build_dir and options.use_lto:
                 RemoveIfBot(self.incremental_build_dir)
 
