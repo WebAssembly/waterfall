@@ -1440,7 +1440,7 @@ class Build(object):
             if self.incremental_build_dir and options.use_lto:
                 ClobberOneDir(self.incremental_build_dir)
             self.runnable(*self.args, **self.kwargs)
-        except:
+        except Exception:
             # If the build fails (even non-LTO), a possible cause is a build
             # config change, so clobber the work dir for next time.
             if self.incremental_build_dir:
@@ -1496,14 +1496,17 @@ def AllBuilds():
     return [
         # Host tools
         Build('llvm', LLVM,
-              incremental_build_dir=os.path.join(work_dirs.GetBuild(), 'llvm-out')),
+              incremental_build_dir=os.path.join(
+                  work_dirs.GetBuild(), 'llvm-out')),
         Build('llvm-test-depends', LLVMTestDepends),
         Build('v8', V8, os_filter=Filter(exclude=['mac'])),
         Build('jsvu', Jsvu, os_filter=Filter(exclude=['windows'])),
         Build('wabt', Wabt,
-              incremental_build_dir=os.path.join(work_dirs.GetBuild(), 'wabt-out')),
+              incremental_build_dir=os.path.join(
+                  work_dirs.GetBuild(), 'wabt-out')),
         Build('binaryen', Binaryen,
-              incremental_build_dir=os.path.join(work_dirs.GetBuild(), 'binaryen-out')),
+              incremental_build_dir=os.path.join(
+                  work_dirs.GetBuild(), 'binaryen-out')),
         Build('emscripten-upstream', Emscripten),
         # Target libs
         # TODO: re-enable wasi on windows, see #517
