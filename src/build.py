@@ -48,6 +48,7 @@ JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
 CMAKE_TOOLCHAIN_FILE = 'Wasi.cmake'
 
 EMSCRIPTEN_CONFIG_UPSTREAM = 'emscripten_config_upstream'
+EMSCRIPTEN_VERSION_FILE = 'emscripten-version.txt'
 
 # Avoid flakes: use cached repositories to avoid relying on external network.
 GIT_MIRROR_BASE = 'https://chromium.googlesource.com/'
@@ -271,6 +272,11 @@ if IsMac():
 GCC_REVISION = 'b6125c702850488ac3bfb1079ae5c9db89989406'
 GCC_CLONE_DEPTH = 1000
 
+
+def ShouldUseLTO():
+    if options.use_lto = 'auto':
+        return RevisionModifiesFile(EMCRIPTEN_Version_FILE)
+    return options.use_lto == 'true'
 
 def CopyBinaryToArchive(binary, prefix=''):
     """All binaries are archived in the same tar file."""
@@ -522,6 +528,15 @@ class Source(object):
         if os.path.exists(self.src_dir):
             proc.check_call(['git', 'status'], cwd=self.src_dir)
         print()
+
+
+def RevisionTouchesFile(f):
+    # TODO: There's probably some nice single-command way to do this.
+    head_rev = proc.check_output(['git', 'rev-parse', 'HEAD'])
+    last_rev = proc.check_output(['git', 'rev-list', '-n1', 'HEAD', f])
+    print('Last rev modifying %s is %s, HEAD is %' %
+          (f, last_rev, head_rev))
+    return head_rev == last_rev
 
 
 def ChromiumFetchSync(name, work_dir, git_repo,
@@ -886,7 +901,7 @@ def LLVM(build_dir):
     buildbot.Step('LLVM')
     Mkdir(build_dir)
     cc_env = BuildEnv(build_dir, bin_subdir=True)
-    build_dylib = 'ON' if not IsWindows() and not options.use_lto else 'OFF'
+    build_dylib = 'ON' if not IsWindows() and not ShouldUseLTO() else 'OFF'
     command = CMakeCommandNative([
         GetLLVMSrcDir('llvm'),
         '-DCMAKE_CXX_FLAGS=-Wno-nonportable-include-path',
@@ -913,7 +928,7 @@ def LLVM(build_dir):
         command.append('-DLLVM_ENABLE_LLD=ON')
 
     ninja_targets = ('all', 'install')
-    if options.use_lto:
+    if ShouldUseLTO():
         targets = ['clang', 'lld', 'llvm-ar', 'llvm-addr2line', 'llvm-cxxfilt',
                    'llvm-dwarfdump', 'llvm-dwp', 'llvm-nm', 'llvm-objcopy',
                    'llvm-objdump', 'llvm-ranlib', 'llvm-readobj', 'llvm-size',
@@ -1080,7 +1095,7 @@ def Binaryen(build_dir):
     cc_env = BuildEnv(build_dir, bin_subdir=True, runtime='Debug')
 
     cmake_command = CMakeCommandNative([GetSrcDir('binaryen')], build_dir)
-    if options.use_lto:
+    if ShouldUseLTO():
         cmake_command.append('-DBYN_ENABLE_LTO=ON')
 
     proc.check_call(cmake_command, cwd=build_dir, env=cc_env)
@@ -1436,7 +1451,7 @@ class Build(object):
 
         # When using LTO we always want a clean build (the previous
         # build was non-LTO)
-        if self.incremental_build_dir and options.use_lto:
+        if self.incremental_build_dir and ShouldUseLTO():
             RemoveIfBot(self.incremental_build_dir)
         try:
             self.runnable(*self.args, **self.kwargs)
@@ -1449,7 +1464,7 @@ class Build(object):
         finally:
             # When using LTO we want to always clean up afterward,
             # (the next build will be non-LTO).
-            if self.incremental_build_dir and options.use_lto:
+            if self.incremental_build_dir and ShouldUseLTO():
                 RemoveIfBot(self.incremental_build_dir)
 
 
@@ -1935,7 +1950,7 @@ def main():
     if not options.use_sysroot:
         host_toolchains.SetUseSysroot(False)
 
-    if options.use_lto and IsMac():
+    if ShouldUseLTO() and IsMac():
         # The prebuilt clang on mac doesn't include libLTO, so use the SDK
         host_toolchains.SetForceHostClang(False)
 
