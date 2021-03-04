@@ -848,7 +848,8 @@ def CopyLLVMTools(build_dir, prefix=''):
                           'clang-func-mapping', 'clang-import-test',
                           'clang-offload-bundler', 'clang-refactor',
                           'clang-rename', 'clang-scan-deps', 'libclang.dll',
-                          'lld-link', 'ld.lld', 'lld64.lld', 'llvm-lib'):
+                          'lld-link', 'ld.lld', 'ld64.lld', 'llvm-lib',
+                          'ld64.lld.darwinnew', 'ld64.lld.darwinold'):
         Remove(GetInstallDir(prefix, 'bin', Executable(unneeded_tool)))
 
     for lib in ['libclang.%s' for suffix in ('so.*', 'dylib')]:
@@ -917,7 +918,7 @@ def LLVM(build_dir):
         targets = ['clang', 'lld', 'llvm-ar', 'llvm-addr2line', 'llvm-cxxfilt',
                    'llvm-dwarfdump', 'llvm-dwp', 'llvm-nm', 'llvm-objcopy',
                    'llvm-objdump', 'llvm-ranlib', 'llvm-readobj', 'llvm-size',
-                   'llvm-strings', 'llvm-symbolizer']
+                   'llvm-strings', 'llvm-symbolizer', 'clang-resource-headers']
         ninja_targets = ('distribution', 'install-distribution')
         targets.extend(['llc', 'opt'])  # TODO: remove uses of these upstream
         command.extend(['-DLLVM_ENABLE_ASSERTIONS=OFF',
