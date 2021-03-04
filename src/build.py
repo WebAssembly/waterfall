@@ -1081,6 +1081,7 @@ def Binaryen(build_dir):
 
     cmake_command = CMakeCommandNative([GetSrcDir('binaryen')], build_dir)
     if options.use_lto:
+        cmake_command.append('-DBUILD_STATIC_LIB=ON')
         cmake_command.append('-DBYN_ENABLE_LTO=ON')
 
     proc.check_call(cmake_command, cwd=build_dir, env=cc_env)
