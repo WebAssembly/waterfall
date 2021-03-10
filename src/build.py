@@ -48,6 +48,7 @@ JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
 CMAKE_TOOLCHAIN_FILE = 'Wasi.cmake'
 
 EMSCRIPTEN_CONFIG_UPSTREAM = 'emscripten_config_upstream'
+EMSCRIPTEN_VERSION_FILE = 'emscripten-version.txt'
 
 # Avoid flakes: use cached repositories to avoid relying on external network.
 GIT_MIRROR_BASE = 'https://chromium.googlesource.com/'
@@ -270,6 +271,19 @@ if IsMac():
 # should be manually updated when convenient.
 GCC_REVISION = 'b6125c702850488ac3bfb1079ae5c9db89989406'
 GCC_CLONE_DEPTH = 1000
+
+g_should_use_lto = None
+
+
+def ShouldUseLTO():
+    if options.use_lto == 'auto':
+        # Avoid shelling out to git (via RevisionModifiesFile) more than once.
+        global g_should_use_lto
+        if g_should_use_lto is None:
+            g_should_use_lto = RevisionModifiesFile(
+                GetSrcDir(EMSCRIPTEN_VERSION_FILE))
+        return g_should_use_lto
+    return options.use_lto == 'true'
 
 
 def CopyBinaryToArchive(binary, prefix=''):
@@ -522,6 +536,18 @@ class Source(object):
         if os.path.exists(self.src_dir):
             proc.check_call(['git', 'status'], cwd=self.src_dir)
         print()
+
+
+def RevisionModifiesFile(f):
+    # TODO: There's probably some nice single-command way to do this.
+    if not os.path.isfile(f):
+        return False
+    cwd = os.path.dirname(f)
+    head_rev = proc.check_output(['git', 'rev-parse', 'HEAD'], cwd=cwd).strip()
+    last_rev = proc.check_output(
+        ['git', 'rev-list', '-n1', 'HEAD', f], cwd=cwd).strip()
+    print('Last rev modifying %s is %s, HEAD is %s' % (f, last_rev, head_rev))
+    return head_rev == last_rev
 
 
 def ChromiumFetchSync(name, work_dir, git_repo,
@@ -887,7 +913,7 @@ def LLVM(build_dir):
     buildbot.Step('LLVM')
     Mkdir(build_dir)
     cc_env = BuildEnv(build_dir, bin_subdir=True)
-    build_dylib = 'ON' if not IsWindows() and not options.use_lto else 'OFF'
+    build_dylib = 'ON' if not IsWindows() and not ShouldUseLTO() else 'OFF'
     command = CMakeCommandNative([
         GetLLVMSrcDir('llvm'),
         '-DCMAKE_CXX_FLAGS=-Wno-nonportable-include-path',
@@ -914,7 +940,7 @@ def LLVM(build_dir):
         command.append('-DLLVM_ENABLE_LLD=ON')
 
     ninja_targets = ('all', 'install')
-    if options.use_lto:
+    if ShouldUseLTO():
         targets = ['clang', 'lld', 'llvm-ar', 'llvm-addr2line', 'llvm-cxxfilt',
                    'llvm-dwarfdump', 'llvm-dwp', 'llvm-nm', 'llvm-objcopy',
                    'llvm-objdump', 'llvm-ranlib', 'llvm-readobj', 'llvm-size',
@@ -1082,7 +1108,7 @@ def Binaryen(build_dir):
 
     cmake_command = CMakeCommandNative([GetSrcDir('binaryen')], build_dir)
     cmake_command.append('-DBYN_INSTALL_TOOLS_ONLY=ON')
-    if options.use_lto:
+    if ShouldUseLTO():
         cmake_command.append('-DBUILD_STATIC_LIB=ON')
         cmake_command.append('-DBYN_ENABLE_LTO=ON')
 
@@ -1122,6 +1148,13 @@ def InstallEmscripten():
     elif IsLinux():
         native = 'google-closure-compiler-linux'
     proc.check_call(['npm', 'install', native], cwd=em_install_dir)
+
+    version_file = GetSrcDir(EMSCRIPTEN_VERSION_FILE)
+    if os.path.isfile(version_file):
+        with open(version_file) as f:
+            print('Copying emscripten version file (version %s)' %
+                  f.read().strip())
+        shutil.copy2(version_file, em_install_dir)
 
 
 def Emscripten():
@@ -1439,7 +1472,7 @@ class Build(object):
 
         # When using LTO we always want a clean build (the previous
         # build was non-LTO)
-        if self.incremental_build_dir and options.use_lto:
+        if self.incremental_build_dir and ShouldUseLTO():
             RemoveIfBot(self.incremental_build_dir)
         try:
             self.runnable(*self.args, **self.kwargs)
@@ -1452,7 +1485,7 @@ class Build(object):
         finally:
             # When using LTO we want to always clean up afterward,
             # (the next build will be non-LTO).
-            if self.incremental_build_dir and options.use_lto:
+            if self.incremental_build_dir and ShouldUseLTO():
                 RemoveIfBot(self.incremental_build_dir)
 
 
@@ -1848,7 +1881,8 @@ def ParseArgs():
         '--clobber', dest='clobber', default=False, action='store_true',
         help="Delete working directories, forcing a clean build")
     parser.add_argument(
-        '--use-lto', dest='use_lto', default=False, action='store_true',
+        '--use-lto', dest='use_lto', default=False, action='store',
+        choices=['true', 'false', 'auto'],
         help='Use extra optimization for host binaries')
 
     return parser.parse_args()
@@ -1938,7 +1972,7 @@ def main():
     if not options.use_sysroot:
         host_toolchains.SetUseSysroot(False)
 
-    if options.use_lto and IsMac():
+    if ShouldUseLTO() and IsMac():
         # The prebuilt clang on mac doesn't include libLTO, so use the SDK
         host_toolchains.SetForceHostClang(False)
 
