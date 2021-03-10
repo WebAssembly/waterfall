@@ -273,6 +273,8 @@ GCC_REVISION = 'b6125c702850488ac3bfb1079ae5c9db89989406'
 GCC_CLONE_DEPTH = 1000
 
 g_should_use_lto = None
+
+
 def ShouldUseLTO():
     if options.use_lto == 'auto':
         # Avoid shelling out to git (via RevisionModifiesFile) more than once.
@@ -282,6 +284,7 @@ def ShouldUseLTO():
                 GetSrcDir(EMSCRIPTEN_VERSION_FILE))
         return g_should_use_lto
     return options.use_lto == 'true'
+
 
 def CopyBinaryToArchive(binary, prefix=''):
     """All binaries are archived in the same tar file."""
@@ -541,7 +544,8 @@ def RevisionModifiesFile(f):
         return False
     cwd = os.path.dirname(f)
     head_rev = proc.check_output(['git', 'rev-parse', 'HEAD'], cwd=cwd).strip()
-    last_rev = proc.check_output(['git', 'rev-list', '-n1', 'HEAD', f], cwd=cwd).strip()
+    last_rev = proc.check_output(
+        ['git', 'rev-list', '-n1', 'HEAD', f], cwd=cwd).strip()
     print('Last rev modifying %s is %s, HEAD is %s' % (f, last_rev, head_rev))
     return head_rev == last_rev
 
