@@ -708,7 +708,8 @@ def AllSources():
                custom_sync=SyncPrebuiltNodeJS),
         Source('gnuwin32', '', '',  # The source and git args are ignored.
                custom_sync=SyncGNUWin32),
-        Source('wabt', GetSrcDir('wabt'), WASM_GIT_BASE + 'wabt.git'),
+        Source('wabt', GetSrcDir('wabt'), WASM_GIT_BASE + 'wabt.git',
+               checkout=RemoteBranch('main')),
         Source('binaryen', GetSrcDir('binaryen'),
                WASM_GIT_BASE + 'binaryen.git',
                checkout=RemoteBranch('main')),
