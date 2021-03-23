@@ -539,10 +539,22 @@ class Source(object):
 
 
 def RevisionModifiesFile(f):
-    # TODO: There's probably some nice single-command way to do this.
+    """Return True if the file f is modified in the index, working tree, or
+    HEAD commit."""
     if not os.path.isfile(f):
         return False
     cwd = os.path.dirname(f)
+    # If the file is modified in the index or working tree, then return true.
+    # This happens on trybots.
+    status = proc.check_output(['git', 'status', '--porcelain', f],
+                               cwd=cwd).decode().strip()
+    changed = len(status) != 0
+    s = status if changed else '(unchanged)'
+    print('%s git status: %s' % (f, s))
+    if changed:
+        return True
+    # Else find the most recent commit that modified f, and return true if
+    # that's the HEAD commit.
     head_rev = proc.check_output(['git', 'rev-parse', 'HEAD'], cwd=cwd).strip()
     last_rev = proc.check_output(
         ['git', 'rev-list', '-n1', 'HEAD', f], cwd=cwd).strip()
