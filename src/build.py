@@ -547,7 +547,7 @@ def RevisionModifiesFile(f):
     # If the file is modified in the index or working tree, then return true.
     # This happens on trybots.
     status = proc.check_output(['git', 'status', '--porcelain', f],
-                               cwd=cwd).decode().strip()
+                               cwd=cwd).strip()
     changed = len(status) != 0
     s = status if changed else '(unchanged)'
     print('%s git status: %s' % (f, s))
