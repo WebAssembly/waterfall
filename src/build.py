@@ -452,7 +452,7 @@ class Filter(object):
 class Source(object):
     """Metadata about a sync-able source repo on the waterfall"""
     def __init__(self, name, src_dir, git_repo,
-                 checkout=RemoteBranch('master'), depth=None,
+                 checkout=RemoteBranch('main'), depth=None,
                  custom_sync=None, os_filter=None):
         self.name = name
         self.src_dir = src_dir
@@ -699,19 +699,16 @@ def AllSources():
     return [
         Source('waterfall', SCRIPT_DIR, None, custom_sync=NoSync),
         Source('llvm', GetSrcDir('llvm-project'),
-               LLVM_GIT_BASE + 'llvm-project.git',
-               checkout=RemoteBranch('main')),
+               LLVM_GIT_BASE + 'llvm-project.git'),
         Source('llvm-test-suite', GetSrcDir('llvm-test-suite'),
-               LLVM_GIT_BASE + 'llvm-test-suite.git',
-               checkout=RemoteBranch('main')),
+               LLVM_GIT_BASE + 'llvm-test-suite.git'),
         Source('emscripten', GetSrcDir('emscripten'),
-               EMSCRIPTEN_GIT_BASE + 'emscripten.git',
-               checkout=RemoteBranch('main')),
+               EMSCRIPTEN_GIT_BASE + 'emscripten.git'),
         Source('gcc', GetSrcDir('gcc'),
                GIT_MIRROR_BASE + 'chromiumos/third_party/gcc.git',
                checkout=GCC_REVISION, depth=GCC_CLONE_DEPTH),
         Source('v8', work_dirs.GetV8(), GIT_MIRROR_BASE + 'v8/v8.git',
-               custom_sync=ChromiumFetchSync),
+               custom_sync=ChromiumFetchSync, checkout=RemoteBranch('master')),
         Source('host-toolchain', work_dirs.GetV8(), '',
                custom_sync=SyncToolchain),
         Source('cmake', '', '',  # The source and git args are ignored.
@@ -720,11 +717,9 @@ def AllSources():
                custom_sync=SyncPrebuiltNodeJS),
         Source('gnuwin32', '', '',  # The source and git args are ignored.
                custom_sync=SyncGNUWin32),
-        Source('wabt', GetSrcDir('wabt'), WASM_GIT_BASE + 'wabt.git',
-               checkout=RemoteBranch('main')),
+        Source('wabt', GetSrcDir('wabt'), WASM_GIT_BASE + 'wabt.git'),
         Source('binaryen', GetSrcDir('binaryen'),
-               WASM_GIT_BASE + 'binaryen.git',
-               checkout=RemoteBranch('main')),
+               WASM_GIT_BASE + 'binaryen.git'),
         Source('wasi-libc', GetSrcDir('wasi-libc'),
                'https://github.com/CraneStation/wasi-libc.git'),
         Source('java', '', '',  # The source and git args are ignored.
