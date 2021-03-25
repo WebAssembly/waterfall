@@ -1157,7 +1157,8 @@ def InstallEmscripten():
         native = 'google-closure-compiler-windows'
     elif IsLinux():
         native = 'google-closure-compiler-linux'
-    proc.check_call(['npm', 'install', '--no-optional', native], cwd=em_install_dir)
+    proc.check_call(['npm', 'install', '--no-optional', native],
+                    cwd=em_install_dir)
 
     version_file = GetSrcDir(EMSCRIPTEN_VERSION_FILE)
     if os.path.isfile(version_file):
