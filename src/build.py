@@ -49,6 +49,7 @@ CMAKE_TOOLCHAIN_FILE = 'Wasi.cmake'
 
 EMSCRIPTEN_CONFIG_UPSTREAM = 'emscripten_config_upstream'
 EMSCRIPTEN_VERSION_FILE = 'emscripten-version.txt'
+RELEASE_DEPS_FILE = 'DEPS.tagged-release'
 
 # Avoid flakes: use cached repositories to avoid relying on external network.
 GIT_MIRROR_BASE = 'https://chromium.googlesource.com/'
@@ -281,7 +282,7 @@ def ShouldUseLTO():
         global g_should_use_lto
         if g_should_use_lto is None:
             g_should_use_lto = RevisionModifiesFile(
-                GetSrcDir(EMSCRIPTEN_VERSION_FILE))
+                GetSrcDir(RELEASE_DEPS_FILE))
         return g_should_use_lto
     return options.use_lto == 'true'
 
@@ -691,6 +692,14 @@ def SyncLinuxSysroot(name, src_dir, git_repo):
                 create_out_dir=True)
 
 
+def SyncReleaseDeps(name, src_dir, git_repo):
+    if not ShouldUseLTO():
+        print('ShouldUseLTO is false, skipping release DEPS')
+        return
+    shutil.copy2(GetSrcDir(RELEASE_DEPS_FILE), GetSrcDir('DEPS'))
+    proc.check_call(['gclient', 'sync'], cwd=GetSrcDir())
+
+
 def NoSync(*args):
     pass
 
@@ -725,7 +734,8 @@ def AllSources():
         Source('java', '', '',  # The source and git args are ignored.
                custom_sync=SyncPrebuiltJava),
         Source('sysroot', '', '',  # The source and git args are ignored.
-               custom_sync=SyncLinuxSysroot)
+               custom_sync=SyncLinuxSysroot),
+        Source('deps', '', '', custom_sync=SyncReleaseDeps)
     ]
 
 
