@@ -48,7 +48,6 @@ JSVU_OUT_DIR = os.path.expanduser(os.path.join('~', '.jsvu'))
 CMAKE_TOOLCHAIN_FILE = 'Wasi.cmake'
 
 EMSCRIPTEN_CONFIG_UPSTREAM = 'emscripten_config_upstream'
-EMSCRIPTEN_VERSION_FILE = 'emscripten-version.txt'
 RELEASE_DEPS_FILE = 'DEPS.tagged-release'
 
 # Avoid flakes: use cached repositories to avoid relying on external network.
@@ -1169,13 +1168,6 @@ def InstallEmscripten():
         native = 'google-closure-compiler-linux'
     proc.check_call(['npm', 'install', '--no-optional', native],
                     cwd=em_install_dir)
-
-    version_file = GetSrcDir(EMSCRIPTEN_VERSION_FILE)
-    if os.path.isfile(version_file):
-        with open(version_file) as f:
-            print('Copying emscripten version file (version %s)' %
-                  f.read().strip())
-        shutil.copy2(version_file, em_install_dir)
 
 
 def Emscripten():
