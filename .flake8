@@ -1,3 +1,0 @@
-[flake8]
-ignore = W504
-exclude = ./debian,./src/work

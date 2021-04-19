@@ -1,9 +1,0 @@
-*~
-*.pyc
-src/work
-debian/wasm-toolchain.substvars
-debian/wasm-toolchain
-debian/wasm-toolchain.postinst.debhelper
-debian/wasm-toolchain.postrm.debhelper
-debian/wasm-toolchain.debhelper.log
-debian/files

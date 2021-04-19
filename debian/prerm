@@ -1,7 +1,0 @@
-#!/bin/sh
-set -e
-
-for x in emcc em++ emconfigure emmake wasm2wat wat2wasm wasm-objdump \
-         wasm-interp wasm-opt wasm-as wasm-dis wasm-shell wasm d8; do
-  update-alternatives --remove $x /opt/wasm/bin/$x
-done
