@@ -5,6 +5,6 @@ components (including LLVM, Binaryen, and Emscripten). Eventually it was
 only used for the "emscripten-releases" builders used to build binary
 distributions for EMSDK on top of Chromium's infrastructure. So, we
 have moved it a Chromium repository for ease of development. You can
-find it in the `build/` subdirectory of the
+find it in the `src/` subdirectory of the
 [emscripten-releases](https://chromium.googlesource.com/emscripten-releases/)
 repository.
